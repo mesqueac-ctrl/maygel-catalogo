@@ -1,0 +1,126 @@
+---
+import { buildWhatsappLink } from "../consts";
+
+const whatsappLink = buildWhatsappLink(
+	"Hola, me gustaría recibir información sobre compras al por mayor de sandalias Maygel (precios, cantidades mínimas y tiempos de fabricación).",
+);
+
+const beneficios = [
+	{
+		titulo: "Precios por cantidad",
+		texto: "Precios especiales para pedidos por volumen o tiendas que deseen distribuir Maygel.",
+	},
+	{
+		titulo: "Combina colores",
+		texto: "Posibilidad de combinar nuestras variantes de color (Negro, Blanco, Miel y Beige) en tu pedido.",
+	},
+	{
+		titulo: "Fabricación bajo pedido",
+		texto:
+			"Cada lote se elabora a mano especialmente para tu negocio. Los pedidos mayoristas deben realizarse con anticipación.",
+	},
+];
+---
+
+<section class="mayor section" id="por-mayor">
+	<div class="container mayor__inner">
+		<div class="mayor__content">
+			<p class="eyebrow">Para tiendas y negocios</p>
+			<h2 class="section-title mayor__title">Venta al por mayor</h2>
+			<p class="mayor__lead">
+				Lleva nuestras sandalias planas artesanales a tu boutique o proyecto comercial.
+				Fabricamos bajo pedido con acabados de calidad y cuero seleccionado.
+			</p>
+
+			<div class="mayor__puntos">
+				{
+					beneficios.map((punto) => (
+						<div class="mayor__punto">
+							<h3 class="mayor__punto-titulo">{punto.titulo}</h3>
+							<p class="mayor__punto-texto">{punto.texto}</p>
+						</div>
+					))
+				}
+			</div>
+
+			<div class="mayor__cta-wrapper">
+				<a class="btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+					Consultar condiciones mayoristas
+				</a>
+				<p class="mayor__nota">
+					Escríbenos para conocer condiciones, precios, cantidades mínimas y tiempos de fabricación.
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.mayor {
+		border-top: 1px solid var(--color-border);
+		scroll-margin-top: 5rem;
+	}
+
+	.mayor__inner {
+		max-width: 900px;
+	}
+
+	.mayor__title {
+		margin-bottom: 1.25rem;
+	}
+
+	.mayor__lead {
+		font-size: 1.0625rem;
+		font-weight: 300;
+		color: var(--color-accent-soft);
+		line-height: 1.7;
+		margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+		max-width: 58ch;
+	}
+
+	.mayor__puntos {
+		display: grid;
+		gap: 2rem;
+		margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+	}
+
+	.mayor__punto {
+		border-top: 2px solid var(--color-accent);
+		padding-top: 1rem;
+	}
+
+	.mayor__punto-titulo {
+		font-family: var(--font-heading);
+		font-size: 1.25rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.mayor__punto-texto {
+		font-size: 0.9375rem;
+		font-weight: 300;
+		color: var(--color-accent-soft);
+		line-height: 1.6;
+		max-width: 54ch;
+	}
+
+	.mayor__cta-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.mayor__nota {
+		font-size: 0.8125rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		max-width: 48ch;
+	}
+
+	@media (min-width: 768px) {
+		.mayor__puntos {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 2rem;
+		}
+	}
+</style>

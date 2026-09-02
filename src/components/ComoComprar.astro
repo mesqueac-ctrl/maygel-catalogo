@@ -1,0 +1,175 @@
+---
+import { buildWhatsappLink } from "../consts";
+
+const pasos = [
+	{
+		numero: "1",
+		titulo: "Elige modelo y color",
+		texto: "Mira el catálogo, selecciona tu color preferido y revisa las tallas disponibles.",
+	},
+	{
+		numero: "2",
+		titulo: "Escríbenos por WhatsApp",
+		texto: "Te confirmamos disponibilidad y te asesoramos para elegir la talla ideal.",
+	},
+	{
+		numero: "3",
+		titulo: "Fabricación y entrega",
+		texto:
+			"La confección artesanal de tu sandalia inicia tras confirmar tu pedido y talla. Coordinamos entrega y pago.",
+	},
+];
+
+const datos = [
+	{
+		etiqueta: "Fabricación",
+		valor: "Bajo pedido. Tu sandalia se hace especialmente a partir de tu encargo.",
+	},
+	{
+		etiqueta: "Entregas",
+		valor: "Soledad y Barranquilla. Envíos nacionales para pedidos al por mayor.",
+	},
+	{
+		etiqueta: "Formas de pago",
+		valor: "Contraentrega local, Nequi, Daviplata o transferencia bancaria.",
+	},
+	{
+		etiqueta: "Cambio de talla",
+		valor: "Sí lo hacemos. El domicilio del cambio corre por cuenta de la clienta.",
+	},
+];
+
+const whatsappLink = buildWhatsappLink("Hola, tengo una duda sobre las sandalias Maygel");
+---
+
+<section class="comprar section" id="como-comprar">
+	<div class="container">
+		<header class="comprar__header">
+			<p class="eyebrow">Cómo comprar</p>
+			<h2 class="section-title">Así de simple</h2>
+		</header>
+
+		<ol class="pasos">
+			{
+				pasos.map((paso) => (
+					<li class="paso">
+						<span class="paso__numero">{paso.numero}</span>
+						<h3 class="paso__titulo">{paso.titulo}</h3>
+						<p class="paso__texto">{paso.texto}</p>
+					</li>
+				))
+			}
+		</ol>
+
+		<dl class="datos">
+			{
+				datos.map((dato) => (
+					<div class="dato">
+						<dt class="dato__etiqueta">{dato.etiqueta}</dt>
+						<dd class="dato__valor">{dato.valor}</dd>
+					</div>
+				))
+			}
+		</dl>
+
+		<p class="comprar__ayuda">
+			¿No sabes qué talla pedir?{" "}
+			<a href={whatsappLink} target="_blank" rel="noopener noreferrer">Escríbenos y te ayudamos</a>.
+		</p>
+	</div>
+</section>
+
+<style>
+	.comprar {
+		border-top: 1px solid var(--color-border);
+	}
+
+	.comprar__header {
+		margin-bottom: clamp(3rem, 7vw, 4.5rem);
+	}
+
+	.pasos {
+		list-style: none;
+		margin: 0 0 clamp(3.5rem, 8vw, 5.5rem);
+		padding: 0;
+		display: grid;
+		gap: clamp(2.5rem, 5vw, 3rem);
+	}
+
+	.paso__numero {
+		display: block;
+		font-family: var(--font-heading);
+		font-size: 2.5rem;
+		line-height: 1;
+		color: var(--color-accent);
+		margin-bottom: 1.25rem;
+	}
+
+	.paso__titulo {
+		font-size: 1.25rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.paso__texto {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		max-width: 34ch;
+	}
+
+	.datos {
+		margin: 0;
+		padding-top: clamp(2.5rem, 5vw, 3rem);
+		border-top: 1px solid var(--color-border);
+		display: grid;
+		gap: 2rem;
+	}
+
+	.dato__etiqueta {
+		font-size: 0.75rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--color-accent-soft);
+		margin-bottom: 0.75rem;
+	}
+
+	.dato__valor {
+		margin: 0;
+		font-weight: 300;
+		max-width: 30ch;
+	}
+
+	.comprar__ayuda {
+		margin-top: clamp(2.5rem, 5vw, 3rem);
+		font-weight: 300;
+		color: var(--color-accent-soft);
+	}
+
+	.comprar__ayuda a {
+		color: var(--color-text);
+		text-decoration: none;
+		border-bottom: 1px solid var(--color-accent);
+		padding-bottom: 2px;
+		transition: color 0.2s ease;
+	}
+
+	.comprar__ayuda a:hover {
+		color: var(--color-accent);
+	}
+
+	@media (min-width: 700px) {
+		.pasos {
+			grid-template-columns: repeat(3, 1fr);
+		}
+
+		.datos {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 2.5rem 3rem;
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.datos {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+</style>

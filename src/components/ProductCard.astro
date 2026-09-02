@@ -1,7 +1,13 @@
 ---
 import { Image } from "astro:assets";
-import { buildWhatsappLink } from "../consts";
-import { formatearPrecio, tallasComoLista, type ProductoRegistro } from "../lib/productos";
+import { buildWhatsappLink, WHATSAPP_NUMBER } from "../consts";
+import {
+	formatearPrecio,
+	tallasComoLista,
+	coloresComoLista,
+	COLORES_METADATA,
+	type ProductoRegistro,
+} from "../lib/productos";
 
 interface Props {
 	producto: ProductoRegistro;
@@ -11,14 +17,26 @@ const { producto } = Astro.props;
 
 const precioFormateado = formatearPrecio(producto.precio);
 const tallas = tallasComoLista(producto.tallas);
-const whatsappLink = buildWhatsappLink(`Hola, me interesa ${producto.nombre}`);
+const colores = coloresComoLista(producto.colores);
+const unicoColor = colores.length === 1 ? colores[0] : null;
+
+// Mensaje inicial de WhatsApp
+let mensajeInicial = "";
+if (unicoColor) {
+	mensajeInicial = `Hola, quiero encargar la sandalia ${producto.nombre} en color ${unicoColor}. Entiendo que es un producto fabricado bajo pedido.`;
+} else if (colores.length === 0) {
+	mensajeInicial = `Hola, quiero encargar la sandalia ${producto.nombre}. Entiendo que es un producto fabricado bajo pedido.`;
+}
+
+const enlaceInicial = mensajeInicial ? buildWhatsappLink(mensajeInicial) : "#";
+const necesitaSeleccion = colores.length > 1;
 
 // Las fotos subidas desde el panel son URLs remotas (Vercel Blob) y las optimiza
 // <Image>. Las que viven en /public se sirven tal cual.
 const esRemota = producto.imagen.startsWith("http");
 ---
 
-<article class="card">
+<article class="card" data-product-card data-product-name={producto.nombre} data-wa-number={WHATSAPP_NUMBER}>
 	<div class="card__image">
 		{
 			esRemota ? (
@@ -30,16 +48,93 @@ const esRemota = producto.imagen.startsWith("http");
 	</div>
 
 	<div class="card__body">
-		<h3 class="card__name">{producto.nombre}</h3>
-		<p class="card__price">{precioFormateado}</p>
+		<div class="card__header">
+			<h3 class="card__name">{producto.nombre}</h3>
+			<p class="card__price">{precioFormateado}</p>
+		</div>
+
+		<p class="card__tag">Fabricación bajo pedido</p>
 		<p class="card__description">{producto.descripcion}</p>
+
 		{tallas.length > 0 && <p class="card__sizes">Tallas {tallas.join(" · ")}</p>}
 
-		<a class="card__cta" href={whatsappLink} target="_blank" rel="noopener noreferrer">
-			Consultar por WhatsApp
+		{
+			colores.length > 0 && (
+				<div class="card__colors" role="group" aria-label={`Colores disponibles para ${producto.nombre}`}>
+					<span class="card__colors-label">Colores disponibles:</span>
+					<div class="card__colors-list">
+						{colores.map((color) => {
+							const meta = COLORES_METADATA[color];
+							const esActivo = unicoColor === color;
+							return (
+								<button
+									type="button"
+									class={`card__color-btn ${esActivo ? "card__color-btn--active" : ""}`}
+									data-color={color}
+									aria-label={`Elegir color ${color}`}
+									title={`Color ${color}`}
+								>
+									<span
+										class="card__color-dot"
+										style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
+										aria-hidden="true"
+									/>
+									<span class="card__color-name">{color}</span>
+								</button>
+							);
+						})}
+					</div>
+				</div>
+			)
+		}
+
+		<a
+			class={`card__cta ${necesitaSeleccion ? "card__cta--disabled" : ""}`}
+			href={enlaceInicial}
+			target={necesitaSeleccion ? "_self" : "_blank"}
+			rel="noopener noreferrer"
+			data-card-cta
+			aria-disabled={necesitaSeleccion ? "true" : undefined}
+		>
+			{necesitaSeleccion ? "Selecciona un color" : "Encargar por WhatsApp"}
 		</a>
 	</div>
 </article>
+
+<script>
+	document.querySelectorAll<HTMLElement>("[data-product-card]").forEach((card) => {
+		const nombre = card.dataset.productName ?? "";
+		const waNumber = card.dataset.waNumber ?? "573243513189";
+		const colorBtns = card.querySelectorAll<HTMLButtonElement>("[data-color]");
+		const cta = card.querySelector<HTMLAnchorElement>("[data-card-cta]");
+		if (!cta || colorBtns.length <= 1) return;
+
+		colorBtns.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				const color = btn.dataset.color;
+				if (!color) return;
+
+				colorBtns.forEach((b) => b.classList.remove("card__color-btn--active"));
+				btn.classList.add("card__color-btn--active");
+
+				const mensaje = `Hola, quiero encargar la sandalia ${nombre} en color ${color}. Entiendo que es un producto fabricado bajo pedido.`;
+				const url = `https://wa.me/${waNumber}?text=${encodeURIComponent(mensaje)}`;
+
+				cta.href = url;
+				cta.target = "_blank";
+				cta.textContent = `Encargar en ${color} por WhatsApp`;
+				cta.classList.remove("card__cta--disabled");
+				cta.removeAttribute("aria-disabled");
+			});
+		});
+
+		cta.addEventListener("click", (evento) => {
+			if (cta.getAttribute("aria-disabled") === "true" || cta.classList.contains("card__cta--disabled")) {
+				evento.preventDefault();
+			}
+		});
+	});
+</script>
 
 <style>
 	.card {
@@ -65,15 +160,38 @@ const esRemota = producto.imagen.startsWith("http");
 		transform: scale(1.03);
 	}
 
-	.card__name {
-		font-size: 1.25rem;
+	.card__body {
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+	}
+
+	.card__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
 		margin-bottom: 0.35rem;
 	}
 
+	.card__name {
+		font-size: 1.25rem;
+	}
+
 	.card__price {
-		font-size: 0.9375rem;
+		font-size: 1rem;
+		font-weight: 500;
 		color: var(--color-accent);
-		margin-bottom: 0.85rem;
+		white-space: nowrap;
+	}
+
+	.card__tag {
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+		margin-bottom: 0.75rem;
+		font-weight: 500;
 	}
 
 	.card__description {
@@ -81,13 +199,65 @@ const esRemota = producto.imagen.startsWith("http");
 		font-weight: 300;
 		color: var(--color-accent-soft);
 		margin-bottom: 0.85rem;
+		line-height: 1.6;
 	}
 
 	.card__sizes {
 		font-size: 0.8125rem;
 		letter-spacing: 0.04em;
 		color: var(--color-accent-soft);
+		margin-bottom: 1.25rem;
+	}
+
+	.card__colors {
 		margin-bottom: 1.5rem;
+	}
+
+	.card__colors-label {
+		display: block;
+		font-size: 0.75rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-accent-soft);
+		margin-bottom: 0.5rem;
+	}
+
+	.card__colors-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.card__color-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		background: transparent;
+		border: 1px solid var(--color-border);
+		padding: 0.35rem 0.65rem;
+		cursor: pointer;
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		color: var(--color-text);
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+	}
+
+	.card__color-btn:hover {
+		border-color: var(--color-accent);
+	}
+
+	.card__color-btn--active {
+		border-color: var(--color-accent);
+		background-color: #f7efe7;
+		font-weight: 500;
+	}
+
+	.card__color-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		border: 1px solid;
+		flex-shrink: 0;
 	}
 
 	.card__cta {
@@ -102,11 +272,19 @@ const esRemota = producto.imagen.startsWith("http");
 		padding-bottom: 3px;
 		transition:
 			color 0.2s ease,
-			border-color 0.2s ease;
+			border-color 0.2s ease,
+			opacity 0.2s ease;
 	}
 
-	.card__cta:hover {
+	.card__cta:hover:not(.card__cta--disabled) {
 		color: var(--color-accent);
 		border-color: var(--color-accent);
+	}
+
+	.card__cta--disabled {
+		color: var(--color-accent-soft);
+		border-color: transparent;
+		cursor: not-allowed;
+		opacity: 0.65;
 	}
 </style>

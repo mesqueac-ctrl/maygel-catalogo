@@ -1,10 +1,21 @@
 import { db, Producto, eq, asc, sql } from "astro:db";
 
+export const COLORES_VALIDOS = ["Negro", "Blanco", "Miel", "Beige"] as const;
+export type ColorValido = (typeof COLORES_VALIDOS)[number];
+
+export const COLORES_METADATA: Record<ColorValido, { nombre: string; hex: string; border: string }> = {
+	Negro: { nombre: "Negro", hex: "#222222", border: "#222222" },
+	Blanco: { nombre: "Blanco", hex: "#FFFFFF", border: "#D8CFC4" },
+	Miel: { nombre: "Miel", hex: "#C47C35", border: "#B56E28" },
+	Beige: { nombre: "Beige", hex: "#E7DACB", border: "#D6C4B0" },
+};
+
 export interface ProductoRegistro {
 	id: number;
 	nombre: string;
 	precio: number;
 	tallas: string;
+	colores: string;
 	imagen: string;
 	descripcion: string;
 	disponible: boolean;
@@ -89,6 +100,15 @@ export function tallasComoLista(tallas: string): string[] {
 		.split(",")
 		.map((talla) => talla.trim())
 		.filter(Boolean);
+}
+
+/** Convierte "Negro, Blanco, Miel" en array de ColorValido, filtrando vacíos e inválidos. */
+export function coloresComoLista(colores?: string | null): ColorValido[] {
+	if (!colores || typeof colores !== "string") return [];
+	return colores
+		.split(",")
+		.map((c) => c.trim())
+		.filter((c): c is ColorValido => (COLORES_VALIDOS as readonly string[]).includes(c));
 }
 
 export function formatearPrecio(precio: number): string {

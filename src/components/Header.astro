@@ -4,6 +4,8 @@ import { buildWhatsappLink } from "../consts";
 const navLinks = [
 	{ href: "#sobre-nosotros", label: "Sobre nosotros" },
 	{ href: "#catalogo", label: "Catálogo" },
+	{ href: "#como-comprar", label: "Cómo comprar" },
+	{ href: "#por-mayor", label: "Por mayor" },
 	{ href: "#contacto", label: "Contacto" },
 ];
 
@@ -53,7 +55,7 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 
 	.header__nav {
 		display: none;
-		gap: 2.5rem;
+		gap: clamp(1.5rem, 2.5vw, 2.5rem);
 		font-size: 0.9rem;
 		font-weight: 400;
 	}

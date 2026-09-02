@@ -1,6 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import { listarTodos, formatearPrecio } from "../../../lib/productos";
+import { listarTodos, formatearPrecio, coloresComoLista } from "../../../lib/productos";
 
 const productos = await listarTodos();
 
@@ -54,67 +54,75 @@ const error = Astro.url.searchParams.get("error");
 			</div>
 		) : (
 			<ul class="lista">
-				{productos.map((producto, indice) => (
-					<li class="fila">
-						<div class="orden">
-							<form method="POST" action="/admin/api/mover">
-								<input type="hidden" name="id" value={producto.id} />
-								<input type="hidden" name="direccion" value="subir" />
-								<button
-									class="orden__boton"
-									type="submit"
-									disabled={indice === 0}
-									title="Subir esta sandalia"
-									aria-label={`Subir ${producto.nombre}`}
+				{productos.map((producto, indice) => {
+					const listaColores = coloresComoLista(producto.colores);
+					return (
+						<li class="fila">
+							<div class="orden">
+								<form method="POST" action="/admin/api/mover">
+									<input type="hidden" name="id" value={producto.id} />
+									<input type="hidden" name="direccion" value="subir" />
+									<button
+										class="orden__boton"
+										type="submit"
+										disabled={indice === 0}
+										title="Subir esta sandalia"
+										aria-label={`Subir ${producto.nombre}`}
+									>
+										↑
+									</button>
+								</form>
+
+								<form method="POST" action="/admin/api/mover">
+									<input type="hidden" name="id" value={producto.id} />
+									<input type="hidden" name="direccion" value="bajar" />
+									<button
+										class="orden__boton"
+										type="submit"
+										disabled={indice === productos.length - 1}
+										title="Bajar esta sandalia"
+										aria-label={`Bajar ${producto.nombre}`}
+									>
+										↓
+									</button>
+								</form>
+							</div>
+
+							<img class="fila__foto" src={producto.imagen} alt={producto.nombre} />
+
+							<div class="fila__datos">
+								<p class="fila__nombre">{producto.nombre}</p>
+								<p class="fila__precio">{formatearPrecio(producto.precio)}</p>
+								{listaColores.length > 0 && (
+									<p class="fila__colores">
+										<strong>Colores:</strong> {listaColores.join(" · ")}
+									</p>
+								)}
+								<p class={`fila__estado ${producto.disponible ? "" : "fila__estado--oculto"}`}>
+									{producto.disponible ? "Se muestra en la página" : "Oculta (nadie la ve)"}
+								</p>
+							</div>
+
+							<div class="fila__acciones">
+								<a class="boton-secundario" href={`/admin/productos/${producto.id}`}>
+									Editar
+								</a>
+
+								<form
+									method="POST"
+									action="/admin/api/eliminar"
+									data-confirmar
+									data-nombre={producto.nombre}
 								>
-									↑
-								</button>
-							</form>
-
-							<form method="POST" action="/admin/api/mover">
-								<input type="hidden" name="id" value={producto.id} />
-								<input type="hidden" name="direccion" value="bajar" />
-								<button
-									class="orden__boton"
-									type="submit"
-									disabled={indice === productos.length - 1}
-									title="Bajar esta sandalia"
-									aria-label={`Bajar ${producto.nombre}`}
-								>
-									↓
-								</button>
-							</form>
-						</div>
-
-						<img class="fila__foto" src={producto.imagen} alt={producto.nombre} />
-
-						<div class="fila__datos">
-							<p class="fila__nombre">{producto.nombre}</p>
-							<p class="fila__precio">{formatearPrecio(producto.precio)}</p>
-							<p class={`fila__estado ${producto.disponible ? "" : "fila__estado--oculto"}`}>
-								{producto.disponible ? "Se muestra en la página" : "Oculta (nadie la ve)"}
-							</p>
-						</div>
-
-						<div class="fila__acciones">
-							<a class="boton-secundario" href={`/admin/productos/${producto.id}`}>
-								Editar
-							</a>
-
-							<form
-								method="POST"
-								action="/admin/api/eliminar"
-								data-confirmar
-								data-nombre={producto.nombre}
-							>
-								<input type="hidden" name="id" value={producto.id} />
-								<button class="boton-eliminar" type="submit">
-									Eliminar
-								</button>
-							</form>
-						</div>
-					</li>
-				))}
+									<input type="hidden" name="id" value={producto.id} />
+									<button class="boton-eliminar" type="submit">
+										Eliminar
+									</button>
+								</form>
+							</div>
+						</li>
+					);
+				})}
 			</ul>
 		)
 	}
@@ -269,6 +277,17 @@ const error = Astro.url.searchParams.get("error");
 	.fila__precio {
 		color: var(--color-accent);
 		margin-bottom: 0.25rem;
+	}
+
+	.fila__colores {
+		font-size: 0.875rem;
+		color: var(--color-accent-soft);
+		margin-bottom: 0.35rem;
+	}
+
+	.fila__colores strong {
+		color: var(--color-text);
+		font-weight: 500;
 	}
 
 	.fila__estado {

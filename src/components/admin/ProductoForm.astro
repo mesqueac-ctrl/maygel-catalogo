@@ -1,5 +1,10 @@
 ---
-import type { ProductoRegistro } from "../../lib/productos";
+import {
+	COLORES_VALIDOS,
+	COLORES_METADATA,
+	coloresComoLista,
+	type ProductoRegistro,
+} from "../../lib/productos";
 
 interface Props {
 	producto?: ProductoRegistro;
@@ -7,6 +12,7 @@ interface Props {
 
 const { producto } = Astro.props;
 const esEdicion = Boolean(producto);
+const coloresSeleccionados = coloresComoLista(producto?.colores);
 ---
 
 <form class="formulario" method="POST" action="/admin/api/guardar" enctype="multipart/form-data">
@@ -40,6 +46,39 @@ const esEdicion = Boolean(producto);
 		/>
 		<span class="campo__ayuda">Escribe solo números, sin puntos ni comas.</span>
 	</label>
+
+	<fieldset class="campo campo--fieldset" id="campo-colores">
+		<legend class="campo__etiqueta">Colores disponibles</legend>
+		<p class="campo__subtitulo">Marca los colores en los que puedes fabricar esta sandalia:</p>
+		<div class="colores-grid">
+			{
+				COLORES_VALIDOS.map((color) => {
+					const meta = COLORES_METADATA[color];
+					const estaMarcado = coloresSeleccionados.includes(color);
+					return (
+						<label class="color-opcion">
+							<input
+								class="color-opcion__check"
+								type="checkbox"
+								name="colores"
+								value={color}
+								checked={estaMarcado}
+							/>
+							<span
+								class="color-opcion__muestra"
+								style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
+								aria-hidden="true"
+							/>
+							<span class="color-opcion__nombre">{meta.nombre}</span>
+						</label>
+					);
+				})
+			}
+		</div>
+		<p class="aviso-error-colores" id="error-colores" hidden>
+			Debes seleccionar al menos un color para la sandalia.
+		</p>
+	</fieldset>
 
 	<label class="campo">
 		<span class="campo__etiqueta">Tallas disponibles</span>
@@ -133,6 +172,28 @@ const esEdicion = Boolean(producto);
 		imagen.src = URL.createObjectURL(archivo);
 		contenedor.hidden = false;
 	});
+
+	// Validación de al menos un color seleccionado
+	const formulario = document.querySelector(".formulario") as HTMLFormElement | null;
+	const checkboxesColores = document.querySelectorAll<HTMLInputElement>('input[name="colores"]');
+	const errorColores = document.getElementById("error-colores");
+
+	formulario?.addEventListener("submit", (evento) => {
+		const algunoSeleccionado = Array.from(checkboxesColores).some((cb) => cb.checked);
+		if (!algunoSeleccionado) {
+			evento.preventDefault();
+			if (errorColores) errorColores.hidden = false;
+			document.getElementById("campo-colores")?.scrollIntoView({ behavior: "smooth", block: "center" });
+		}
+	});
+
+	checkboxesColores.forEach((cb) => {
+		cb.addEventListener("change", () => {
+			if (errorColores && Array.from(checkboxesColores).some((c) => c.checked)) {
+				errorColores.hidden = true;
+			}
+		});
+	});
 </script>
 
 <style>
@@ -158,6 +219,70 @@ const esEdicion = Boolean(producto);
 		font-weight: 500;
 		margin-bottom: 0.6rem;
 		padding: 0;
+	}
+
+	.campo__subtitulo {
+		font-size: 0.9375rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		margin-bottom: 0.85rem;
+	}
+
+	.colores-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+		gap: 0.75rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.color-opcion {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.75rem 1rem;
+		background-color: #fff;
+		border: 1px solid var(--color-border);
+		cursor: pointer;
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+		user-select: none;
+	}
+
+	.color-opcion:hover {
+		border-color: var(--color-accent);
+	}
+
+	.color-opcion:has(.color-opcion__check:checked) {
+		border-color: var(--color-accent);
+		background-color: #fbf7f2;
+	}
+
+	.color-opcion__check {
+		width: 18px;
+		height: 18px;
+		accent-color: var(--color-accent);
+		cursor: pointer;
+	}
+
+	.color-opcion__muestra {
+		display: inline-block;
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		border: 1px solid;
+		flex-shrink: 0;
+	}
+
+	.color-opcion__nombre {
+		font-size: 0.9375rem;
+		font-weight: 400;
+		color: var(--color-text);
+	}
+
+	.aviso-error-colores {
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
+		color: #8c3a22;
+		font-weight: 500;
 	}
 
 	.campo__input {

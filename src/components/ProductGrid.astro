@@ -8,11 +8,16 @@ const productos = await listarDisponibles();
 <section class="catalogo section" id="catalogo">
 	<div class="container">
 		<header class="catalogo__header">
-			<p class="eyebrow">Catálogo</p>
-			<h2 class="section-title">Nuestras sandalias</h2>
+			<p class="eyebrow">Catálogo · Sandalias planas</p>
+			<h2 class="section-title">Hechas a mano, bajo pedido</h2>
 			<p class="catalogo__subtitle">
-				Cada par es hecho a mano, así que puede haber pequeñas variaciones únicas.
+				Fabricamos cada sandalia especialmente a partir de tu encargo en nuestro taller familiar.
+				Realiza tu pedido con anticipación.
 			</p>
+			<div class="catalogo__aviso">
+				<span class="catalogo__aviso-punto" aria-hidden="true"></span>
+				<span><strong>Fabricación bajo pedido:</strong> Elige tu modelo y color favorito para comenzar tu confección.</span>
+			</div>
 		</header>
 
 		{
@@ -46,6 +51,27 @@ const productos = await listarDisponibles();
 		margin-top: 1.25rem;
 		color: var(--color-accent-soft);
 		font-weight: 300;
+	}
+
+	.catalogo__aviso {
+		margin-top: 1.5rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 1rem;
+		background-color: #f7efe7;
+		border: 1px solid var(--color-border);
+		font-size: 0.8125rem;
+		color: var(--color-text);
+		line-height: 1.4;
+	}
+
+	.catalogo__aviso-punto {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background-color: var(--color-accent);
+		flex-shrink: 0;
 	}
 
 	.catalogo__vacio {

@@ -1,6 +1,12 @@
 import type { APIRoute } from "astro";
 import { put, del } from "@vercel/blob";
-import { actualizar, crear, type ProductoNuevo } from "../../../lib/productos";
+import {
+	actualizar,
+	crear,
+	COLORES_VALIDOS,
+	type ColorValido,
+	type ProductoNuevo,
+} from "../../../lib/productos";
 
 const TAMANO_MAXIMO = 8 * 1024 * 1024; // 8 MB
 
@@ -75,6 +81,32 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return errorRedirect(redirect, "El precio no es válido.");
 	}
 
+	// Procesamiento y validación estricta de colores
+	const coloresEntrantes = datos
+		.getAll("colores")
+		.flatMap((item) => String(item).split(","))
+		.map((c) => c.trim())
+		.filter(Boolean);
+
+	const coloresValidados = Array.from(
+		new Set(
+			coloresEntrantes.filter((c): c is ColorValido =>
+				(COLORES_VALIDOS as readonly string[]).includes(c),
+			),
+		),
+	);
+
+	if (coloresValidados.length === 0) {
+		return errorRedirect(
+			redirect,
+			"Debes seleccionar al menos un color disponible (Negro, Blanco, Miel o Beige).",
+		);
+	}
+
+	// Orden consistente según la paleta definida
+	const coloresOrdenados = COLORES_VALIDOS.filter((c) => coloresValidados.includes(c));
+	const colores = coloresOrdenados.join(", ");
+
 	let imagen = imagenActual;
 
 	// Solo subimos si realmente eligieron un archivo nuevo.
@@ -91,7 +123,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return errorRedirect(redirect, "Tienes que elegir una foto para la sandalia.");
 	}
 
-	const producto: ProductoNuevo = { nombre, precio, tallas, imagen, descripcion, disponible };
+	const producto: ProductoNuevo = {
+		nombre,
+		precio,
+		tallas,
+		colores,
+		imagen,
+		descripcion,
+		disponible,
+	};
 
 	try {
 		if (esEdicion && Number.isInteger(id)) {

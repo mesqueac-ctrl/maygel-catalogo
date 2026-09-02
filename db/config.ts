@@ -6,6 +6,7 @@ const Producto = defineTable({
 		nombre: column.text(),
 		precio: column.number(),
 		tallas: column.text(),
+		colores: column.text(),
 		imagen: column.text(),
 		descripcion: column.text(),
 		disponible: column.boolean({ default: true }),
