@@ -1,0 +1,92 @@
+---
+import { buildWhatsappLink } from "../consts";
+
+const navLinks = [
+	{ href: "#sobre-nosotros", label: "Sobre nosotros" },
+	{ href: "#catalogo", label: "Catálogo" },
+	{ href: "#contacto", label: "Contacto" },
+];
+
+const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre las sandalias Maygel");
+---
+
+<header class="header">
+	<div class="container header__inner">
+		<a href="#" class="header__brand">Maygel</a>
+
+		<nav class="header__nav" aria-label="Navegación principal">
+			{navLinks.map((link) => (
+				<a href={link.href}>{link.label}</a>
+			))}
+		</nav>
+
+		<a class="header__cta" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+			WhatsApp
+		</a>
+	</div>
+</header>
+
+<style>
+	.header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		background-color: var(--color-bg);
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.header__inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 2rem;
+		padding-block: 1.5rem;
+	}
+
+	.header__brand {
+		font-family: var(--font-heading);
+		font-size: 1.35rem;
+		letter-spacing: 0.02em;
+		text-decoration: none;
+		flex-shrink: 0;
+	}
+
+	.header__nav {
+		display: none;
+		gap: 2.5rem;
+		font-size: 0.9rem;
+		font-weight: 400;
+	}
+
+	.header__nav a {
+		text-decoration: none;
+		color: var(--color-accent-soft);
+		transition: color 0.2s ease;
+	}
+
+	.header__nav a:hover {
+		color: var(--color-text);
+	}
+
+	.header__cta {
+		font-size: 0.85rem;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		color: var(--color-accent);
+		border-bottom: 1px solid var(--color-accent);
+		padding-bottom: 2px;
+		transition: opacity 0.2s ease;
+		white-space: nowrap;
+	}
+
+	.header__cta:hover {
+		opacity: 0.7;
+	}
+
+	@media (min-width: 780px) {
+		.header__nav {
+			display: flex;
+		}
+	}
+</style>

@@ -1,0 +1,12 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="#F2ECE4"/>
+  <g fill="none" stroke="#8A7B6C" stroke-width="3" opacity="0.7">
+    <path d="M240 560 Q400 430 560 560 Q640 630 560 700 Q400 810 240 700 Q160 630 240 560 Z"/>
+    <path d="M300 550 L300 400 Q300 355 350 355 L470 355 Q520 355 520 405 L520 555"/>
+    <line x1="300" y1="440" x2="520" y2="440"/>
+    <circle cx="410" cy="400" r="11"/>
+  </g>
+  <text x="400" y="930" font-family="Georgia, serif" font-size="21" fill="#8A7B6C" text-anchor="middle" opacity="0.75">
+    Foto placeholder — producto-1.svg
+  </text>
+</svg>

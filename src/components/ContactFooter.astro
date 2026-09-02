@@ -1,0 +1,104 @@
+---
+import { buildWhatsappLink, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "../consts";
+
+const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre las sandalias Maygel");
+---
+
+<footer class="footer section" id="contacto">
+	<div class="container">
+		<div class="footer__top">
+			<p class="eyebrow">Contacto</p>
+			<h2 class="section-title footer__title">Hablemos</h2>
+			<p class="footer__lead">
+				¿Tienes dudas sobre tallas, colores o encargos especiales? Escríbenos, con gusto te
+				ayudamos.
+			</p>
+			<a class="btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+				Escríbenos por WhatsApp
+			</a>
+		</div>
+
+		<div class="footer__bottom">
+			<div class="footer__col">
+				<p class="footer__label">Instagram</p>
+				<a class="footer__link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+					@{INSTAGRAM_HANDLE}
+				</a>
+			</div>
+
+			<div class="footer__col">
+				<p class="footer__label">Horario de atención</p>
+				<!-- TODO: ajusta el horario real de atención -->
+				<p class="footer__value">Lunes a sábado<br />9:00 a.m. – 6:00 p.m.</p>
+			</div>
+
+			<div class="footer__col">
+				<p class="footer__label">Maygel</p>
+				<p class="footer__value">© {new Date().getFullYear()}<br />Hecho a mano, con familia.</p>
+			</div>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		border-top: 1px solid var(--color-border);
+		padding-bottom: clamp(3rem, 6vw, 4rem);
+	}
+
+	.footer__top {
+		max-width: 46ch;
+		margin-bottom: clamp(4rem, 9vw, 6.5rem);
+	}
+
+	.footer__title {
+		margin-bottom: 1.5rem;
+	}
+
+	.footer__lead {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		margin-bottom: 2.5rem;
+	}
+
+	.footer__bottom {
+		display: grid;
+		gap: 2.5rem;
+		padding-top: 2.5rem;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.footer__label {
+		font-size: 0.75rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--color-accent-soft);
+		margin-bottom: 0.75rem;
+	}
+
+	.footer__link {
+		text-decoration: none;
+		border-bottom: 1px solid var(--color-border);
+		padding-bottom: 2px;
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.footer__link:hover {
+		color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+
+	.footer__value {
+		font-weight: 300;
+		line-height: 1.6;
+	}
+
+	@media (min-width: 700px) {
+		.footer__bottom {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 3rem;
+		}
+	}
+</style>

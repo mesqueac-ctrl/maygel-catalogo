@@ -1,0 +1,166 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout titulo="Cómo se ve mi página">
+	<a class="volver" href="/admin/productos">← Volver a mis sandalias</a>
+
+	<div class="cabecera">
+		<div>
+			<h1 class="titulo">Cómo se ve mi página</h1>
+			<p class="intro">
+				Así ven tu página las personas que entran desde el celular. Es la mayoría.
+			</p>
+		</div>
+
+		<div class="controles">
+			<div class="tabs" role="group" aria-label="Elegir tamaño de pantalla">
+				<button class="tab tab--activa" type="button" data-vista="movil">Celular</button>
+				<button class="tab" type="button" data-vista="computador">Computador</button>
+			</div>
+
+			<button class="recargar" type="button" id="recargar">Actualizar</button>
+		</div>
+	</div>
+
+	<div class="escenario" id="escenario" data-vista="movil">
+		<div class="marco">
+			<iframe id="vista" src="/" title="Vista previa de la página de Maygel" loading="lazy"
+			></iframe>
+		</div>
+	</div>
+</AdminLayout>
+
+<script>
+	const escenario = document.getElementById("escenario");
+	const vista = document.getElementById("vista") as HTMLIFrameElement | null;
+	const botones = document.querySelectorAll<HTMLButtonElement>(".tab");
+
+	botones.forEach((boton) => {
+		boton.addEventListener("click", () => {
+			botones.forEach((otro) => otro.classList.remove("tab--activa"));
+			boton.classList.add("tab--activa");
+
+			if (escenario) {
+				escenario.dataset.vista = boton.dataset.vista ?? "movil";
+			}
+		});
+	});
+
+	document.getElementById("recargar")?.addEventListener("click", () => {
+		if (vista) {
+			// Volvemos a asignar el src para forzar la recarga del contenido.
+			vista.src = `/?t=${Date.now()}`;
+		}
+	});
+</script>
+
+<style>
+	.volver {
+		display: inline-block;
+		margin-bottom: 2rem;
+		font-size: 1rem;
+		color: var(--color-accent-soft);
+		text-decoration: none;
+	}
+
+	.volver:hover {
+		color: var(--color-text);
+	}
+
+	.cabecera {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.titulo {
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		margin-bottom: 0.5rem;
+	}
+
+	.intro {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		max-width: 40ch;
+	}
+
+	.controles {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.tabs {
+		display: flex;
+		border: 1px solid var(--color-border);
+	}
+
+	.tab {
+		font-family: var(--font-body);
+		font-size: 0.9375rem;
+		font-weight: 500;
+		padding: 0.7rem 1.25rem;
+		background-color: #fff;
+		border: none;
+		color: var(--color-accent-soft);
+		cursor: pointer;
+	}
+
+	.tab + .tab {
+		border-left: 1px solid var(--color-border);
+	}
+
+	.tab--activa {
+		background-color: var(--color-accent);
+		color: #fff;
+	}
+
+	.recargar {
+		font-family: var(--font-body);
+		font-size: 0.9375rem;
+		font-weight: 500;
+		padding: 0.7rem 1.25rem;
+		background-color: transparent;
+		border: 1px solid var(--color-border);
+		color: var(--color-text);
+		cursor: pointer;
+	}
+
+	.recargar:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.escenario {
+		display: flex;
+		justify-content: center;
+		background-color: var(--color-bg);
+		border: 1px solid var(--color-border);
+		padding: clamp(1.5rem, 4vw, 3rem);
+	}
+
+	.marco {
+		background-color: #fff;
+		border: 1px solid var(--color-border);
+		overflow: hidden;
+		width: 100%;
+		max-width: 390px;
+		transition: max-width 0.25s ease;
+	}
+
+	.escenario[data-vista="computador"] .marco {
+		max-width: 100%;
+	}
+
+	iframe {
+		display: block;
+		width: 100%;
+		height: 720px;
+		border: none;
+	}
+</style>

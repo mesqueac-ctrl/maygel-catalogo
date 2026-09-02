@@ -1,0 +1,111 @@
+:root {
+	--color-bg: #faf6f1;
+	--color-text: #2b2420;
+	--color-accent: #b5651d;
+	--color-accent-soft: #8a7b6c;
+	--color-border: #e4dacd;
+
+	--font-heading: "Playfair Display", Georgia, serif;
+	--font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+	--max-width: 1140px;
+	--space-section: clamp(5rem, 12vw, 9rem);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.7;
+	font-weight: 400;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-heading);
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -0.01em;
+	margin: 0;
+}
+
+p {
+	margin: 0;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+a {
+	color: inherit;
+}
+
+.container {
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding-inline: clamp(1.5rem, 5vw, 3rem);
+}
+
+.section {
+	padding-block: var(--space-section);
+}
+
+.section-title {
+	font-size: clamp(1.9rem, 4vw, 2.75rem);
+}
+
+.eyebrow {
+	font-size: 0.75rem;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--color-accent-soft);
+	margin-bottom: 1.25rem;
+}
+
+.btn {
+	display: inline-block;
+	padding: 0.9rem 2rem;
+	font-family: var(--font-body);
+	font-size: 0.875rem;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-decoration: none;
+	border: 1px solid transparent;
+	background-color: var(--color-accent);
+	color: var(--color-bg);
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+	opacity: 0.82;
+}
+
+.btn-outline {
+	background-color: transparent;
+	color: var(--color-text);
+	border-color: var(--color-border);
+}
+
+.btn-outline:hover {
+	opacity: 1;
+	border-color: var(--color-accent);
+	color: var(--color-accent);
+}

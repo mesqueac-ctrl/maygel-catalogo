@@ -1,0 +1,317 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { listarTodos, formatearPrecio } from "../../../lib/productos";
+
+const productos = await listarTodos();
+
+const mensajes: Record<string, string> = {
+	guardado: "Producto guardado correctamente.",
+	creado: "La sandalia nueva se agregó correctamente.",
+	eliminado: "La sandalia se eliminó correctamente.",
+	movido: "Se cambió el orden correctamente.",
+};
+
+const aviso = mensajes[Astro.url.searchParams.get("ok") ?? ""];
+const error = Astro.url.searchParams.get("error");
+---
+
+<AdminLayout titulo="Mis sandalias">
+	{aviso && <p class="aviso aviso--ok">✓ {aviso}</p>}
+	{
+		error && (
+			<p class="aviso aviso--error">
+				No se pudo completar la acción. {decodeURIComponent(error)}
+			</p>
+		)
+	}
+
+	<div class="cabecera">
+		<div>
+			<h1 class="cabecera__titulo">Mis sandalias</h1>
+			<p class="cabecera__sub">
+				{productos.length === 0
+					? "Todavía no has agregado ninguna sandalia."
+					: `Tienes ${productos.length} ${productos.length === 1 ? "sandalia" : "sandalias"} en tu página.`}
+			</p>
+
+			{
+				productos.length > 1 && (
+					<p class="cabecera__pista">
+						Usa las flechas ↑ ↓ para cambiar el orden en que aparecen en tu página.
+					</p>
+				)
+			}
+		</div>
+
+		<a class="boton-principal" href="/admin/productos/nueva">+ Agregar sandalia nueva</a>
+	</div>
+
+	{
+		productos.length === 0 ? (
+			<div class="vacio">
+				<p>Aquí van a aparecer todas tus sandalias.</p>
+				<p>Empieza agregando la primera con el botón de arriba.</p>
+			</div>
+		) : (
+			<ul class="lista">
+				{productos.map((producto, indice) => (
+					<li class="fila">
+						<div class="orden">
+							<form method="POST" action="/admin/api/mover">
+								<input type="hidden" name="id" value={producto.id} />
+								<input type="hidden" name="direccion" value="subir" />
+								<button
+									class="orden__boton"
+									type="submit"
+									disabled={indice === 0}
+									title="Subir esta sandalia"
+									aria-label={`Subir ${producto.nombre}`}
+								>
+									↑
+								</button>
+							</form>
+
+							<form method="POST" action="/admin/api/mover">
+								<input type="hidden" name="id" value={producto.id} />
+								<input type="hidden" name="direccion" value="bajar" />
+								<button
+									class="orden__boton"
+									type="submit"
+									disabled={indice === productos.length - 1}
+									title="Bajar esta sandalia"
+									aria-label={`Bajar ${producto.nombre}`}
+								>
+									↓
+								</button>
+							</form>
+						</div>
+
+						<img class="fila__foto" src={producto.imagen} alt={producto.nombre} />
+
+						<div class="fila__datos">
+							<p class="fila__nombre">{producto.nombre}</p>
+							<p class="fila__precio">{formatearPrecio(producto.precio)}</p>
+							<p class={`fila__estado ${producto.disponible ? "" : "fila__estado--oculto"}`}>
+								{producto.disponible ? "Se muestra en la página" : "Oculta (nadie la ve)"}
+							</p>
+						</div>
+
+						<div class="fila__acciones">
+							<a class="boton-secundario" href={`/admin/productos/${producto.id}`}>
+								Editar
+							</a>
+
+							<form
+								method="POST"
+								action="/admin/api/eliminar"
+								data-confirmar
+								data-nombre={producto.nombre}
+							>
+								<input type="hidden" name="id" value={producto.id} />
+								<button class="boton-eliminar" type="submit">
+									Eliminar
+								</button>
+							</form>
+						</div>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</AdminLayout>
+
+<script>
+	// Confirmación antes de borrar, con el nombre de la sandalia en el mensaje.
+	document.querySelectorAll<HTMLFormElement>("form[data-confirmar]").forEach((formulario) => {
+		formulario.addEventListener("submit", (evento) => {
+			const nombre = formulario.dataset.nombre ?? "esta sandalia";
+			const confirmado = window.confirm(
+				`¿Seguro que quieres eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`,
+			);
+			if (!confirmado) {
+				evento.preventDefault();
+			}
+		});
+	});
+</script>
+
+<style>
+	.aviso {
+		padding: 1rem 1.25rem;
+		margin-bottom: 2rem;
+		font-size: 1rem;
+		border: 1px solid;
+	}
+
+	.aviso--ok {
+		background-color: #eef7ee;
+		border-color: #b5d6b5;
+		color: #2f6b33;
+	}
+
+	.aviso--error {
+		background-color: #fdf1ee;
+		border-color: #e6b8ab;
+		color: #8c3a22;
+	}
+
+	.cabecera {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.cabecera__titulo {
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		margin-bottom: 0.5rem;
+	}
+
+	.cabecera__sub {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.cabecera__pista {
+		margin-top: 0.5rem;
+		font-size: 0.9375rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.boton-principal {
+		font-size: 1rem;
+		font-weight: 500;
+		padding: 1rem 1.5rem;
+		background-color: var(--color-accent);
+		color: #fff;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.boton-principal:hover {
+		opacity: 0.88;
+	}
+
+	.vacio {
+		border: 1px dashed var(--color-border);
+		padding: 3rem 2rem;
+		text-align: center;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.lista {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.fila {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		padding: 1.25rem 0;
+		border-bottom: 1px solid var(--color-border);
+		flex-wrap: wrap;
+	}
+
+	.orden {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		flex-shrink: 0;
+	}
+
+	.orden__boton {
+		font-family: var(--font-body);
+		font-size: 1.1rem;
+		line-height: 1;
+		width: 40px;
+		height: 34px;
+		background-color: #fff;
+		border: 1px solid var(--color-border);
+		color: var(--color-text);
+		cursor: pointer;
+	}
+
+	.orden__boton:hover:not(:disabled) {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.orden__boton:disabled {
+		opacity: 0.3;
+		cursor: default;
+	}
+
+	.fila__foto {
+		width: 72px;
+		height: 90px;
+		object-fit: cover;
+		background-color: #f2ece4;
+		flex-shrink: 0;
+	}
+
+	.fila__datos {
+		flex: 1 1 220px;
+	}
+
+	.fila__nombre {
+		font-size: 1.0625rem;
+		font-weight: 500;
+		margin-bottom: 0.25rem;
+	}
+
+	.fila__precio {
+		color: var(--color-accent);
+		margin-bottom: 0.25rem;
+	}
+
+	.fila__estado {
+		font-size: 0.875rem;
+		color: #2f6b33;
+	}
+
+	.fila__estado--oculto {
+		color: var(--color-accent-soft);
+	}
+
+	.fila__acciones {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.boton-secundario {
+		font-size: 0.9375rem;
+		font-weight: 500;
+		padding: 0.7rem 1.25rem;
+		border: 1px solid var(--color-border);
+		text-decoration: none;
+		color: var(--color-text);
+	}
+
+	.boton-secundario:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.boton-eliminar {
+		font-family: var(--font-body);
+		font-size: 0.9375rem;
+		font-weight: 500;
+		padding: 0.7rem 1.25rem;
+		background-color: transparent;
+		border: 1px solid var(--color-border);
+		color: #8c3a22;
+		cursor: pointer;
+	}
+
+	.boton-eliminar:hover {
+		border-color: #8c3a22;
+	}
+</style>

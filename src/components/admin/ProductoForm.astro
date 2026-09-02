@@ -1,0 +1,288 @@
+---
+import type { ProductoRegistro } from "../../lib/productos";
+
+interface Props {
+	producto?: ProductoRegistro;
+}
+
+const { producto } = Astro.props;
+const esEdicion = Boolean(producto);
+---
+
+<form class="formulario" method="POST" action="/admin/api/guardar" enctype="multipart/form-data">
+	{esEdicion && <input type="hidden" name="id" value={producto!.id} />}
+	{esEdicion && <input type="hidden" name="imagenActual" value={producto!.imagen} />}
+
+	<label class="campo">
+		<span class="campo__etiqueta">Nombre de la sandalia</span>
+		<input
+			class="campo__input"
+			type="text"
+			name="nombre"
+			required
+			maxlength="120"
+			placeholder="Ej: Sandalia trenzada café"
+			value={producto?.nombre ?? ""}
+		/>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Precio (en pesos)</span>
+		<input
+			class="campo__input"
+			type="number"
+			name="precio"
+			required
+			min="0"
+			step="1000"
+			placeholder="89000"
+			value={producto?.precio ?? ""}
+		/>
+		<span class="campo__ayuda">Escribe solo números, sin puntos ni comas.</span>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Tallas disponibles</span>
+		<input
+			class="campo__input"
+			type="text"
+			name="tallas"
+			required
+			placeholder="35, 36, 37, 38"
+			value={producto?.tallas ?? ""}
+		/>
+		<span class="campo__ayuda">Separa cada talla con una coma.</span>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Descripción</span>
+		<textarea
+			class="campo__input campo__textarea"
+			name="descripcion"
+			required
+			rows="4"
+			placeholder="Cuenta cómo es esta sandalia, de qué material está hecha, para qué ocasión sirve..."
+			>{producto?.descripcion ?? ""}</textarea
+		>
+	</label>
+
+	<div class="campo">
+		<span class="campo__etiqueta">Foto de la sandalia</span>
+
+		{
+			esEdicion && (
+				<div class="foto-actual">
+					<img src={producto!.imagen} alt={producto!.nombre} />
+					<p>Esta es la foto que tiene ahora. Si no eliges otra, se queda esta.</p>
+				</div>
+			)
+		}
+
+		<input
+			class="campo__archivo"
+			type="file"
+			name="foto"
+			accept="image/*"
+			required={!esEdicion}
+			id="campo-foto"
+		/>
+		<span class="campo__ayuda">Se ve mejor si la foto es vertical o cuadrada.</span>
+
+		<div class="previsualizacion" id="previsualizacion" hidden>
+			<p class="previsualizacion__titulo">Así se va a ver:</p>
+			<img id="previsualizacion-img" alt="Foto elegida" />
+		</div>
+	</div>
+
+	<fieldset class="campo campo--fieldset">
+		<legend class="campo__etiqueta">¿Se muestra en la página?</legend>
+
+		<label class="opcion">
+			<input type="radio" name="disponible" value="si" checked={producto?.disponible !== false} />
+			<span>Sí, mostrar</span>
+		</label>
+
+		<label class="opcion">
+			<input type="radio" name="disponible" value="no" checked={producto?.disponible === false} />
+			<span>No, ocultar</span>
+		</label>
+
+		<span class="campo__ayuda">
+			Si la ocultas, nadie la verá en la página web, pero no se borra.
+		</span>
+	</fieldset>
+
+	<div class="acciones">
+		<button class="boton-principal" type="submit">
+			{esEdicion ? "Guardar cambios" : "Guardar sandalia"}
+		</button>
+		<a class="boton-cancelar" href="/admin/productos">Cancelar</a>
+	</div>
+</form>
+
+<script>
+	// Muestra la foto elegida antes de guardar, para evitar sustos.
+	const entrada = document.getElementById("campo-foto") as HTMLInputElement | null;
+	const contenedor = document.getElementById("previsualizacion");
+	const imagen = document.getElementById("previsualizacion-img") as HTMLImageElement | null;
+
+	entrada?.addEventListener("change", () => {
+		const archivo = entrada.files?.[0];
+		if (!archivo || !contenedor || !imagen) return;
+
+		imagen.src = URL.createObjectURL(archivo);
+		contenedor.hidden = false;
+	});
+</script>
+
+<style>
+	.formulario {
+		display: grid;
+		gap: 2rem;
+		max-width: 640px;
+	}
+
+	.campo {
+		display: block;
+	}
+
+	.campo--fieldset {
+		border: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.campo__etiqueta {
+		display: block;
+		font-size: 1.0625rem;
+		font-weight: 500;
+		margin-bottom: 0.6rem;
+		padding: 0;
+	}
+
+	.campo__input {
+		width: 100%;
+		font-family: var(--font-body);
+		font-size: 1.0625rem;
+		padding: 0.9rem 1rem;
+		border: 1px solid var(--color-border);
+		background-color: #fff;
+		color: var(--color-text);
+	}
+
+	.campo__input:focus {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -1px;
+	}
+
+	.campo__textarea {
+		resize: vertical;
+		line-height: 1.6;
+	}
+
+	.campo__archivo {
+		display: block;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		padding: 1rem;
+		border: 1px dashed var(--color-border);
+		width: 100%;
+		background-color: #fff;
+		cursor: pointer;
+	}
+
+	.campo__ayuda {
+		display: block;
+		margin-top: 0.5rem;
+		font-size: 0.9375rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.foto-actual {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.foto-actual img {
+		width: 90px;
+		height: 112px;
+		object-fit: cover;
+		background-color: #f2ece4;
+	}
+
+	.foto-actual p {
+		font-size: 0.9375rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.previsualizacion {
+		margin-top: 1rem;
+	}
+
+	.previsualizacion__titulo {
+		font-size: 0.9375rem;
+		margin-bottom: 0.6rem;
+		color: var(--color-accent-soft);
+	}
+
+	.previsualizacion img {
+		width: 160px;
+		height: 200px;
+		object-fit: cover;
+		background-color: #f2ece4;
+	}
+
+	.opcion {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 1.0625rem;
+		padding: 0.6rem 0;
+		cursor: pointer;
+	}
+
+	.opcion input {
+		width: 22px;
+		height: 22px;
+		accent-color: var(--color-accent);
+	}
+
+	.acciones {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		flex-wrap: wrap;
+		margin-top: 0.5rem;
+	}
+
+	.boton-principal {
+		font-family: var(--font-body);
+		font-size: 1.0625rem;
+		font-weight: 500;
+		padding: 1.1rem 2rem;
+		background-color: var(--color-accent);
+		color: #fff;
+		border: none;
+		cursor: pointer;
+	}
+
+	.boton-principal:hover {
+		opacity: 0.88;
+	}
+
+	.boton-cancelar {
+		font-size: 1rem;
+		color: var(--color-accent-soft);
+		text-decoration: none;
+		border-bottom: 1px solid var(--color-border);
+		padding-bottom: 2px;
+	}
+
+	.boton-cancelar:hover {
+		color: var(--color-text);
+	}
+</style>

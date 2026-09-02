@@ -1,0 +1,124 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { sesionValida } from "../../lib/auth";
+
+// Si ya inició sesión, no tiene sentido mostrar el formulario otra vez.
+if (sesionValida(Astro.cookies)) {
+	return Astro.redirect("/admin/productos");
+}
+
+const huboError = Astro.url.searchParams.get("error") === "1";
+---
+
+<AdminLayout titulo="Entrar" mostrarBarra={false}>
+	<div class="login">
+		<h1 class="login__titulo">Maygel</h1>
+		<p class="login__intro">Entra para administrar tus sandalias.</p>
+
+		{
+			huboError && (
+				<p class="aviso aviso--error">
+					El usuario o la contraseña no son correctos. Inténtalo de nuevo.
+				</p>
+			)
+		}
+
+		<form method="POST" action="/admin/api/login" class="login__form">
+			<label class="campo">
+				<span class="campo__etiqueta">Usuario</span>
+				<input class="campo__input" type="text" name="usuario" required autocomplete="username" />
+			</label>
+
+			<label class="campo">
+				<span class="campo__etiqueta">Contraseña</span>
+				<input
+					class="campo__input"
+					type="password"
+					name="contrasena"
+					required
+					autocomplete="current-password"
+				/>
+			</label>
+
+			<button class="login__boton" type="submit">Entrar</button>
+		</form>
+	</div>
+</AdminLayout>
+
+<style>
+	.login {
+		max-width: 380px;
+		margin: clamp(3rem, 12vh, 7rem) auto 0;
+	}
+
+	.login__titulo {
+		font-size: 2rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.login__intro {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		margin-bottom: 2.5rem;
+	}
+
+	.login__form {
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	.campo {
+		display: block;
+	}
+
+	.campo__etiqueta {
+		display: block;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		margin-bottom: 0.5rem;
+	}
+
+	.campo__input {
+		width: 100%;
+		font-family: var(--font-body);
+		font-size: 1.0625rem;
+		padding: 0.9rem 1rem;
+		border: 1px solid var(--color-border);
+		background-color: #fff;
+		color: var(--color-text);
+	}
+
+	.campo__input:focus {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -1px;
+	}
+
+	.login__boton {
+		font-family: var(--font-body);
+		font-size: 1.0625rem;
+		font-weight: 500;
+		padding: 1rem 1.5rem;
+		background-color: var(--color-accent);
+		color: #fff;
+		border: none;
+		cursor: pointer;
+		margin-top: 0.5rem;
+	}
+
+	.login__boton:hover {
+		opacity: 0.88;
+	}
+
+	.aviso {
+		padding: 1rem 1.25rem;
+		margin-bottom: 2rem;
+		font-size: 0.9375rem;
+		border: 1px solid;
+	}
+
+	.aviso--error {
+		background-color: #fdf1ee;
+		border-color: #e6b8ab;
+		color: #8c3a22;
+	}
+</style>

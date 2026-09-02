@@ -1,0 +1,74 @@
+---
+import ProductCard from "./ProductCard.astro";
+import { listarDisponibles } from "../lib/productos";
+
+const productos = await listarDisponibles();
+---
+
+<section class="catalogo section" id="catalogo">
+	<div class="container">
+		<header class="catalogo__header">
+			<p class="eyebrow">Catálogo</p>
+			<h2 class="section-title">Nuestras sandalias</h2>
+			<p class="catalogo__subtitle">
+				Cada par es hecho a mano, así que puede haber pequeñas variaciones únicas.
+			</p>
+		</header>
+
+		{
+			productos.length === 0 ? (
+				<p class="catalogo__vacio">
+					Estamos preparando nuevos modelos. Escríbenos por WhatsApp y te contamos qué tenemos
+					disponible.
+				</p>
+			) : (
+				<div class="catalogo__grid">
+					{productos.map((producto) => (
+						<ProductCard producto={producto} />
+					))}
+				</div>
+			)
+		}
+	</div>
+</section>
+
+<style>
+	.catalogo {
+		border-top: 1px solid var(--color-border);
+	}
+
+	.catalogo__header {
+		margin-bottom: clamp(3rem, 7vw, 5rem);
+		max-width: 50ch;
+	}
+
+	.catalogo__subtitle {
+		margin-top: 1.25rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+	}
+
+	.catalogo__vacio {
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		max-width: 46ch;
+	}
+
+	.catalogo__grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3.5rem);
+	}
+
+	@media (min-width: 640px) {
+		.catalogo__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.catalogo__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+</style>
