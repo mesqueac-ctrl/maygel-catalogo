@@ -34,6 +34,11 @@ interface Props {
 	 * imágenes siguen cargando de forma perezosa (comportamiento por
 	 * defecto de <Image>), porque ninguna es crítica para el primer pintado. */
 	prioridadImagen?: boolean;
+	/** Nivel de heading para el nombre del producto. En el catálogo, "h3" es
+	 * correcto porque cuelga del H2 de la sección. En la ficha individual,
+	 * este es el heading visible principal y debe ser "h2" para no saltarse
+	 * un nivel respecto al H1 (oculto) de la página. */
+	nivelTitulo?: "h2" | "h3";
 }
 
 const {
@@ -42,7 +47,9 @@ const {
 	variantesImagen = false,
 	urlProducto,
 	prioridadImagen = false,
+	nivelTitulo = "h3",
 } = Astro.props;
+const Titulo = nivelTitulo;
 const urlFicha = `/productos/${slugDeProducto(producto)}`;
 
 const precioFormateado = formatearPrecio(producto.precio);
@@ -132,9 +139,9 @@ const altImagen = descripcionImagen(producto.nombre);
 
 	<div class="card__body">
 		<div class="card__header">
-			<h3 class="card__name">
+			<Titulo class="card__name">
 				{enlaceFicha ? <a href={urlFicha}>{producto.nombre}</a> : producto.nombre}
-			</h3>
+			</Titulo>
 			<p class="card__price">{precioFormateado}</p>
 		</div>
 
