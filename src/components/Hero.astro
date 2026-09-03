@@ -1,6 +1,9 @@
 ---
 import { Image } from "astro:assets";
 import heroImage from "../assets/hero.svg";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
+
+const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
 <section class="hero" id="inicio">
@@ -10,7 +13,12 @@ import heroImage from "../assets/hero.svg";
 			<p class="hero__subtitle">
 				Cada par de sandalias planas Maygel se elabora a mano bajo pedido, con cuero seleccionado y el cuidado de un taller familiar.
 			</p>
-			<a class="btn" href="#catalogo">Ver catálogo</a>
+			<div class="hero__actions">
+				<a class="btn" href="#catalogo">Ver colección</a>
+				<a class="hero__whatsapp" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+					Escríbenos por WhatsApp
+				</a>
+			</div>
 		</div>
 
 		<div class="hero__image">
@@ -32,7 +40,7 @@ import heroImage from "../assets/hero.svg";
 	}
 
 	.hero__text {
-		max-width: 34ch;
+		max-width: 36ch;
 	}
 
 	.hero__text h1 {
@@ -47,7 +55,36 @@ import heroImage from "../assets/hero.svg";
 		color: var(--color-accent-soft);
 		font-weight: 300;
 		font-size: 1.0625rem;
-		margin-bottom: 2.5rem;
+		margin-bottom: 2.25rem;
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.hero__whatsapp {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		box-sizing: border-box;
+		font-size: 0.875rem;
+		font-weight: 500;
+		letter-spacing: 0.03em;
+		text-decoration: none;
+		color: var(--color-text);
+		border-bottom: 1px solid var(--color-border);
+		padding-block: 0.6rem;
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.hero__whatsapp:hover {
+		color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.hero__image {
@@ -60,7 +97,7 @@ import heroImage from "../assets/hero.svg";
 		object-fit: cover;
 	}
 
-	@media (min-width: 860px) {
+	@media (min-width: 768px) {
 		.hero {
 			padding-top: clamp(3rem, 6vw, 4.5rem);
 		}
@@ -68,7 +105,7 @@ import heroImage from "../assets/hero.svg";
 		.hero__inner {
 			flex-direction: row;
 			align-items: stretch;
-			gap: clamp(3rem, 6vw, 5rem);
+			gap: clamp(2.5rem, 5vw, 5rem);
 		}
 
 		.hero__text {
@@ -86,8 +123,14 @@ import heroImage from "../assets/hero.svg";
 
 		.hero__image :global(img) {
 			height: 100%;
-			min-height: 480px;
+			min-height: 420px;
 			max-height: 80vh;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.hero__image :global(img) {
+			min-height: 480px;
 		}
 	}
 </style>

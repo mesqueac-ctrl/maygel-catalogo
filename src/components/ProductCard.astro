@@ -1,55 +1,140 @@
 ---
 import { Image } from "astro:assets";
-import { buildWhatsappLink, WHATSAPP_NUMBER } from "../consts";
+import { enlaceProducto } from "../lib/whatsapp";
 import {
 	formatearPrecio,
 	tallasComoLista,
 	coloresComoLista,
+	slugDeProducto,
+	descripcionImagen,
+	imagenesColoresComoMapa,
+	imagenParaColor,
 	COLORES_METADATA,
 	type ProductoRegistro,
 } from "../lib/productos";
 
 interface Props {
 	producto: ProductoRegistro;
+	/** Si el nombre/imagen deben enlazar a la ficha individual. Se desactiva
+	 * cuando la propia ficha ya está mostrando esta tarjeta, para no enlazar
+	 * a sí misma. */
+	enlaceFicha?: boolean;
+	/** Si al elegir un color se debe cambiar la imagen mostrada (cuando el
+	 * producto tiene una imagen específica para ese color). Se mantiene
+	 * apagado en las tarjetas del catálogo para que sigan siendo simples;
+	 * se enciende solo en la ficha individual. */
+	variantesImagen?: boolean;
+	/** URL pública de la ficha, para incluirla como referencia en el mensaje
+	 * de WhatsApp. Solo se pasa desde la ficha individual: en el catálogo el
+	 * mensaje se mantiene breve. */
+	urlProducto?: string;
+	/** Si esta imagen es la más grande visible al cargar la página (LCP) —
+	 * cierto solo en la ficha individual, donde hay una sola foto grande y
+	 * nada más pesado por encima. En el catálogo, con varias tarjetas, las
+	 * imágenes siguen cargando de forma perezosa (comportamiento por
+	 * defecto de <Image>), porque ninguna es crítica para el primer pintado. */
+	prioridadImagen?: boolean;
 }
 
-const { producto } = Astro.props;
+const {
+	producto,
+	enlaceFicha = true,
+	variantesImagen = false,
+	urlProducto,
+	prioridadImagen = false,
+} = Astro.props;
+const urlFicha = `/productos/${slugDeProducto(producto)}`;
 
 const precioFormateado = formatearPrecio(producto.precio);
 const tallas = tallasComoLista(producto.tallas);
 const colores = coloresComoLista(producto.colores);
 const unicoColor = colores.length === 1 ? colores[0] : null;
+const mapaImagenesColores = imagenesColoresComoMapa(producto.imagenesColores);
+// Si solo hay un color posible, ya está implícitamente "seleccionado":
+// mostramos de una vez su imagen específica si existe.
+const imagenInicial = imagenParaColor(producto, unicoColor);
 
-// Mensaje inicial de WhatsApp
-let mensajeInicial = "";
-if (unicoColor) {
-	mensajeInicial = `Hola, quiero encargar la sandalia ${producto.nombre} en color ${unicoColor}. Entiendo que es un producto fabricado bajo pedido.`;
-} else if (colores.length === 0) {
-	mensajeInicial = `Hola, quiero encargar la sandalia ${producto.nombre}. Entiendo que es un producto fabricado bajo pedido.`;
-}
-
-const enlaceInicial = mensajeInicial ? buildWhatsappLink(mensajeInicial) : "#";
 const necesitaSeleccion = colores.length > 1;
+// Con varios colores sin elegir, no hay nada honesto que enviar todavía: el
+// CTA queda deshabilitado hasta que la clienta elija uno (comportamiento ya
+// existente, sin cambios).
+const enlaceInicial = necesitaSeleccion ? "#" : enlaceProducto(producto.nombre, unicoColor, urlProducto);
 
 // Las fotos subidas desde el panel son URLs remotas (Vercel Blob) y las optimiza
 // <Image>. Las que viven en /public se sirven tal cual.
-const esRemota = producto.imagen.startsWith("http");
+const esRemota = imagenInicial.startsWith("http");
+const altImagen = descripcionImagen(producto.nombre);
 ---
 
-<article class="card" data-product-card data-product-name={producto.nombre} data-wa-number={WHATSAPP_NUMBER}>
+<article
+	class="card"
+	data-product-card
+	data-product-name={producto.nombre}
+	data-url-producto={urlProducto ?? ""}
+	data-variantes-imagen={variantesImagen ? "true" : "false"}
+	data-imagenes-colores={JSON.stringify(mapaImagenesColores)}
+	data-imagen-principal={producto.imagen}
+	data-alt-base={altImagen}
+>
 	<div class="card__image">
 		{
-			esRemota ? (
-				<Image src={producto.imagen} alt={producto.nombre} width={800} height={1000} />
+			enlaceFicha ? (
+				<a href={urlFicha} aria-label={`Ver detalles de ${producto.nombre}`}>
+					{esRemota ? (
+						<Image
+							src={imagenInicial}
+							alt={altImagen}
+							width={800}
+							height={1000}
+							format="webp"
+							loading={prioridadImagen ? "eager" : "lazy"}
+							fetchpriority={prioridadImagen ? "high" : "auto"}
+							data-card-image
+						/>
+					) : (
+						<img
+							src={imagenInicial}
+							alt={altImagen}
+							width="800"
+							height="1000"
+							loading={prioridadImagen ? "eager" : "lazy"}
+							fetchpriority={prioridadImagen ? "high" : "auto"}
+							decoding="async"
+							data-card-image
+						/>
+					)}
+				</a>
+			) : esRemota ? (
+				<Image
+					src={imagenInicial}
+					alt={altImagen}
+					width={800}
+					height={1000}
+					format="webp"
+					loading={prioridadImagen ? "eager" : "lazy"}
+					fetchpriority={prioridadImagen ? "high" : "auto"}
+					data-card-image
+				/>
 			) : (
-				<img src={producto.imagen} alt={producto.nombre} width="800" height="1000" loading="lazy" />
+				<img
+					src={imagenInicial}
+					alt={altImagen}
+					width="800"
+					height="1000"
+					loading={prioridadImagen ? "eager" : "lazy"}
+					fetchpriority={prioridadImagen ? "high" : "auto"}
+					decoding="async"
+					data-card-image
+				/>
 			)
 		}
 	</div>
 
 	<div class="card__body">
 		<div class="card__header">
-			<h3 class="card__name">{producto.nombre}</h3>
+			<h3 class="card__name">
+				{enlaceFicha ? <a href={urlFicha}>{producto.nombre}</a> : producto.nombre}
+			</h3>
 			<p class="card__price">{precioFormateado}</p>
 		</div>
 
@@ -72,6 +157,7 @@ const esRemota = producto.imagen.startsWith("http");
 									class={`card__color-btn ${esActivo ? "card__color-btn--active" : ""}`}
 									data-color={color}
 									aria-label={`Elegir color ${color}`}
+									aria-pressed={esActivo ? "true" : "false"}
 									title={`Color ${color}`}
 								>
 									<span
@@ -102,23 +188,48 @@ const esRemota = producto.imagen.startsWith("http");
 </article>
 
 <script>
+	import { mensajeProducto, buildWhatsappLink } from "../lib/whatsapp";
+
 	document.querySelectorAll<HTMLElement>("[data-product-card]").forEach((card) => {
 		const nombre = card.dataset.productName ?? "";
-		const waNumber = card.dataset.waNumber ?? "573243513189";
+		const urlProducto = card.dataset.urlProducto || undefined;
 		const colorBtns = card.querySelectorAll<HTMLButtonElement>("[data-color]");
 		const cta = card.querySelector<HTMLAnchorElement>("[data-card-cta]");
 		if (!cta || colorBtns.length <= 1) return;
+
+		// Solo la ficha individual cambia la imagen al elegir color; en el
+		// catálogo la tarjeta se mantiene simple (solo cambia el CTA).
+		const cambiaImagen = card.dataset.variantesImagen === "true";
+		const img = card.querySelector<HTMLImageElement>("[data-card-image]");
+		const imagenPrincipal = card.dataset.imagenPrincipal ?? "";
+		const altBase = card.dataset.altBase ?? nombre;
+		let mapaImagenesColores: Record<string, string> = {};
+		try {
+			mapaImagenesColores = JSON.parse(card.dataset.imagenesColores ?? "{}");
+		} catch {
+			mapaImagenesColores = {};
+		}
 
 		colorBtns.forEach((btn) => {
 			btn.addEventListener("click", () => {
 				const color = btn.dataset.color;
 				if (!color) return;
 
-				colorBtns.forEach((b) => b.classList.remove("card__color-btn--active"));
+				colorBtns.forEach((b) => {
+					b.classList.remove("card__color-btn--active");
+					b.setAttribute("aria-pressed", "false");
+				});
 				btn.classList.add("card__color-btn--active");
+				btn.setAttribute("aria-pressed", "true");
 
-				const mensaje = `Hola, quiero encargar la sandalia ${nombre} en color ${color}. Entiendo que es un producto fabricado bajo pedido.`;
-				const url = `https://wa.me/${waNumber}?text=${encodeURIComponent(mensaje)}`;
+				if (cambiaImagen && img) {
+					const imagenColor = mapaImagenesColores[color];
+					img.src = imagenColor ?? imagenPrincipal;
+					img.alt = imagenColor ? `${altBase} — color ${color}` : altBase;
+				}
+
+				const mensaje = mensajeProducto(nombre, color, urlProducto);
+				const url = buildWhatsappLink(mensaje);
 
 				cta.href = url;
 				cta.target = "_blank";
@@ -149,6 +260,12 @@ const esRemota = producto.imagen.startsWith("http");
 		margin-bottom: 1.5rem;
 	}
 
+	.card__image a {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
 	.card__image :global(img) {
 		width: 100%;
 		height: 100%;
@@ -176,6 +293,15 @@ const esRemota = producto.imagen.startsWith("http");
 
 	.card__name {
 		font-size: 1.25rem;
+	}
+
+	.card__name a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.card__name a:hover {
+		color: var(--color-accent);
 	}
 
 	.card__price {
@@ -231,13 +357,15 @@ const esRemota = producto.imagen.startsWith("http");
 	.card__color-btn {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.45rem;
+		gap: 0.5rem;
+		min-height: 44px;
+		box-sizing: border-box;
 		background: transparent;
 		border: 1px solid var(--color-border);
-		padding: 0.35rem 0.65rem;
+		padding: 0.6rem 0.85rem;
 		cursor: pointer;
 		font-family: var(--font-body);
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
 		color: var(--color-text);
 		transition: border-color 0.2s ease, background-color 0.2s ease;
 	}
@@ -261,30 +389,32 @@ const esRemota = producto.imagen.startsWith("http");
 	}
 
 	.card__cta {
-		align-self: flex-start;
+		align-self: stretch;
 		margin-top: auto;
+		text-align: center;
+		font-family: var(--font-body);
 		font-size: 0.8125rem;
 		font-weight: 500;
 		letter-spacing: 0.04em;
 		text-decoration: none;
-		color: var(--color-text);
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 3px;
+		color: var(--color-bg);
+		background-color: var(--color-accent);
+		padding: 0.85rem 1.25rem;
 		transition:
-			color 0.2s ease,
-			border-color 0.2s ease,
-			opacity 0.2s ease;
+			opacity 0.2s ease,
+			background-color 0.2s ease,
+			color 0.2s ease;
 	}
 
 	.card__cta:hover:not(.card__cta--disabled) {
-		color: var(--color-accent);
-		border-color: var(--color-accent);
+		opacity: 0.85;
 	}
 
 	.card__cta--disabled {
+		background-color: transparent;
 		color: var(--color-accent-soft);
-		border-color: transparent;
+		border: 1px solid var(--color-border);
 		cursor: not-allowed;
-		opacity: 0.65;
+		opacity: 1;
 	}
 </style>

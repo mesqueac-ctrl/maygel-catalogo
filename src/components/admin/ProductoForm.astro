@@ -3,6 +3,7 @@ import {
 	COLORES_VALIDOS,
 	COLORES_METADATA,
 	coloresComoLista,
+	imagenesColoresComoMapa,
 	type ProductoRegistro,
 } from "../../lib/productos";
 
@@ -13,11 +14,13 @@ interface Props {
 const { producto } = Astro.props;
 const esEdicion = Boolean(producto);
 const coloresSeleccionados = coloresComoLista(producto?.colores);
+const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColores);
 ---
 
 <form class="formulario" method="POST" action="/admin/api/guardar" enctype="multipart/form-data">
 	{esEdicion && <input type="hidden" name="id" value={producto!.id} />}
 	{esEdicion && <input type="hidden" name="imagenActual" value={producto!.imagen} />}
+	<input type="hidden" name="imagenesColoresActual" value={JSON.stringify(imagenesColoresActuales)} />
 
 	<label class="campo">
 		<span class="campo__etiqueta">Nombre de la sandalia</span>
@@ -55,22 +58,45 @@ const coloresSeleccionados = coloresComoLista(producto?.colores);
 				COLORES_VALIDOS.map((color) => {
 					const meta = COLORES_METADATA[color];
 					const estaMarcado = coloresSeleccionados.includes(color);
+					const imagenColorActual = imagenesColoresActuales[color];
 					return (
-						<label class="color-opcion">
-							<input
-								class="color-opcion__check"
-								type="checkbox"
-								name="colores"
-								value={color}
-								checked={estaMarcado}
-							/>
-							<span
-								class="color-opcion__muestra"
-								style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
-								aria-hidden="true"
-							/>
-							<span class="color-opcion__nombre">{meta.nombre}</span>
-						</label>
+						<div class="color-opcion-completa" data-color-opcion={color}>
+							<label class="color-opcion">
+								<input
+									class="color-opcion__check"
+									type="checkbox"
+									name="colores"
+									value={color}
+									checked={estaMarcado}
+								/>
+								<span
+									class="color-opcion__muestra"
+									style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
+									aria-hidden="true"
+								/>
+								<span class="color-opcion__nombre">{meta.nombre}</span>
+							</label>
+
+							<div class="color-opcion__foto" hidden={!estaMarcado} data-color-foto>
+								{imagenColorActual && (
+									<img
+										class="color-opcion__foto-actual"
+										src={imagenColorActual}
+										alt={`Foto actual en color ${color}`}
+									/>
+								)}
+								<label class="color-opcion__foto-etiqueta">
+									<span>Foto en {meta.nombre} (opcional)</span>
+									<input
+										class="color-opcion__foto-input"
+										type="file"
+										name={`foto_color_${color}`}
+										accept="image/*"
+									/>
+								</label>
+								<span class="campo__ayuda">Si no subes una, se usa la foto principal de la sandalia.</span>
+							</div>
+						</div>
 					);
 				})
 			}
@@ -187,6 +213,15 @@ const coloresSeleccionados = coloresComoLista(producto?.colores);
 		}
 	});
 
+	// Solo se puede subir foto de un color si ese color está marcado.
+	checkboxesColores.forEach((cb) => {
+		cb.addEventListener("change", () => {
+			const opcion = cb.closest("[data-color-opcion]");
+			const fotoBloque = opcion?.querySelector<HTMLElement>("[data-color-foto]");
+			if (fotoBloque) fotoBloque.hidden = !cb.checked;
+		});
+	});
+
 	checkboxesColores.forEach((cb) => {
 		cb.addEventListener("change", () => {
 			if (errorColores && Array.from(checkboxesColores).some((c) => c.checked)) {
@@ -230,9 +265,21 @@ const coloresSeleccionados = coloresComoLista(producto?.colores);
 
 	.colores-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 		gap: 0.75rem;
 		margin-bottom: 0.5rem;
+		align-items: start;
+	}
+
+	.color-opcion-completa {
+		background-color: #fff;
+		border: 1px solid var(--color-border);
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+	}
+
+	.color-opcion-completa:has(.color-opcion__check:checked) {
+		border-color: var(--color-accent);
+		background-color: #fbf7f2;
 	}
 
 	.color-opcion {
@@ -240,20 +287,8 @@ const coloresSeleccionados = coloresComoLista(producto?.colores);
 		align-items: center;
 		gap: 0.65rem;
 		padding: 0.75rem 1rem;
-		background-color: #fff;
-		border: 1px solid var(--color-border);
 		cursor: pointer;
-		transition: border-color 0.2s ease, background-color 0.2s ease;
 		user-select: none;
-	}
-
-	.color-opcion:hover {
-		border-color: var(--color-accent);
-	}
-
-	.color-opcion:has(.color-opcion__check:checked) {
-		border-color: var(--color-accent);
-		background-color: #fbf7f2;
 	}
 
 	.color-opcion__check {
@@ -276,6 +311,49 @@ const coloresSeleccionados = coloresComoLista(producto?.colores);
 		font-size: 0.9375rem;
 		font-weight: 400;
 		color: var(--color-text);
+	}
+
+	.color-opcion__foto {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+		padding: 0 1rem 0.85rem;
+		border-top: 1px solid var(--color-border);
+		margin-top: 0.1rem;
+		padding-top: 0.75rem;
+	}
+
+	.color-opcion__foto-actual {
+		width: 56px;
+		height: 70px;
+		object-fit: cover;
+		background-color: #f2ece4;
+	}
+
+	.color-opcion__foto-etiqueta {
+		display: block;
+		font-size: 0.8125rem;
+		color: var(--color-accent-soft);
+		cursor: pointer;
+		width: 100%;
+	}
+
+	.color-opcion__foto-etiqueta span {
+		display: block;
+		margin-bottom: 0.35rem;
+	}
+
+	.color-opcion__foto-input {
+		display: block;
+		width: 100%;
+		font-family: var(--font-body);
+		font-size: 0.8125rem;
+	}
+
+	.color-opcion__foto .campo__ayuda {
+		margin-top: 0;
+		font-size: 0.8125rem;
 	}
 
 	.aviso-error-colores {

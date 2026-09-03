@@ -1,14 +1,12 @@
 ---
-import { buildWhatsappLink } from "../consts";
+import { buildWhatsappLink, MENSAJE_MAYORISTA } from "../consts";
 
-const whatsappLink = buildWhatsappLink(
-	"Hola, me gustaría recibir información sobre compras al por mayor de sandalias Maygel (precios, cantidades mínimas y tiempos de fabricación).",
-);
+const whatsappLink = buildWhatsappLink(MENSAJE_MAYORISTA);
 
 const beneficios = [
 	{
-		titulo: "Precios por cantidad",
-		texto: "Precios especiales para pedidos por volumen o tiendas que deseen distribuir Maygel.",
+		titulo: "Pedidos por volumen",
+		texto: "Escríbenos y te contamos condiciones y precios según la cantidad que necesites.",
 	},
 	{
 		titulo: "Combina colores",
@@ -48,7 +46,8 @@ const beneficios = [
 					Consultar condiciones mayoristas
 				</a>
 				<p class="mayor__nota">
-					Escríbenos para conocer condiciones, precios, cantidades mínimas y tiempos de fabricación.
+					Te dejamos el mensaje listo para que solo completes tu nombre, ciudad, negocio y qué te
+					interesa. Así te respondemos con la información justa que necesitas.
 				</p>
 			</div>
 		</div>

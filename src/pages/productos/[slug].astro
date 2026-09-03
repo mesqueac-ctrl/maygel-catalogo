@@ -1,0 +1,121 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import ContactFooter from "../../components/ContactFooter.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import {
+	obtenerPorSlug,
+	formatearPrecio,
+	descripcionImagen,
+	coloresComoLista,
+	imagenParaColor,
+} from "../../lib/productos";
+
+const { slug } = Astro.params;
+const producto = slug ? await obtenerPorSlug(slug) : undefined;
+
+if (!producto) {
+	return Astro.rewrite("/404");
+}
+
+// Si el producto solo tiene un color posible, ya está implícitamente
+// seleccionado: el schema y el og:image deben reflejar esa imagen.
+const coloresProducto = coloresComoLista(producto.colores);
+const colorInicial = coloresProducto.length === 1 ? coloresProducto[0] : null;
+const imagenPrincipal = imagenParaColor(producto, colorInicial);
+
+const paginaUrl = new URL(`/productos/${slug}`, Astro.url.origin).href;
+const imagenUrl = new URL(imagenPrincipal, Astro.url.origin).href;
+const title = `${producto.nombre} — Sandalias Maygel`;
+const description = `${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(producto.precio)}.`;
+const ogImageAlt = descripcionImagen(producto.nombre);
+
+// El producto se fabrica a partir del pedido: MadeToOrder refleja mejor la
+// realidad del negocio que InStock, que implicaría inventario físico previo.
+const datosEstructurados = {
+	"@context": "https://schema.org",
+	"@type": "Product",
+	name: producto.nombre,
+	description: producto.descripcion,
+	image: imagenUrl,
+	url: paginaUrl,
+	brand: {
+		"@type": "Brand",
+		name: "Maygel",
+	},
+	offers: {
+		"@type": "Offer",
+		price: producto.precio,
+		priceCurrency: "COP",
+		availability: "https://schema.org/MadeToOrder",
+		url: paginaUrl,
+	},
+};
+---
+
+<Layout title={title} description={description} ogType="product" ogImage={imagenUrl} ogImageAlt={ogImageAlt}>
+	<Header />
+	<main>
+		<section class="ficha section">
+			<div class="container ficha__inner">
+				<a class="ficha__volver" href="/#catalogo">← Volver al catálogo</a>
+				<h1 class="sr-only">{producto.nombre}</h1>
+				<div class="ficha__card">
+					<ProductCard
+						producto={producto}
+						enlaceFicha={false}
+						variantesImagen={true}
+						urlProducto={paginaUrl}
+						prioridadImagen={true}
+					/>
+				</div>
+			</div>
+		</section>
+	</main>
+	<ContactFooter />
+	<script type="application/ld+json" is:inline set:html={JSON.stringify(datosEstructurados)} />
+</Layout>
+
+<style>
+	.ficha {
+		padding-top: clamp(2rem, 5vw, 3rem);
+	}
+
+	.ficha__inner {
+		max-width: 780px;
+	}
+
+	.ficha__volver {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--color-accent-soft);
+		text-decoration: none;
+		margin-bottom: clamp(2rem, 5vw, 3rem);
+		transition: color 0.2s ease;
+	}
+
+	.ficha__volver:hover {
+		color: var(--color-accent);
+	}
+
+	.ficha__card :global(.card__image) {
+		aspect-ratio: 4 / 3;
+	}
+
+	@media (min-width: 700px) {
+		.ficha__card :global(.card) {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: clamp(2.5rem, 5vw, 3.5rem);
+			align-items: start;
+		}
+
+		.ficha__card :global(.card__image) {
+			aspect-ratio: 4 / 5;
+			margin-bottom: 0;
+		}
+	}
+</style>

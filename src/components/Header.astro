@@ -1,20 +1,23 @@
 ---
-import { buildWhatsappLink } from "../consts";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
 
 const navLinks = [
-	{ href: "#sobre-nosotros", label: "Sobre nosotros" },
+	{ href: "#inicio", label: "Inicio" },
+	{ href: "#sobre-nosotros", label: "Sobre Maygel" },
 	{ href: "#catalogo", label: "Catálogo" },
 	{ href: "#como-comprar", label: "Cómo comprar" },
 	{ href: "#por-mayor", label: "Por mayor" },
 	{ href: "#contacto", label: "Contacto" },
 ];
 
-const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre las sandalias Maygel");
+const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
 <header class="header">
+	<input type="checkbox" id="menu-toggle" class="header__toggle-input" aria-hidden="true" tabindex="-1" />
+
 	<div class="container header__inner">
-		<a href="#" class="header__brand">Maygel</a>
+		<a href="#inicio" class="header__brand">Maygel</a>
 
 		<nav class="header__nav" aria-label="Navegación principal">
 			{navLinks.map((link) => (
@@ -22,11 +25,60 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 			))}
 		</nav>
 
-		<a class="header__cta" href={whatsappLink} target="_blank" rel="noopener noreferrer">
-			WhatsApp
-		</a>
+		<div class="header__actions">
+			<a class="header__cta" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+				WhatsApp
+			</a>
+
+			<button
+				type="button"
+				class="header__toggle"
+				id="header-toggle-label"
+				aria-label="Abrir menú"
+				aria-expanded="false"
+				aria-controls="header-mobile-nav"
+			>
+				<span></span>
+				<span></span>
+				<span></span>
+			</button>
+		</div>
 	</div>
+
+	<nav class="header__mobile-nav" aria-label="Navegación móvil" id="header-mobile-nav">
+		{navLinks.map((link) => (
+			<a href={link.href}>{link.label}</a>
+		))}
+	</nav>
 </header>
+
+<script>
+	// El checkbox oculto solo guarda el estado abierto/cerrado para el CSS
+	// (":checked" controla la animación del menú); no es interactivo para el
+	// usuario ni para lectores de pantalla (aria-hidden + tabindex="-1"). El
+	// botón real es el que recibe foco, teclado y anuncia su estado.
+	const toggle = document.getElementById("menu-toggle") as HTMLInputElement | null;
+	const boton = document.getElementById("header-toggle-label");
+	const mobileNav = document.getElementById("header-mobile-nav");
+
+	function actualizarEstado(abierto: boolean) {
+		boton?.setAttribute("aria-expanded", String(abierto));
+		boton?.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
+	}
+
+	boton?.addEventListener("click", () => {
+		if (!toggle) return;
+		toggle.checked = !toggle.checked;
+		actualizarEstado(toggle.checked);
+	});
+
+	mobileNav?.querySelectorAll("a").forEach((enlace) => {
+		enlace.addEventListener("click", () => {
+			if (toggle) toggle.checked = false;
+			actualizarEstado(false);
+		});
+	});
+</script>
 
 <style>
 	.header {
@@ -41,22 +93,23 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 2rem;
-		padding-block: 1.5rem;
+		gap: 1.5rem;
+		padding-block: 1.15rem;
 	}
 
 	.header__brand {
 		font-family: var(--font-heading);
-		font-size: 1.35rem;
-		letter-spacing: 0.02em;
+		font-size: 1.4rem;
+		letter-spacing: 0.03em;
 		text-decoration: none;
+		color: var(--color-text);
 		flex-shrink: 0;
 	}
 
 	.header__nav {
 		display: none;
-		gap: clamp(1.5rem, 2.5vw, 2.5rem);
-		font-size: 0.9rem;
+		gap: clamp(1.5rem, 2.2vw, 2.25rem);
+		font-size: 0.875rem;
 		font-weight: 400;
 	}
 
@@ -64,31 +117,127 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 		text-decoration: none;
 		color: var(--color-accent-soft);
 		transition: color 0.2s ease;
+		white-space: nowrap;
 	}
 
 	.header__nav a:hover {
 		color: var(--color-text);
 	}
 
+	.header__actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-shrink: 0;
+	}
+
 	.header__cta {
-		font-size: 0.85rem;
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.8125rem;
 		font-weight: 500;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.03em;
 		text-decoration: none;
-		color: var(--color-accent);
-		border-bottom: 1px solid var(--color-accent);
-		padding-bottom: 2px;
+		color: var(--color-bg);
+		background-color: var(--color-accent);
+		padding: 0.8rem 1.1rem;
+		min-height: 44px;
+		box-sizing: border-box;
 		transition: opacity 0.2s ease;
 		white-space: nowrap;
 	}
 
 	.header__cta:hover {
-		opacity: 0.7;
+		opacity: 0.85;
+	}
+
+	/* Botón hamburguesa: solo visible por debajo del breakpoint de escritorio */
+	.header__toggle-input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.header__toggle {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		width: 44px;
+		background: transparent;
+		border: none;
+		padding: 0;
+		font: inherit;
+		appearance: none;
+		height: 44px;
+		margin-right: -0.5rem;
+		cursor: pointer;
+	}
+
+	.header__toggle span {
+		display: block;
+		height: 1.5px;
+		width: 22px;
+		background-color: var(--color-text);
+		transition:
+			transform 0.2s ease,
+			opacity 0.2s ease;
+	}
+
+	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(1) {
+		transform: translateY(6.5px) rotate(45deg);
+	}
+
+	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(3) {
+		transform: translateY(-6.5px) rotate(-45deg);
+	}
+
+	/* Panel de navegación móvil, plegado por defecto */
+	.header__mobile-nav {
+		display: flex;
+		flex-direction: column;
+		max-height: 0;
+		overflow: hidden;
+		transition: max-height 0.25s ease;
+		border-top: 1px solid transparent;
+	}
+
+	.header__toggle-input:checked ~ .header__mobile-nav {
+		max-height: 26rem;
+		border-top-color: var(--color-border);
+	}
+
+	.header__mobile-nav a {
+		text-decoration: none;
+		color: var(--color-text);
+		font-size: 1.0625rem;
+		padding: 1.1rem clamp(1.5rem, 5vw, 3rem);
+		min-height: 44px;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.header__mobile-nav a:active,
+	.header__mobile-nav a:hover {
+		color: var(--color-accent);
+		background-color: #f7efe7;
 	}
 
 	@media (min-width: 780px) {
 		.header__nav {
 			display: flex;
+		}
+
+		.header__toggle,
+		.header__mobile-nav {
+			display: none;
 		}
 	}
 </style>

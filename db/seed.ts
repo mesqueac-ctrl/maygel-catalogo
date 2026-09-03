@@ -21,6 +21,9 @@ export default async function seed() {
 			tallas: "36, 37, 38, 39, 40, 41",
 			colores: "Negro, Blanco, Miel",
 			imagen: "/productos/producto-2.svg",
+			// Ejemplo de imagen específica por color; Negro y Blanco no tienen
+			// entrada aquí, así que siguen usando la imagen principal.
+			imagenesColores: JSON.stringify({ Miel: "/productos/producto-3.svg" }),
 			descripcion:
 				"Diseño clásico de dos correas, cuero curtido al tanino, ideal para el día a día.",
 			disponible: true,

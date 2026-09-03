@@ -5,25 +5,43 @@ import { WHATSAPP_NUMBER, INSTAGRAM_URL } from "../consts";
 interface Props {
 	title?: string;
 	description?: string;
+	robots?: string;
+	ogType?: string;
+	ogImage?: string;
+	ogImageAlt?: string;
 }
+
+const descripcionNegocio =
+	"Maygel es un taller familiar de sandalias artesanales, hechas a mano con materiales de calidad. Conoce nuestro catálogo y consulta por WhatsApp.";
 
 const {
 	title = "Maygel — Sandalias artesanales hechas a mano",
-	description = "Maygel es un taller familiar de sandalias artesanales, hechas a mano con materiales de calidad. Conoce nuestro catálogo y consulta por WhatsApp.",
+	description = descripcionNegocio,
+	robots = "index, follow",
+	ogType = "website",
+	ogImage,
+	ogImageAlt,
 } = Astro.props;
 
 const paginaUrl = new URL(Astro.url.pathname, Astro.url.origin).href;
-const imagenUrl = new URL("/og-image.jpg", Astro.url.origin).href;
+const imagenUrl = ogImage ?? new URL("/og-image.jpg", Astro.url.origin).href;
+const logoUrl = new URL("/apple-touch-icon.png", Astro.url.origin).href;
+const imagenAlt = ogImageAlt ?? "Maygel — sandalias artesanales hechas a mano, con alma de familia";
 
-// Datos estructurados: ayuda a Google a mostrar Maygel como negocio local
-// (nombre, contacto, zona de entrega) en los resultados de búsqueda.
+// Datos estructurados del negocio: son los mismos en todas las páginas
+// (no dependen del title/description de cada página) porque describen a
+// Maygel como negocio, no el contenido de la página actual.
+const urlNegocio = new URL("/", Astro.url.origin).href;
+const imagenNegocio = new URL("/og-image.jpg", Astro.url.origin).href;
+
 const datosEstructurados = {
 	"@context": "https://schema.org",
 	"@type": "LocalBusiness",
 	name: "Maygel",
-	description,
-	url: paginaUrl,
-	image: imagenUrl,
+	description: descripcionNegocio,
+	url: urlNegocio,
+	image: imagenNegocio,
+	logo: logoUrl,
 	telephone: `+${WHATSAPP_NUMBER}`,
 	priceRange: "$$",
 	areaServed: ["Soledad", "Barranquilla", "Cartagena"],
@@ -35,11 +53,12 @@ const datosEstructurados = {
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content={robots} />
 
 		<link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
-		<meta name="theme-color" content="#FAF6F1" />
+		<meta name="theme-color" content="#B5651D" />
 
 		<title>{title}</title>
 		<meta name="description" content={description} />
@@ -47,7 +66,7 @@ const datosEstructurados = {
 		<link rel="canonical" href={paginaUrl} />
 		<script type="application/ld+json" is:inline set:html={JSON.stringify(datosEstructurados)} />
 
-		<meta property="og:type" content="website" />
+		<meta property="og:type" content={ogType} />
 		<meta property="og:site_name" content="Maygel" />
 		<meta property="og:locale" content="es_CO" />
 		<meta property="og:url" content={paginaUrl} />
@@ -57,11 +76,13 @@ const datosEstructurados = {
 		<meta property="og:image" content={imagenUrl} />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content={imagenAlt} />
 
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={imagenUrl} />
+		<meta name="twitter:image:alt" content={imagenAlt} />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

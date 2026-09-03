@@ -1,0 +1,81 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import ContactFooter from "../components/ContactFooter.astro";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
+
+Astro.response.status = 404;
+
+const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
+---
+
+<Layout
+	title="Página no encontrada — Maygel"
+	description="La página que buscas no existe o ya no está disponible."
+	robots="noindex, nofollow"
+>
+	<Header />
+	<main>
+		<section class="no-encontrado section">
+			<div class="container no-encontrado__inner">
+				<p class="eyebrow">Error 404</p>
+				<h1 class="section-title">No encontramos esta página</h1>
+				<p class="no-encontrado__texto">
+					Puede que el enlace esté roto o que la sandalia que buscabas ya no esté disponible.
+					Vuelve al catálogo o escríbenos por WhatsApp si tienes dudas.
+				</p>
+				<div class="no-encontrado__acciones">
+					<a class="btn" href="/#catalogo">Ver catálogo</a>
+					<a class="no-encontrado__whatsapp" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+						Escríbenos por WhatsApp
+					</a>
+				</div>
+			</div>
+		</section>
+	</main>
+	<ContactFooter />
+</Layout>
+
+<style>
+	.no-encontrado__inner {
+		max-width: 60ch;
+		padding-block: clamp(2rem, 6vw, 4rem);
+	}
+
+	.no-encontrado__texto {
+		margin-top: 1.25rem;
+		color: var(--color-accent-soft);
+		font-weight: 300;
+		max-width: 50ch;
+	}
+
+	.no-encontrado__acciones {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1.5rem;
+		margin-top: 2.5rem;
+	}
+
+	.no-encontrado__whatsapp {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		box-sizing: border-box;
+		font-size: 0.875rem;
+		font-weight: 500;
+		letter-spacing: 0.03em;
+		text-decoration: none;
+		color: var(--color-text);
+		border-bottom: 1px solid var(--color-border);
+		padding-block: 0.6rem;
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.no-encontrado__whatsapp:hover {
+		color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+</style>

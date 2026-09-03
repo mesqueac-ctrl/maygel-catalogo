@@ -17,6 +17,9 @@ export interface ProductoRegistro {
 	tallas: string;
 	colores: string;
 	imagen: string;
+	/** JSON opcional { "Negro": "url", ... } con la imagen específica de cada
+	 * color. Los colores sin entrada usan `imagen` como imagen principal. */
+	imagenesColores?: string | null;
 	descripcion: string;
 	disponible: boolean;
 	orden: number;
@@ -109,6 +112,73 @@ export function coloresComoLista(colores?: string | null): ColorValido[] {
 		.split(",")
 		.map((c) => c.trim())
 		.filter((c): c is ColorValido => (COLORES_VALIDOS as readonly string[]).includes(c));
+}
+
+/**
+ * Parsea el JSON de `imagenesColores` de forma segura. Un valor ausente,
+ * vacío o corrupto simplemente no aporta imágenes por color (fallback total
+ * a la imagen principal), sin lanzar excepción.
+ */
+export function imagenesColoresComoMapa(
+	imagenesColores?: string | null,
+): Partial<Record<ColorValido, string>> {
+	if (!imagenesColores) return {};
+
+	try {
+		const datos = JSON.parse(imagenesColores);
+		if (!datos || typeof datos !== "object") return {};
+
+		const mapa: Partial<Record<ColorValido, string>> = {};
+		for (const color of COLORES_VALIDOS) {
+			const url = (datos as Record<string, unknown>)[color];
+			if (typeof url === "string" && url.trim()) {
+				mapa[color] = url;
+			}
+		}
+		return mapa;
+	} catch {
+		return {};
+	}
+}
+
+/** Imagen a mostrar para un color dado: la específica si existe, si no la principal. */
+export function imagenParaColor(producto: Pick<ProductoRegistro, "imagen" | "imagenesColores">, color: ColorValido | null): string {
+	if (!color) return producto.imagen;
+	const mapa = imagenesColoresComoMapa(producto.imagenesColores);
+	return mapa[color] ?? producto.imagen;
+}
+
+/** Convierte texto libre en un slug URL-safe: minúsculas, sin acentos, sin espacios. */
+export function slugify(texto: string): string {
+	return texto
+		.normalize("NFD")
+		.replace(new RegExp("[\\u0300-\\u036f]", "g"), "")
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Slug público de un producto. Se le añade el id para garantizar unicidad
+ * sin depender de que los nombres no choquen entre sí (no hay campo slug en
+ * Astro DB y no queremos migrar el esquema solo para esta fase).
+ */
+export function slugDeProducto(producto: Pick<ProductoRegistro, "id" | "nombre">): string {
+	return `${slugify(producto.nombre)}-${producto.id}`;
+}
+
+/** Busca un producto disponible por su slug público. */
+export async function obtenerPorSlug(slug: string): Promise<ProductoRegistro | undefined> {
+	const productos = await listarDisponibles();
+	return productos.find((producto) => slugDeProducto(producto) === slug);
+}
+
+/** Texto alt/descripción reutilizable para las imágenes de un producto. */
+export function descripcionImagen(nombre: string): string {
+	return /sandalia/i.test(nombre)
+		? `${nombre}, artesanal y hecha a mano por Maygel`
+		: `Sandalia ${nombre}, artesanal y hecha a mano por Maygel`;
 }
 
 export function formatearPrecio(precio: number): string {

@@ -1,5 +1,5 @@
 ---
-import { buildWhatsappLink } from "../consts";
+import { buildWhatsappLink, MENSAJE_DUDA_COMPRA } from "../consts";
 
 const pasos = [
 	{
@@ -39,7 +39,7 @@ const datos = [
 	},
 ];
 
-const whatsappLink = buildWhatsappLink("Hola, tengo una duda sobre las sandalias Maygel");
+const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 ---
 
 <section class="comprar section" id="como-comprar">

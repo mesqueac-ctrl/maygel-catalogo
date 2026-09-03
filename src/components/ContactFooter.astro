@@ -1,7 +1,15 @@
 ---
-import { buildWhatsappLink, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "../consts";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "../consts";
 
-const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre las sandalias Maygel");
+const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
+
+const navLinks = [
+	{ href: "#inicio", label: "Inicio" },
+	{ href: "#sobre-nosotros", label: "Sobre Maygel" },
+	{ href: "#catalogo", label: "Catálogo" },
+	{ href: "#como-comprar", label: "Cómo comprar" },
+	{ href: "#por-mayor", label: "Por mayor" },
+];
 ---
 
 <footer class="footer section" id="contacto">
@@ -20,16 +28,19 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 
 		<div class="footer__bottom">
 			<div class="footer__col">
+				<p class="footer__label">Navegación</p>
+				<nav class="footer__nav" aria-label="Navegación del pie de página">
+					{navLinks.map((link) => (
+						<a class="footer__link" href={link.href}>{link.label}</a>
+					))}
+				</nav>
+			</div>
+
+			<div class="footer__col">
 				<p class="footer__label">Instagram</p>
 				<a class="footer__link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
 					@{INSTAGRAM_HANDLE}
 				</a>
-			</div>
-
-			<div class="footer__col">
-				<p class="footer__label">Horario de atención</p>
-				<!-- TODO: ajusta el horario real de atención -->
-				<p class="footer__value">Lunes a sábado<br />9:00 a.m. – 6:00 p.m.</p>
 			</div>
 
 			<div class="footer__col">
@@ -76,10 +87,21 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 		margin-bottom: 0.75rem;
 	}
 
+	.footer__nav {
+		display: flex;
+		flex-direction: column;
+		margin-block: -0.6rem;
+	}
+
 	.footer__link {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		box-sizing: border-box;
 		text-decoration: none;
 		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 2px;
+		align-self: flex-start;
+		padding-block: 0.6rem;
 		transition:
 			color 0.2s ease,
 			border-color 0.2s ease;
@@ -97,8 +119,14 @@ const whatsappLink = buildWhatsappLink("Hola, quisiera más información sobre l
 
 	@media (min-width: 700px) {
 		.footer__bottom {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 2.5rem 3rem;
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.footer__bottom {
 			grid-template-columns: repeat(3, 1fr);
-			gap: 3rem;
 		}
 	}
 </style>

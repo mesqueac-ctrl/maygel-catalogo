@@ -1,8 +1,13 @@
 :root {
 	--color-bg: #faf6f1;
 	--color-text: #2b2420;
-	--color-accent: #b5651d;
-	--color-accent-soft: #8a7b6c;
+	/* Oscurecido ligeramente respecto al original (#b5651d) para cumplir
+	   contraste AA (4.5:1) en texto sobre fondo crema/blanco y en botones
+	   con texto claro sobre este color; el tono de marca se mantiene. */
+	--color-accent: #a0591a;
+	/* Oscurecido ligeramente respecto al original (#8a7b6c) para cumplir
+	   contraste AA (4.5:1) sobre --color-bg; el tono se mantiene igual. */
+	--color-accent-soft: #79695b;
 	--color-border: #e4dacd;
 
 	--font-heading: "Playfair Display", Georgia, serif;
@@ -69,6 +74,18 @@ a {
 
 .section-title {
 	font-size: clamp(1.9rem, 4vw, 2.75rem);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .eyebrow {

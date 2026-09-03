@@ -4,6 +4,7 @@ import {
 	actualizar,
 	crear,
 	COLORES_VALIDOS,
+	imagenesColoresComoMapa,
 	type ColorValido,
 	type ProductoNuevo,
 } from "../../../lib/productos";
@@ -123,12 +124,41 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return errorRedirect(redirect, "Tienes que elegir una foto para la sandalia.");
 	}
 
+	// Fotos específicas por color: partimos del mapa que ya existía (para no
+	// perder fotos de colores que no se tocaron en esta edición), subimos las
+	// que sí traen archivo nuevo, y al final solo dejamos entradas de colores
+	// que siguen marcados como disponibles.
+	const mapaAnterior = imagenesColoresComoMapa(String(datos.get("imagenesColoresActual") ?? ""));
+	const mapaImagenesColores: Partial<Record<ColorValido, string>> = { ...mapaAnterior };
+
+	for (const color of coloresValidados) {
+		const fotoColor = datos.get(`foto_color_${color}`);
+		if (fotoColor instanceof File && fotoColor.size > 0) {
+			try {
+				mapaImagenesColores[color] = await subirFoto(fotoColor);
+			} catch (error) {
+				const mensaje = error instanceof Error ? error.message : "No se pudo subir la foto.";
+				return errorRedirect(redirect, `Color ${color}: ${mensaje}`);
+			}
+		}
+	}
+
+	// Solo conservamos entradas de colores que siguen marcados; si desmarcaron
+	// un color, su imagen específica (si tenía) deja de aplicar.
+	const mapaFinal: Partial<Record<ColorValido, string>> = {};
+	for (const color of coloresValidados) {
+		if (mapaImagenesColores[color]) mapaFinal[color] = mapaImagenesColores[color]!;
+	}
+
+	const imagenesColores = Object.keys(mapaFinal).length > 0 ? JSON.stringify(mapaFinal) : null;
+
 	const producto: ProductoNuevo = {
 		nombre,
 		precio,
 		tallas,
 		colores,
 		imagen,
+		imagenesColores,
 		descripcion,
 		disponible,
 	};
