@@ -142,9 +142,11 @@ maygel/
     │
     ├── lib/
     │   ├── auth.ts         credencialesValidas, crearSesion, sesionValida, cerrarSesion
+    │   ├── whatsapp.ts     mensajeProducto, enlaceProducto (mensajes de producto)
     │   └── productos.ts    listarTodos, listarDisponibles, obtenerPorId,
     │                       crear, actualizar, eliminar, mover,
-    │                       tallasComoLista, formatearPrecio
+    │                       tallasComoLista, formatearPrecio, slugDeProducto,
+    │                       imagenParaColor, imagenesColoresComoMapa
     │
     ├── layouts/
     │   ├── Layout.astro        web pública: SEO, Open Graph, fuentes
@@ -155,12 +157,18 @@ maygel/
     │   ├── Hero.astro          título + foto a ancho completo
     │   ├── About.astro         historia (TODO: texto placeholder)
     │   ├── ProductGrid.astro   lee listarDisponibles(), grid 1/2/3 columnas
-    │   ├── ProductCard.astro   foto 4:5, precio, tallas, CTA WhatsApp
-    │   ├── ContactFooter.astro CTA + Instagram + horario (TODO)
+    │   ├── ProductCard.astro   foto 4:5, precio, tallas, colores, CTA WhatsApp
+    │   ├── ComoComprar.astro   pasos + datos de fabricación/entrega/pago
+    │   ├── VentaMayor.astro    sección mayorista, CTA y mensaje propios
+    │   ├── ContactFooter.astro CTA + Instagram
     │   └── admin/ProductoForm.astro  formulario compartido crear/editar
     │
     └── pages/
         ├── index.astro
+        ├── 404.astro                    página de error real (noindex)
+        ├── sitemap.xml.ts               sitemap dinámico desde la DB
+        ├── productos/
+        │   └── [slug].astro             ficha pública de cada producto
         └── admin/
             ├── index.astro          redirige a /admin/productos
             ├── login.astro
@@ -186,19 +194,26 @@ maygel/
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | number | primaryKey, autoincremental |
-| `nombre` | text | |
+| `nombre` | text | también genera el slug de la URL pública (`slugify(nombre)-id`) |
 | `precio` | number | entero en COP, sin decimales |
 | `tallas` | text | separadas por comas: `"35, 36, 37"` |
-| `imagen` | text | URL de Vercel Blob, o ruta `/productos/x.svg` del seed |
+| `colores` | text | separadas por comas, solo valores de `COLORES_VALIDOS` (Negro/Blanco/Miel/Beige) |
+| `imagen` | text | URL de Vercel Blob, o ruta `/productos/x.svg` del seed. Foto principal / fallback |
+| `imagenesColores` | text (opcional) | JSON `{"Color": "url"}` — foto específica por color, opcional. Añadida después del lanzamiento inicial (ver sección 10.1) |
 | `descripcion` | text | |
 | `disponible` | boolean | default true; si es false no aparece en la web |
 | `orden` | number | default 0; menor = aparece antes |
 
 **Detalle importante sobre `imagen`**: puede contener dos cosas. Si empieza por
 `http` es una URL remota de Blob y `ProductCard.astro` la renderiza con el
-componente `<Image>` de Astro (optimizada). Si no, es una ruta de `/public` y se
-renderiza con un `<img>` normal, porque `<Image>` no procesa archivos de
-`public/`. Esa bifurcación es intencional, no la elimines sin migrar el seed.
+componente `<Image>` de Astro (optimizada, incluyendo conversión a `webp`). Si
+no, es una ruta de `/public` y se renderiza con un `<img>` normal, porque
+`<Image>` no procesa archivos de `public/`. Esa bifurcación es intencional, no
+la elimines sin migrar el seed.
+
+**Detalle sobre `imagenesColores`**: si un color no tiene entrada en este JSON
+(o el campo está vacío/null, como en los 3 productos actuales), la ficha usa
+automáticamente `imagen` para ese color. Nunca es obligatorio.
 
 ---
 
@@ -264,6 +279,20 @@ npx @astrojs/check --tsconfig tsconfig.json
 > hay que usar `build:local`. Esto suele confundir; no lo "arregles" quitando el
 > `--remote` o romperás el despliegue en Vercel.
 
+### ⚠️ El CLI `astro db` ya NO existe en Astro 7
+
+Documentación antigua (incluida versiones anteriores de este mismo archivo)
+menciona comandos como `astro db push --remote` o `astro db execute ... --remote`
+para aplicar cambios de esquema o sembrar datos en la base remota. **Astro 7
+eliminó ese CLI.** Intentar ejecutar esos comandos hoy simplemente cae al
+`--help` genérico de Astro — no hace nada, ni falla con un error claro.
+
+El runtime de `@astrojs/db` (lo que usa el sitio para leer/escribir productos)
+sigue funcionando perfectamente; es solo la herramienta de línea de comandos
+para migraciones la que desapareció. Ver la sección 10.1 para el estado real
+de la migración y la sección 13 para el procedimiento a seguir si hace falta
+otro cambio de esquema en el futuro.
+
 En desarrollo, Astro DB crea una base de datos temporal y ejecuta `db/seed.ts`
 en cada arranque: **los cambios hechos en el panel en local se pierden al
 reiniciar el servidor.** Es el comportamiento esperado.
@@ -272,63 +301,133 @@ reiniciar el servidor.** Es el comportamiento esperado.
 
 ## 10. Estado actual: qué está hecho y verificado
 
-Todo lo siguiente se probó en un navegador real, no solo compilado:
+**El sitio ya está desplegado y funcionando en `https://www.maygel.co`.**
+Todo lo siguiente se probó contra producción real, no solo en local:
 
-- ✅ Web pública responsive, leyendo de la base de datos
-- ✅ Links de WhatsApp con mensaje predefinido por producto
+- ✅ Web pública responsive, leyendo de la base de datos remota
+- ✅ Fichas individuales de producto (`/productos/{slug}`), SEO, JSON-LD, sitemap dinámico
+- ✅ Links de WhatsApp (general, por producto con color, y mayorista) con mensaje correcto
 - ✅ `/admin/*` sin sesión redirige a login
-- ✅ Login correcto entra; login incorrecto muestra error claro
-- ✅ Crear, editar y eliminar productos (con confirmación antes de borrar)
-- ✅ Ocultar un producto lo saca de la web pública sin borrarlo
-- ✅ Reordenar con ↑↓ y que el orden se refleje en la web pública
-- ✅ Cerrar sesión vuelve a bloquear el acceso
-- ✅ Vista previa celular/computador
-- ✅ Panel usable desde el móvil
-- ✅ Meta tags Open Graph con URL absoluta
+- ✅ Variantes de color con imagen opcional por color (`imagenesColores`)
+- ✅ Meta tags Open Graph con URL absoluta de producción
 - ✅ `build:local` y `@astrojs/check`: 0 errores, 0 warnings
+- ✅ Lighthouse en producción: Performance 98, Accessibility 100 (homepage y fichas), CLS ~0.0008, LCP ~1.9s
 
-**No verificado en producción**: la subida real de fotos a Vercel Blob nunca se
-ha ejecutado, porque no hay `BLOB_READ_WRITE_TOKEN` configurado. El código está
-escrito y maneja el caso de token ausente con un mensaje amable, pero el camino
-feliz sigue sin probarse contra el servicio real. **Es lo primero que hay que
-comprobar tras el despliegue.**
+### 10.1 Migración de esquema `imagenesColores` — ya aplicada
+
+La columna `Producto.imagenesColores` (`TEXT`, opcional) **ya fue añadida a la
+base remota**, no mediante `astro db push` (no disponible, ver sección 9) sino
+conectando directamente con `@libsql/client` (ya instalado como dependencia
+transitiva de `@astrojs/db`) usando `ASTRO_DB_REMOTE_URL`/`ASTRO_DB_APP_TOKEN`,
+y ejecutando manualmente:
+
+```sql
+ALTER TABLE "Producto" ADD COLUMN imagenesColores TEXT;
+```
+
+Verificado antes y después: los 3 productos existentes sobrevivieron intactos,
+sin pérdida de datos, con `imagenesColores = NULL` (fallback automático a la
+foto principal). Ver sección 13 para repetir este procedimiento si hiciera
+falta otra migración en el futuro.
+
+**No verificado todavía**: la subida real de fotos a Vercel Blob desde el
+panel de producción (con `BLOB_READ_WRITE_TOKEN` real configurado en Vercel).
+El código está escrito y maneja el caso de token ausente con un mensaje
+amable, pero el camino feliz de subir una foto real no se ha probado contra
+el servicio real en producción — requiere iniciar sesión con las credenciales
+reales del panel, que no están disponibles en este entorno de desarrollo.
 
 ---
 
 ## 11. Pendiente
-
-### Bloqueado, necesita las cuentas del cliente
-
-1. Crear el Blob Store en Vercel → copiar `BLOB_READ_WRITE_TOKEN`
-2. Crear la base de datos remota (Astro Studio o Turso) → URL y token
-3. Cargar las 6 variables de entorno en Vercel, con contraseña fuerte
-4. Empujar el esquema a la base remota: `npm run astro db push --remote`
-5. Sembrar los datos iniciales: `npm run astro db execute db/seed.ts --remote`
-6. Desplegar y **probar que subir una foto funciona de verdad**
 
 ### Contenido que debe aportar el cliente
 
 Están marcados con `TODO` en el código:
 
 - Historia real del negocio → `src/components/About.astro`
-- Horario de atención real → `src/components/ContactFooter.astro`
-- Fotos reales de las sandalias → se suben desde el panel
-- Foto real para redes → reemplazar `public/og-image.jpg` (1200×630)
+- Fotos reales de las sandalias → se suben desde el panel (ver `GUIA-FOTOS.md`)
+- Foto real para redes → reemplazar `public/og-image.jpg` (1200×630) si se
+  decide cambiar la imagen de marca usada en Open Graph
 
-Los placeholders actuales (`src/assets/*.svg`, `public/productos/*.svg`) son
-dibujos de línea generados a mano, no fotos.
+~~Horario de atención real~~ — ya no aplica: el bloque de horario ficticio se
+eliminó del footer (no había un dato real que mostrar).
+
+**Catálogo actualmente en producción**: los 3 productos (`Sandalia Trenzada
+Terracota`, `Sandalia Clásica de Cuero`, `Sandalia Doble Correa Ocre`) siguen
+siendo los **fixtures de `db/seed.ts`** — nombres, precios, descripciones,
+tallas, colores y fotos (SVG de línea) de ejemplo, no el catálogo real del
+negocio. Sustituirlos es la siguiente tarea de negocio, no de código — ver
+`GUIA-PANEL.md` para el procedimiento exacto. No requiere ningún cambio de
+código: el admin ya soporta editar todos esos campos.
 
 ### Ideas no implementadas
 
 - Varios usuarios con cuentas distintas
 - Recuperación de contraseña
-- Subida de varias fotos por producto / galería
+- Subida de varias fotos por producto / galería (más allá de la foto
+  principal y la foto opcional por color ya soportadas)
 - Recorte o compresión de imágenes antes de subirlas
 - Analítica
 
 ---
 
-## 12. Cómo trabajar en este proyecto
+## 12. Deuda técnica post-lanzamiento
+
+- **`@astrojs/db` sobre Astro 7**: Astro 7 eliminó oficialmente el CLI
+  `astro db` (push/verify/shell/execute). El runtime de `@astrojs/db` sigue
+  funcionando con normalidad en producción — el sitio lee y escribe productos
+  sin problema. Pero cualquier cambio de esquema futuro requerirá repetir el
+  procedimiento manual con `@libsql/client` (sección 10.1 y 13), hasta que se
+  evalúe una migración a **Drizzle + libSQL/Turso** directo, o arquitectura
+  equivalente. **No es bloqueante actual** — es mantenimiento a planificar,
+  no una tarea urgente.
+- **Slug derivado del nombre** (`slugify(nombre) + "-" + id`): si se cambia
+  el nombre de un producto, cambia su URL pública. Aceptable durante la carga
+  inicial del catálogo (sin tráfico/indexación relevante todavía); una vez el
+  catálogo real lleve tiempo publicado, conviene evitar cambiar nombres sin
+  necesidad, o considerar persistir el slug en DB.
+- **`path-to-regexp` (ReDoS, severidad alta, `npm audit`)**: dependencia
+  transitiva de `@astrojs/vercel`/`@vercel/routing-utils`. Bajo riesgo
+  práctico (rutas fijas definidas por el desarrollador, no por input de
+  usuario). Resolverlo requeriría una versión mayor del adapter — no se debe
+  actualizar sin evaluar el changelog primero.
+
+---
+
+## 13. Procedimiento para futuras migraciones de esquema (mientras `astro db` no exista)
+
+1. Confirmar que `ASTRO_DB_REMOTE_URL` y `ASTRO_DB_APP_TOKEN` están disponibles
+   en el entorno (nunca imprimir sus valores).
+2. Escribir un script temporal fuera de `src/` (por ejemplo `scripts/`) que
+   use `@libsql/client` (`createClient({ url, authToken })`) para: inspeccionar
+   el schema real con `PRAGMA table_info('Producto')` antes de tocar nada.
+3. Ejecutar únicamente el `ALTER TABLE ... ADD COLUMN ... ` (u operación
+   equivalente) que sea estrictamente aditivo y no destructivo — nunca `DROP`,
+   nunca recrear la tabla, nunca tocar filas existentes.
+4. Verificar inmediatamente después con otra consulta de lectura.
+5. Borrar el script temporal — nunca debe quedar en el repositorio ni
+   contener credenciales escritas literalmente.
+
+---
+
+## 14. Información pendiente del negocio (para About)
+
+El texto de "Sobre Maygel" sigue siendo un placeholder (marcado con `TODO` en
+`src/components/About.astro`). Para escribir la versión real hace falta que
+el negocio responda:
+
+- ¿Cómo nació Maygel realmente?
+- ¿Quién fundó Maygel?
+- ¿Dónde fabrican?
+- ¿Qué significa el nombre "Maygel"?
+- ¿Qué inspira sus diseños?
+- ¿Cómo quieren describir la fabricación artesanal?
+- ¿Qué quieren transmitir como marca?
+
+---
+
+## 15. Cómo trabajar en este proyecto
 
 - **Idioma**: todo en español, incluidos nombres de funciones y variables del
   dominio (`listarDisponibles`, `tallasComoLista`, `crearSesion`). Mantener esa
