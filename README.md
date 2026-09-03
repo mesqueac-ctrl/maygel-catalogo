@@ -63,15 +63,16 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## Pasos para publicar
 
 1. Crear el proyecto en Vercel e importar este repositorio.
-2. En Vercel: **Storage → Blob** → crear un store. Copiar el `BLOB_READ_WRITE_TOKEN`.
-3. Crear la base de datos remota (Astro Studio o Turso) y copiar su URL y token.
+2. En Vercel: **Storage → Blob** → crear un store y **conectarlo al proyecto** (entorno Production incluido). Confirmar que queda una variable `BLOB_READ_WRITE_TOKEN` en Production.
+3. Crear la base de datos remota (Turso u otro proveedor libSQL) y copiar su URL y token.
 4. Añadir las 6 variables de entorno de la tabla de arriba.
-5. Subir el esquema y los datos iniciales a la base remota:
-   ```bash
-   npm run astro db push --remote
-   npm run astro db execute db/seed.ts --remote
-   ```
+5. Aplicar el esquema a la base remota. **`astro db push` NO está disponible en Astro 7** (el CLI de `@astrojs/db` fue retirado) — ver [MIGRACIONES-PRODUCCION.md](./MIGRACIONES-PRODUCCION.md) para el procedimiento seguro y actual.
 6. Desplegar. Vercel ejecuta `npm run build`, que ya incluye `--remote`.
+
+> ⚠️ **Nunca ejecutes** `astro db push`, `--force-reset`, `astro db execute` ni
+> ningún módulo interno de `@astrojs/db` contra la base remota de producción.
+> Ese CLI está roto en Astro 7 y su ruta de `--force-reset` borra todos los
+> datos. Ver [MIGRACIONES-PRODUCCION.md](./MIGRACIONES-PRODUCCION.md).
 
 ## Estructura
 
@@ -105,7 +106,6 @@ src/
 ## Personalizar
 
 - **Historia del negocio**: `src/components/About.astro` (marcado con `TODO`).
-- **Horario de atención**: `src/components/ContactFooter.astro` (marcado con `TODO`).
 - **WhatsApp / Instagram**: `src/consts.ts`.
 - **Colores y tipografías**: variables al inicio de `src/styles/global.css`.
 - **Imagen para redes sociales**: `public/og-image.jpg` (1200×630). Hay una

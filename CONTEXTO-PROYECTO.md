@@ -397,16 +397,37 @@ código: el admin ya soporta editar todos esos campos.
 
 ## 13. Procedimiento para futuras migraciones de esquema (mientras `astro db` no exista)
 
+> ## 🚫 NUNCA ejecutar contra la base remota de producción:
+> - `astro db push` (con o sin `--force-reset`)
+> - `astro db execute`
+> - cualquier invocación directa de los módulos compilados de `@astrojs/db`
+>   (`node_modules/@astrojs/db/dist/core/cli/...`)
+>
+> El `--force-reset` de `astro db push` **borra todos los datos y recrea la
+> tabla desde cero**. Esto ya ocurrió una vez en este proyecto (ver
+> `MIGRACIONES-PRODUCCION.md`, sección "Incidente conocido") y vació los 3
+> productos que había en producción. No se sabe con certeza absoluta quién lo
+> ejecutó ni cómo, pero la evidencia de código (múltiples entradas en la
+> tabla interna `_astro_db_snapshot`, que solo esa función crea) apunta
+> fuertemente a esa causa.
+>
+> El procedimiento correcto y seguro es el de esta sección, usando
+> `@libsql/client` directamente — ver también `MIGRACIONES-PRODUCCION.md`
+> para el runbook completo paso a paso.
+
 1. Confirmar que `ASTRO_DB_REMOTE_URL` y `ASTRO_DB_APP_TOKEN` están disponibles
    en el entorno (nunca imprimir sus valores).
-2. Escribir un script temporal fuera de `src/` (por ejemplo `scripts/`) que
-   use `@libsql/client` (`createClient({ url, authToken })`) para: inspeccionar
-   el schema real con `PRAGMA table_info('Producto')` antes de tocar nada.
-3. Ejecutar únicamente el `ALTER TABLE ... ADD COLUMN ... ` (u operación
-   equivalente) que sea estrictamente aditivo y no destructivo — nunca `DROP`,
-   nunca recrear la tabla, nunca tocar filas existentes.
-4. Verificar inmediatamente después con otra consulta de lectura.
-5. Borrar el script temporal — nunca debe quedar en el repositorio ni
+2. Antes de tocar nada: contar filas y guardar el schema actual
+   (`PRAGMA table_info('Producto')`) con el script read-only ya incluido en
+   el repositorio: `npm run db:inspect:remote`.
+3. Escribir un script temporal fuera de `src/` (por ejemplo `scripts/`) que
+   use `@libsql/client` (`createClient({ url, authToken })`) para aplicar
+   únicamente el `ALTER TABLE ... ADD COLUMN ...` (u operación equivalente)
+   estrictamente aditivo y no destructivo — nunca `DROP`, nunca recrear la
+   tabla, nunca tocar filas existentes.
+4. Verificar inmediatamente después con `npm run db:inspect:remote` de nuevo.
+5. Borrar el script temporal de migración (el de inspección sí se queda,
+   está pensado para reutilizarse) — nunca debe quedar en el repositorio ni
    contener credenciales escritas literalmente.
 
 ---

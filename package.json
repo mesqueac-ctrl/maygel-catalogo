@@ -10,7 +10,8 @@
     "build": "astro build --remote",
     "build:local": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:inspect:remote": "node scripts/inspect-remote-db.mjs"
   },
   "dependencies": {
     "@astrojs/db": "^0.21.3",
