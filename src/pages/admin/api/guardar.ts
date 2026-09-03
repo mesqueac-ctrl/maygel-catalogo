@@ -15,15 +15,17 @@ function errorRedirect(redirect: (url: string) => Response, mensaje: string): Re
 	return redirect("/admin/productos?error=" + encodeURIComponent(mensaje));
 }
 
-/** Sube la foto a Vercel Blob y devuelve su URL pública. */
+/**
+ * Sube la foto a Vercel Blob y devuelve su URL pública.
+ *
+ * La autenticación con Vercel Blob no siempre necesita `BLOB_READ_WRITE_TOKEN`
+ * explícito: si el store está conectado al proyecto vía OIDC (como es el caso
+ * en Vercel Production), `put()` puede autenticar solo, sin que pasemos ningún
+ * token. Por eso el token solo se pasa cuando existe (desarrollo local u
+ * otros entornos sin OIDC); si no existe, dejamos que `@vercel/blob` resuelva
+ * la autenticación por su cuenta.
+ */
 async function subirFoto(foto: File): Promise<string> {
-	const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
-	if (!token) {
-		throw new Error(
-			"El almacenamiento de fotos todavía no está configurado. Avísale a quien administra la página.",
-		);
-	}
-
 	if (foto.size > TAMANO_MAXIMO) {
 		throw new Error("La foto pesa demasiado. Intenta con una imagen más liviana (máximo 8 MB).");
 	}
@@ -32,22 +34,32 @@ async function subirFoto(foto: File): Promise<string> {
 		throw new Error("El archivo que elegiste no es una foto.");
 	}
 
-	const resultado = await put(`productos/${Date.now()}-${foto.name}`, foto, {
-		access: "public",
-		token,
-		addRandomSuffix: true,
-	});
+	const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
 
-	return resultado.url;
+	try {
+		const resultado = await put(`productos/${Date.now()}-${foto.name}`, foto, {
+			access: "public",
+			addRandomSuffix: true,
+			...(token ? { token } : {}),
+		});
+
+		return resultado.url;
+	} catch {
+		// No exponemos el error real (puede mencionar detalles internos de
+		// autenticación) — solo un mensaje seguro y accionable para la usuaria.
+		throw new Error(
+			"No se pudo subir la foto. Avísale a quien administra la página técnica.",
+		);
+	}
 }
 
 /** Borra la foto anterior del almacenamiento; si falla, no interrumpe el guardado. */
 async function borrarFotoAnterior(url: string): Promise<void> {
+	if (!url.startsWith("http")) return;
 	const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
-	if (!token || !url.startsWith("http")) return;
 
 	try {
-		await del(url, { token });
+		await del(url, token ? { token } : {});
 	} catch {
 		// La foto vieja queda huérfana, pero el producto se guardó bien.
 	}

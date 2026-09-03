@@ -25,10 +25,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 	}
 
 	// Limpiamos la foto del almacenamiento; si falla, el producto ya se borró igual.
-	const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
-	if (token && producto.imagen.startsWith("http")) {
+	// El token solo se pasa si existe explícitamente; si no, @vercel/blob intenta
+	// autenticar vía OIDC (el mecanismo real en Vercel Production).
+	if (producto.imagen.startsWith("http")) {
+		const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
 		try {
-			await del(producto.imagen, { token });
+			await del(producto.imagen, token ? { token } : {});
 		} catch {
 			// Sin consecuencias para la usuaria.
 		}
