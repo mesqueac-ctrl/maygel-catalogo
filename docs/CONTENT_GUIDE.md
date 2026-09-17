@@ -21,6 +21,16 @@ anuncio.
 - Claims no comprobables: cualquier afirmación sobre materiales, procesos,
   tiempos o calidad debe poder respaldarse. Si el negocio no lo ha
   confirmado, no se escribe.
+- **Materiales sin confirmar (Fase 8.2):** nunca escribir "cuero", "cuero
+  genuino", "sintético", "caucho" ni "materiales premium" en ninguna ficha
+  de producto hasta que el negocio confirme el material real de ese modelo
+  — ver `COMMERCIAL_TRUST_MATRIX.md` y `REAL_CATALOG_INPUT.md`.
+- **Descuentos (Fase 8.2):** nunca "¡OFERTA!", badges rojos, countdown ni
+  "últimas unidades" para comunicar un precio con descuento. El precio
+  anterior tachado + el precio actual, con más peso visual para el precio
+  actual, es suficiente — la caída de precio ya comunica el descuento sin
+  necesidad de urgencia artificial. Si se muestra un porcentaje, siempre se
+  calcula desde los dos precios reales, nunca se escribe a mano.
 
 ## Reglas de idioma
 

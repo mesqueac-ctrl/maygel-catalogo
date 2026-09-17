@@ -129,6 +129,50 @@ Orden seguro para rotarlo (no ejecutado — requiere acceso a Turso/Vercel):
 | (Fase 0/1) | `ALTER TABLE Producto ADD COLUMN categoria TEXT; ALTER TABLE Producto ADD COLUMN destacado INTEGER NOT NULL DEFAULT 0;` | 0/0 | — |
 | Fase 5 | `ALTER TABLE Producto ADD COLUMN slug TEXT; CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);` | 0/0 | Slug persistente — ver `ARCHITECTURE.md` § slug. Índice único creado además de la columna (dos sentencias, ambas aditivas) |
 
+## Migración diseñada, NO ejecutada: columna `precioOferta` (Fase 8.2)
+
+**Estado: diseñada y documentada aquí, pendiente de autorización explícita
+antes de ejecutarse ni de desplegar el código que la usa. No se ha corrido
+nada de lo siguiente.**
+
+### Por qué hace falta antes del deploy
+
+El código de Fase 8.2 añade `precioOferta` a `db/config.ts` para soportar
+descuentos por producto (ver `ARCHITECTURE.md` § 4.4). Local recrea la tabla
+en cada arranque, así que ya funciona ahí sin nada más — pero remoto no
+tiene esa columna. Si el código nuevo se desplegara sin esta migración,
+cualquier consulta a `Producto` en producción (`db.select()`, `db.insert()`,
+`db.update()`) fallaría con "no such column: precioOferta", **incluso con la
+tabla en 0 filas** — SQLite valida las columnas referenciadas en la consulta
+antes de mirar si hay filas. Es aditiva y de bajo riesgo (nullable, sin
+tocar filas existentes), pero es una precondición real, no opcional, para
+este deploy.
+
+### Script exacto para cuando se autorice
+
+```sql
+ALTER TABLE "Producto" ADD COLUMN "precioOferta" REAL;
+```
+
+Una sola sentencia, aditiva, nullable, sin `DEFAULT` — sigue exactamente el
+mismo patrón ya usado en Fase 0/1/5 (ver historial arriba). No requiere el
+procedimiento de 12 pasos que sí necesitó `slug NOT NULL` (Fase 5.1) porque
+aquí no se pide ninguna restricción `NOT NULL` — es opcional por diseño.
+
+### Condiciones para ejecutarla
+
+1. Confirmar de nuevo `npm run db:inspect:remote` inmediatamente antes de
+   ejecutar (verificar que sigue en 0 filas, o que las filas reales que
+   pueda haber para entonces no se ven afectadas por una columna nueva
+   nullable — de cualquier forma, aditiva y segura).
+2. Ejecutar solo esa sentencia, con el procedimiento seguro ya documentado
+   arriba (script temporal fuera de `src/`, `@libsql/client` directo, nunca
+   `astro db push`).
+3. Verificar con `npm run db:inspect:remote` de nuevo.
+4. Solo entonces, desplegar el código de Fase 8.2 — nunca antes.
+5. Actualizar la fila de "Historial de migraciones aplicadas" con fecha real
+   y filas antes/después.
+
 ## Migración diseñada, NO ejecutada: `slug NOT NULL` físico en remoto (Fase 5.1)
 
 **Estado: diseñada y documentada aquí, pendiente de autorización explícita del

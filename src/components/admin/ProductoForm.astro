@@ -70,7 +70,7 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 	</label>
 
 	<label class="campo">
-		<span class="campo__etiqueta">Precio (en pesos)</span>
+		<span class="campo__etiqueta">Precio normal (en pesos)</span>
 		<input
 			class="campo__input"
 			type="number"
@@ -78,10 +78,27 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 			required
 			min="0"
 			step="1000"
-			placeholder="89000"
+			placeholder="60000"
 			value={producto?.precio ?? ""}
 		/>
 		<span class="campo__ayuda">Escribe solo números, sin puntos ni comas.</span>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Precio con descuento (opcional)</span>
+		<input
+			class="campo__input"
+			type="number"
+			name="precioOferta"
+			min="0"
+			step="1000"
+			placeholder="Déjalo vacío si no hay descuento"
+			value={producto?.precioOferta ?? ""}
+		/>
+		<span class="campo__ayuda">
+			Si lo llenas, tiene que ser menor que el precio normal. La clienta verá el precio normal
+			tachado y este como precio actual.
+		</span>
 	</label>
 
 	<label class="campo">

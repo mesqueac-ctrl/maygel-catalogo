@@ -22,6 +22,24 @@ capacidad futura — ver `HOMEPAGE_SPEC.md` § Photography Production Needs.
 
 `formatearPrecio()` centralizado, sin variación por talla/color todavía.
 
+**Descuento opcional (Fase 8.2):** cada producto puede tener un
+`precioOferta` opcional. El precio que realmente se muestra y se usa en
+todo el sitio (PDP, `ProductCard`, WhatsApp, JSON-LD) es siempre el
+**precio efectivo** (`precioEfectivo()` en `productos.ts`) —
+`precioOferta` si es válido (mayor que 0 y menor que `precio`), si no,
+`precio` normal. Ninguna vista calcula esto por su cuenta.
+
+- **Sin descuento:** solo se muestra el precio (`$60.000`).
+- **Con descuento:** el precio anterior tachado (menor jerarquía visual) +
+  el precio actual (mayor jerarquía visual). Un porcentaje de descuento,
+  si se muestra, siempre se calcula desde los dos precios reales — nunca se
+  almacena ni se escribe a mano (ver `CONTENT_GUIDE.md`).
+- **Nunca:** badges rojos agresivos, countdown, "¡OFERTA!", "últimas
+  unidades" — el precio tachado ya comunica el descuento sin urgencia
+  artificial.
+- El CTA de WhatsApp y el JSON-LD `Offer.price` usan siempre el precio
+  efectivo, nunca el precio normal si hay una oferta activa.
+
 ## Color
 
 Selector real (no puntos decorativos): botones con swatch + nombre visible,
@@ -52,10 +70,11 @@ nunca un `alert()` de navegador.
 ## Mensaje de WhatsApp
 
 `mensajeProducto()` (`src/lib/whatsapp.ts`) incluye nombre, color y talla
-**solo si fueron seleccionados** (nunca un valor no confirmado), el precio
-formateado (`formatearPrecio()`, añadido en Fase 7 — antes faltaba) y la URL
-de la ficha como referencia, para que Maygel confirme exactamente qué vio y
-a qué precio la clienta antes de responder.
+**solo si fueron seleccionados** (nunca un valor no confirmado), el **precio
+efectivo** formateado (con descuento aplicado si existe, ver § Precio —
+añadido en Fase 7, actualizado en Fase 8.2 para usar el precio efectivo en
+vez del precio normal) y la URL de la ficha como referencia, para que Maygel
+confirme exactamente qué vio y a qué precio la clienta antes de responder.
 
 ## Fabricación
 
@@ -66,7 +85,11 @@ Etiqueta fija "Hecho a mano, bajo pedido — se fabrica después de tu pedido."
 
 Siguen dentro de `descripcion` (texto libre por producto, ya real). No se
 añadió un campo estructurado de materiales — no hay variación suficiente en
-el catálogo actual para justificarlo.
+el catálogo actual para justificarlo. **Confirmado en Fase 8.2: los
+materiales reales todavía no están confirmados por el negocio** — ninguna
+ficha real debe describir "cuero", "cuero genuino", "sintético", "caucho"
+ni "materiales premium" hasta tener el dato verdadero por modelo (ver
+`COMMERCIAL_TRUST_MATRIX.md`, `REAL_CATALOG_INPUT.md`).
 
 ## Envíos / cambios
 

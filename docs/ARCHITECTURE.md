@@ -96,9 +96,10 @@ Tabla `Producto` (`db/config.ts`):
 |---|---|---|
 | `id` | number, PK | autoincremental |
 | `nombre` | text | genera el slug público (`slugify(nombre)-id`) |
-| `precio` | number | entero, COP, sin decimales |
+| `precio` | number | entero, COP, sin decimales — precio normal |
+| `precioOferta` | number, opcional (Fase 8.2) | precio de oferta opcional. Ver § 4.4 — nunca se lee directamente, siempre a través de `precioEfectivo()` |
 | `tallas` | text | `"35, 36, 37"` — parseado con `tallasComoLista()` |
-| `colores` | text | subconjunto de `COLORES_VALIDOS` (`Negro`, `Blanco`, `Miel`, `Beige`), parseado con `coloresComoLista()` |
+| `colores` | text | subconjunto de `COLORES_VALIDOS` (`Negro`, `Blanco`, `Miel`, `Beige`, `Café`, `Plateado` — los dos últimos añadidos en Fase 8.2, confirmados por el negocio), parseado con `coloresComoLista()` |
 | `imagen` | text | URL de Blob (`http...`) o ruta de `/public` (fixtures) — bifurcación intencional en el render (`<Image>` vs `<img>`) |
 | `imagenesColores` | text, opcional | JSON `{ "Color": "url" }`, foto específica por color; fallback silencioso a `imagen` si falta o es inválido |
 | `descripcion` | text | — |
@@ -184,6 +185,43 @@ caso, probablemente B por defecto), y lógica condicional en sitemap/robots/
 JSON-LD por estado en vez de la rama binaria actual. Ninguna de estas
 implementaciones existe hoy — este párrafo es solo el diseño a considerar
 cuando el negocio confirme que el booleano ya no alcanza.
+
+### 4.4 Precios y descuentos (Fase 8.2)
+
+**Contrato:** `precio` es siempre el precio normal, obligatorio. `precioOferta`
+es opcional y, cuando existe, debe ser un número mayor que `0` y estrictamente
+menor que `precio` — validado en el servidor (`admin/api/guardar.ts`), nunca
+solo en el cliente. Un `precioOferta` inválido (`<= 0`, `>= precio`, o no
+numérico) detiene el guardado con un mensaje claro, igual que el resto de
+validaciones de este formulario — nunca se guarda silenciosamente como si no
+existiera.
+
+**Precio efectivo — una sola fuente de verdad:** `precioEfectivo(producto)`
+(`src/lib/productos.ts`) devuelve `producto.precioOferta` si es un número
+válido según la regla anterior, si no, `producto.precio`. Es defensivo (igual
+que `conSlugSeguro()`) por si algún dato antiguo o manipulado no pasara por
+la validación de escritura — nunca confía en que el dato ya viene bien
+formado. **Todo el código que muestra o envía un precio de producto (PDP,
+`ProductCard`, WhatsApp, JSON-LD `Offer.price`) llama a esta función — ninguno
+recalcula `precioOferta ?? precio` por su cuenta.**
+
+**Por qué no se guarda el porcentaje de descuento:** un `-10%` se calcula
+siempre desde `precio` y `precioEfectivo()` en el momento de mostrarlo — un
+porcentaje guardado en DB podría desincronizarse si alguien cambia `precio`
+sin recalcular el porcentaje. Nunca hay dos fuentes de la misma verdad.
+
+**Estado real: no existe ningún descuento activo hoy.** La arquitectura está
+lista, pero ningún producto (ni fixture ni real) tiene `precioOferta`
+poblado — se activa el primer descuento solo cuando el negocio confirme un
+monto real (ver `BUSINESS_INPUTS.md`).
+
+**Migración pendiente en remoto:** `precioOferta` es una columna nueva
+(`ALTER TABLE ADD COLUMN`, aditiva, nullable) — remoto sigue en 0 filas
+(verificado, ver `MIGRACIONES-PRODUCCION.md` § Historial), así que no hay
+riesgo de datos, pero **la migración no se ejecutó todavía** — el código
+nuevo no debe desplegarse a producción sin ella primero (SQLite fallaría con
+"no such column" al consultar `Producto` en remoto). Script exacto y
+procedimiento en `MIGRACIONES-PRODUCCION.md`.
 
 ## 5. Astro DB — estado real y limitación conocida
 

@@ -8,11 +8,13 @@ export const INSTAGRAM_URL = `https://instagram.com/${INSTAGRAM_HANDLE}`;
 export const MENSAJE_CONTACTO_GENERAL = "Hola, quisiera más información sobre las sandalias Maygel";
 export const MENSAJE_DUDA_COMPRA = "Hola, tengo una duda sobre las sandalias Maygel";
 
-// Mensaje mayorista: queda con campos para completar (nombre, ciudad, etc.)
-// porque eso ayuda a Maygel a responder con la información justa, sin
-// obligar a la interesada a llenar un formulario web antes de escribir.
+// Mensaje mayorista: abre con la intención real (Fase 8.2, confirmado por el
+// negocio: los interesados en mayoreo deben escribir por WhatsApp) y queda
+// con campos para completar (nombre, ciudad, etc.) porque eso ayuda a Maygel
+// a responder con la información justa, sin obligar a la interesada a
+// llenar un formulario web antes de escribir.
 export const MENSAJE_MAYORISTA =
-	"Hola, quiero conocer más sobre la venta al por mayor de Maygel.\n" +
+	"Hola Maygel, estoy interesada/o en comprar sandalias al por mayor. Quisiera conocer modelos disponibles, cantidades y precios.\n" +
 	"Nombre:\n" +
 	"Ciudad:\n" +
 	"Negocio (si tiene):\n" +

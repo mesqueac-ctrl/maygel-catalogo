@@ -1,17 +1,25 @@
 import { db, Producto, eq, asc, sql } from "astro:db";
 
-export const COLORES_VALIDOS = ["Negro", "Blanco", "Miel", "Beige"] as const;
+// Café y Plateado confirmados por el negocio en Fase 8.2 — antes solo
+// Negro/Blanco/Miel/Beige.
+export const COLORES_VALIDOS = ["Negro", "Blanco", "Miel", "Beige", "Café", "Plateado"] as const;
 export type ColorValido = (typeof COLORES_VALIDOS)[number];
 
 /** Taxonomía de categorías aprobada. Cada producto tiene como máximo una. */
 export const CATEGORIAS_VALIDAS = ["Brillos", "Tiras", "Trenzadas", "Clásicas", "Elegantes"] as const;
 export type CategoriaValida = (typeof CATEGORIAS_VALIDAS)[number];
 
+// Representación visual aproximada de cada color — el nombre textual sigue
+// siendo la fuente real (ver COMMERCIAL_TRUST_MATRIX.md). El `border` es
+// siempre un tono más oscuro del mismo color para que el swatch se distinga
+// del fondo claro del sitio, salvo Negro (ya suficientemente oscuro solo).
 export const COLORES_METADATA: Record<ColorValido, { nombre: string; hex: string; border: string }> = {
 	Negro: { nombre: "Negro", hex: "#222222", border: "#222222" },
 	Blanco: { nombre: "Blanco", hex: "#FFFFFF", border: "#D8CFC4" },
 	Miel: { nombre: "Miel", hex: "#C47C35", border: "#B56E28" },
 	Beige: { nombre: "Beige", hex: "#E7DACB", border: "#D6C4B0" },
+	Café: { nombre: "Café", hex: "#6F4E37", border: "#4F3627" },
+	Plateado: { nombre: "Plateado", hex: "#C7C7C7", border: "#A0A0A0" },
 };
 
 export interface ProductoRegistro {
@@ -21,6 +29,10 @@ export interface ProductoRegistro {
 	 * regenera automáticamente al editar `nombre`. */
 	slug: string;
 	precio: number;
+	/** Precio de oferta opcional (Fase 8.2). Nunca se lee directamente — usar
+	 * siempre `precioEfectivo()`. Cuando existe, ya fue validado en el
+	 * servidor (`admin/api/guardar.ts`): mayor que 0 y menor que `precio`. */
+	precioOferta?: number | null;
 	tallas: string;
 	colores: string;
 	imagen: string;
@@ -223,4 +235,26 @@ export function formatearPrecio(precio: number): string {
 		currency: "COP",
 		maximumFractionDigits: 0,
 	}).format(precio);
+}
+
+/**
+ * Único punto del código que decide qué precio se muestra y se cobra
+ * (Fase 8.2): el de oferta si existe y es válido, si no, el normal. `admin/
+ * api/guardar.ts` ya valida `precioOferta` al guardar (mayor que 0, menor
+ * que `precio`), pero esta función vuelve a comprobarlo — defensivo, igual
+ * que `conSlugSeguro()`, por si algún dato no pasó por esa validación.
+ * Nunca calcular `producto.precioOferta ?? producto.precio` a mano en un
+ * componente: siempre a través de esta función, para que PDP, `ProductCard`,
+ * WhatsApp y el JSON-LD nunca puedan mostrar/cobrar precios distintos.
+ */
+export function precioEfectivo(producto: Pick<ProductoRegistro, "precio" | "precioOferta">): number {
+	const oferta = producto.precioOferta;
+	const esOfertaValida = typeof oferta === "number" && oferta > 0 && oferta < producto.precio;
+	return esOfertaValida ? oferta : producto.precio;
+}
+
+/** `true` solo si el producto tiene un precio de oferta que de verdad se va
+ * a mostrar como descuento (mismo criterio que `precioEfectivo()`). */
+export function tieneDescuento(producto: Pick<ProductoRegistro, "precio" | "precioOferta">): boolean {
+	return precioEfectivo(producto) !== producto.precio;
 }

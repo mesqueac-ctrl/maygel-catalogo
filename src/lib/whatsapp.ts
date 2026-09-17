@@ -10,11 +10,12 @@ import { buildWhatsappLink } from "../consts";
  * ninguna fue elegida todavía — en ese caso simplemente no se mencionan
  * (nunca se envía un valor no seleccionado como si estuviera confirmado).
  * `precioFormateado` es opcional (algunos llamantes todavía no lo tienen a
- * mano) pero siempre debe venir de `formatearPrecio(producto.precio)`, nunca
- * de un valor escrito a mano — así Maygel confirma el precio exacto que vio
- * la clienta, no uno distinto. Si se pasa `urlProducto`, se añade como
- * referencia en una línea aparte para identificar exactamente qué sandalia
- * vio la clienta.
+ * mano) pero siempre debe venir de `formatearPrecio(precioEfectivo(producto))`
+ * (Fase 8.2 — el precio efectivo, con descuento aplicado si existe), nunca de
+ * `producto.precio` directo ni de un valor escrito a mano — así Maygel
+ * confirma el precio exacto que la clienta vio y va a pagar, no uno
+ * distinto. Si se pasa `urlProducto`, se añade como referencia en una línea
+ * aparte para identificar exactamente qué sandalia vio la clienta.
  */
 export function mensajeProducto(
 	nombre: string,

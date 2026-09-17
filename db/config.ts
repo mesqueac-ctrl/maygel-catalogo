@@ -21,6 +21,16 @@ const Producto = defineTable({
 		//   documentada, no ejecutada — ver ARCHITECTURE.md § slug.
 		slug: column.text({ unique: true }),
 		precio: column.number(),
+		// Precio de oferta opcional (Fase 8.2) — nunca se lee directamente en
+		// el código de la app, siempre a través de `precioEfectivo()`
+		// (src/lib/productos.ts). Validado en `admin/api/guardar.ts`: si se
+		// informa, debe ser mayor que 0 y menor que `precio`.
+		//
+		// Estado real: columna nueva, aditiva. Local (recrea la tabla) ya la
+		// tiene. Remoto NO la tiene todavía — migración diseñada y documentada,
+		// no ejecutada (ver MIGRACIONES-PRODUCCION.md § Fase 8.2). No desplegar
+		// este código a producción antes de ejecutarla.
+		precioOferta: column.number({ optional: true }),
 		tallas: column.text(),
 		colores: column.text(),
 		imagen: column.text(),

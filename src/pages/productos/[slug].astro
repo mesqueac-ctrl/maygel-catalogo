@@ -8,6 +8,8 @@ import {
 	obtenerPorSlug,
 	listarDisponibles,
 	formatearPrecio,
+	precioEfectivo,
+	tieneDescuento,
 	descripcionImagen,
 	coloresComoLista,
 	tallasComoLista,
@@ -52,7 +54,7 @@ const coleccionUrl = new URL("/#catalogo", Astro.url.origin).href;
 const inicioUrl = new URL("/", Astro.url.origin).href;
 const imagenUrl = new URL(imagenInicial, Astro.url.origin).href;
 const title = `${producto.nombre} — Sandalias Maygel`;
-const description = `${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(producto.precio)}.`;
+const description = `${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(precioEfectivo(producto))}.`;
 const ogImageAlt = descripcionImagen(producto.nombre);
 // "No disponible" hoy no significa "página sin valor": sigue teniendo
 // enlaces internos reales (migas, relacionados, footer) que conviene que se
@@ -64,7 +66,9 @@ const robots = disponible ? "index, follow" : "noindex, follow";
 const necesitaColor = disponible && colores.length > 1;
 const necesitaTalla = disponible && tallas.length > 1;
 
-const precioFormateado = formatearPrecio(producto.precio);
+const hayDescuento = tieneDescuento(producto);
+const precioFormateado = formatearPrecio(precioEfectivo(producto));
+const precioAnteriorFormateado = hayDescuento ? formatearPrecio(producto.precio) : null;
 
 const enlaceWhatsappInicial =
 	disponible && !necesitaColor && !necesitaTalla
@@ -98,7 +102,11 @@ const datosEstructurados = disponible
 			brand: { "@type": "Brand", name: "Maygel" },
 			offers: {
 				"@type": "Offer",
-				price: producto.precio,
+				// Precio efectivo (con descuento aplicado si existe, Fase 8.2) — el
+				// que realmente se ofrece, nunca el precio normal si hay una oferta
+				// activa. `priceValidUntil` no se incluye: no existe una fecha real
+				// de fin de oferta que afirmar.
+				price: precioEfectivo(producto),
 				priceCurrency: "COP",
 				url: paginaUrl,
 			},
@@ -179,7 +187,12 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 
 					<div class="ficha__info">
 						<h1 class="ficha__nombre">{producto.nombre}</h1>
-						<p class="ficha__precio">{formatearPrecio(producto.precio)}</p>
+						<p class="ficha__precio">
+							{precioAnteriorFormateado && (
+								<span class="ficha__precio-anterior">{precioAnteriorFormateado}</span>
+							)}
+							<span class="ficha__precio-actual">{precioFormateado}</span>
+						</p>
 
 						{
 							!disponible && (
@@ -481,9 +494,22 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 	}
 
 	.ficha__precio {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
 		font-size: 1.1875rem;
-		color: var(--color-accent);
 		margin-bottom: 1.5rem;
+	}
+
+	.ficha__precio-anterior {
+		text-decoration: line-through;
+		color: var(--color-accent-soft);
+		font-size: 1rem;
+	}
+
+	.ficha__precio-actual {
+		color: var(--color-accent);
+		font-weight: 500;
 	}
 
 	.ficha__descripcion {

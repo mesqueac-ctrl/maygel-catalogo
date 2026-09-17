@@ -2,6 +2,8 @@
 import { Image } from "astro:assets";
 import {
 	formatearPrecio,
+	precioEfectivo,
+	tieneDescuento,
 	coloresComoLista,
 	descripcionImagen,
 	imagenParaColor,
@@ -21,7 +23,9 @@ interface Props {
 const { producto } = Astro.props;
 const urlFicha = `/productos/${producto.slug}`;
 
-const precioFormateado = formatearPrecio(producto.precio);
+const hayDescuento = tieneDescuento(producto);
+const precioActual = formatearPrecio(precioEfectivo(producto));
+const precioAnterior = hayDescuento ? formatearPrecio(producto.precio) : null;
 const colores = coloresComoLista(producto.colores);
 const unicoColor = colores.length === 1 ? colores[0] : null;
 const imagen = imagenParaColor(producto, unicoColor);
@@ -55,7 +59,10 @@ const altImagen = descripcionImagen(producto.nombre);
 			<h3 class="card__name">
 				<a class="card__link" href={urlFicha}>{producto.nombre}</a>
 			</h3>
-			<p class="card__price">{precioFormateado}</p>
+			<p class="card__price">
+				{precioAnterior && <span class="card__price-anterior">{precioAnterior}</span>}
+				<span class="card__price-actual">{precioActual}</span>
+			</p>
 		</div>
 
 		{
@@ -156,10 +163,24 @@ const altImagen = descripcionImagen(producto.nombre);
 	}
 
 	.card__price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.4rem;
 		font-size: 0.875rem;
 		font-weight: 400;
 		color: var(--color-muted);
 		white-space: nowrap;
+	}
+
+	.card__price-anterior {
+		text-decoration: line-through;
+		color: var(--color-accent-soft);
+		font-size: 0.8125rem;
+	}
+
+	.card__price-actual {
+		color: var(--color-text);
+		font-weight: 500;
 	}
 
 	.card__colors {

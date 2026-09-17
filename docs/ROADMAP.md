@@ -262,7 +262,75 @@
   confirmados). Catálogo real, historia real, guía de tallas real y el resto
   de `BUSINESS_INPUTS.md` quedan como acción externa del negocio.
 
-## Fase 8 — Mayoristas
+## Fase 7.1 — Commit + deploy + verificación de Fase 7
+
+- **Objetivo:** publicar los cambios aprobados de Fase 7 (sin funcionalidad
+  nueva) y verificar con evidencia real que producción refleja el fix de
+  precio en WhatsApp y el copy honesto de catálogo vacío.
+- **Alcance:** un commit limpio con exactamente los 10 archivos de Fase 7
+  (`1e42afa`), push a `origin/master`, verificación post-deploy contra
+  `https://www.maygel.co` (copy vacío en vivo, SEO sin cambios, sin
+  regresiones de marca/consola/overflow).
+- **Dependencias:** Fase 7.
+- **Criterios de aprobación:** el commit servido en producción corresponde
+  al código aprobado, sin regresiones — cumplido, verificado con `curl` y en
+  navegador.
+- **Estado:** ✅ Completa.
+
+## Fase 8 — Brand Content Production (preparación de insumos reales)
+
+- **Objetivo:** organizar y estructurar (sin inventar) los insumos reales de
+  marca y negocio que faltan para pasar de "web bien construida" a "marca
+  completa": catálogo real, fotografía, historia, materiales, guía de
+  tallas, políticas y contenido comercial. Fase de documentación pura, cero
+  código.
+- **Alcance:** `docs/REAL_CATALOG_INPUT.md` (nuevo — ficha reutilizable por
+  producto + reglas de naming), `docs/PHOTOGRAPHY_BRIEF.md` (nuevo — brief
+  completo de las 4 familias, hero, craft moment, destacado, mayoristas,
+  redes, video, estándar técnico, nomenclatura, shoot day plan, prioridades
+  MUST/SHOULD/NICE), `docs/BRAND_STORY_INPUT.md` (nuevo — 12 preguntas para
+  la historia real), `docs/OWNER_CONTENT_CHECKLIST.md` (nuevo — checklist
+  no técnico para el dueño del negocio), `docs/BUSINESS_INPUTS.md`
+  (ampliado con preguntas concretas de cambios/garantía, envíos, pagos y
+  mayoristas, antes en prosa general). **Sin cambios de código, CSS, DB ni
+  deploy** — cumplido tal como pedía la fase.
+- **Dependencias:** Fase 7.1.
+- **Criterios de aprobación:** cada insumo pendiente tiene una pregunta
+  concreta y accionable en algún documento, sin duplicar preguntas ya
+  resueltas en fases anteriores, y sin ningún dato inventado para rellenar
+  un hueco.
+- **Estado:** ✅ Completa.
+
+## Fase 8.2 — Precio real, colores confirmados y sistema de descuentos
+
+- **Objetivo:** registrar la primera información comercial real confirmada
+  por el negocio (precio retail, colores, canal mayorista, fabricación bajo
+  pedido) sin aplicarla a los fixtures, y construir la arquitectura de
+  descuentos por producto que el negocio pidió — sin activar ningún
+  descuento concreto todavía.
+- **Alcance:** documentación primero (`COMMERCIAL_TRUST_MATRIX.md`,
+  `BUSINESS_INPUTS.md`, `CONTENT_GUIDE.md`, `PRODUCT_PAGE_SPEC.md`,
+  `ARCHITECTURE.md`, `MIGRACIONES-PRODUCCION.md`), después código:
+  `productos.ts` (colores Café/Plateado, `precioEfectivo()`), `db/config.ts`
+  (`precioOferta` opcional), `admin/api/guardar.ts` (validación de servidor
+  del descuento), `ProductoForm.astro` (campo de precio con descuento),
+  `ProductCard.astro`/`[slug].astro` (precio tachado + efectivo),
+  `whatsapp.ts`/consts (mensaje mayorista actualizado, precio efectivo en el
+  mensaje de producto), `VentaMayor.astro` (colores actualizados, sin claim
+  de material sin confirmar).
+- **Dependencias:** Fase 8.1A.
+- **Migración pendiente, NO ejecutada:** `precioOferta` requiere
+  `ALTER TABLE` aditivo en remoto antes de desplegar este código — ver
+  `MIGRACIONES-PRODUCCION.md` § Fase 8.2. Sin esta migración, el deploy
+  rompería cualquier consulta a `Producto` en producción.
+- **Criterios de aprobación:** ningún dato inventado (tallas, materiales,
+  nombres de modelos, descuentos concretos, reglas mayoristas siguen
+  pendientes y documentados como tales); precio efectivo calculado por una
+  única función, nunca duplicado; validación de descuento solo en servidor.
+- **Estado:** ✅ Completa en código y documentación, **deploy y migración
+  pendientes de aprobación explícita** (no ejecutados en esta fase).
+
+## Fase 9 — Mayoristas
 
 - **Objetivo:** confirmar con el negocio si hay condiciones reales (mínimos,
   descuentos) que documentar y mostrar.
@@ -272,7 +340,7 @@
   verificada, nunca inventada para sonar más atractiva.
 - **Estado:** ⬜ Pendiente.
 
-## Fase 9 — Performance
+## Fase 10 — Performance
 
 - **Objetivo:** medir Lighthouse real (móvil) contra el estado actual del
   sistema Quiet Colombian Craft y contra `PERFORMANCE_RULES.md`.
@@ -285,14 +353,14 @@
   fecha.
 - **Estado:** ⬜ Pendiente.
 
-## Fase 10 — QA completo
+## Fase 11 — QA completo
 
 - **Objetivo:** pase final de calidad antes de considerar el proyecto
   "terminado" en su forma Quiet Colombian Craft: build, typecheck,
   accesibilidad, SEO, responsive, contenido, todo contra los documentos de
   `/docs`.
 - **Alcance:** todo el repositorio.
-- **Dependencias:** Fases 0-9.
+- **Dependencias:** Fases 0-10.
 - **Criterios de aprobación:** cero errores de build/typecheck/lint; checklist
   de cada documento de `/docs` revisado explícitamente; todo componente de
   catálogo/grid probado con 0, 1, 2–4 y muchos productos, y con destacados

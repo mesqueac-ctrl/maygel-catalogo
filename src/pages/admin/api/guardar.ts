@@ -146,6 +146,30 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return errorRedirect(redirect, "El precio no es válido.");
 	}
 
+	// Precio con descuento — opcional (Fase 8.2). Campo vacío = sin descuento
+	// (null). Si viene un valor, debe ser un número real, mayor que 0 y menor
+	// que el precio normal — nunca se confía solo en la validación del
+	// formulario, esta es la que de verdad decide qué se guarda.
+	const precioOfertaEntrada = String(datos.get("precioOferta") ?? "").trim();
+	let precioOferta: number | null = null;
+
+	if (precioOfertaEntrada !== "") {
+		const precioOfertaNumero = Number(precioOfertaEntrada);
+
+		if (!Number.isFinite(precioOfertaNumero) || precioOfertaNumero <= 0) {
+			return errorRedirect(redirect, "El precio con descuento no es válido.");
+		}
+
+		if (precioOfertaNumero >= precio) {
+			return errorRedirect(
+				redirect,
+				"El precio con descuento debe ser menor que el precio normal.",
+			);
+		}
+
+		precioOferta = precioOfertaNumero;
+	}
+
 	// Procesamiento y validación estricta de colores
 	const coloresEntrantes = datos
 		.getAll("colores")
@@ -164,7 +188,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 	if (coloresValidados.length === 0) {
 		return errorRedirect(
 			redirect,
-			"Debes seleccionar al menos un color disponible (Negro, Blanco, Miel o Beige).",
+			`Debes seleccionar al menos un color disponible (${COLORES_VALIDOS.join(", ")}).`,
 		);
 	}
 
@@ -220,6 +244,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		nombre,
 		slug,
 		precio,
+		precioOferta,
 		tallas,
 		colores,
 		imagen,
