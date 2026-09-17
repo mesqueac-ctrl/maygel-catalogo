@@ -8,7 +8,6 @@ const mensajes: Record<string, string> = {
 	guardado: "Producto guardado correctamente.",
 	creado: "La sandalia nueva se agregó correctamente.",
 	eliminado: "La sandalia se eliminó correctamente.",
-	movido: "Se cambió el orden correctamente.",
 };
 
 const aviso = mensajes[Astro.url.searchParams.get("ok") ?? ""];
@@ -37,14 +36,28 @@ const error = Astro.url.searchParams.get("error");
 			{
 				productos.length > 1 && (
 					<p class="cabecera__pista">
-						Usa las flechas ↑ ↓ para cambiar el orden en que aparecen en tu página.
+						Usa "Ordenar catálogo" para cambiar el orden en que aparecen en tu página.
 					</p>
 				)
 			}
 		</div>
 
-		<a class="boton-principal" href="/admin/productos/nueva">+ Agregar sandalia nueva</a>
+		<div class="cabecera__botones">
+			{productos.length > 1 && (
+				<a class="boton-secundario" href="/admin/productos/ordenar">Ordenar catálogo</a>
+			)}
+			<a class="boton-principal" href="/admin/productos/nueva">+ Agregar sandalia nueva</a>
+		</div>
 	</div>
+
+	{
+		productos.length > 1 && (
+			<label class="buscador">
+				<span>Buscar por nombre o categoría</span>
+				<input type="text" id="buscador-input" placeholder="Ej: Aura, Brillos..." autocomplete="off" />
+			</label>
+		)
+	}
 
 	{
 		productos.length === 0 ? (
@@ -53,46 +66,24 @@ const error = Astro.url.searchParams.get("error");
 				<p>Empieza agregando la primera con el botón de arriba.</p>
 			</div>
 		) : (
-			<ul class="lista">
-				{productos.map((producto, indice) => {
+			<ul class="lista" id="lista-productos">
+				{productos.map((producto) => {
 					const listaColores = coloresComoLista(producto.colores);
 					return (
-						<li class="fila">
-							<div class="orden">
-								<form method="POST" action="/admin/api/mover">
-									<input type="hidden" name="id" value={producto.id} />
-									<input type="hidden" name="direccion" value="subir" />
-									<button
-										class="orden__boton"
-										type="submit"
-										disabled={indice === 0}
-										title="Subir esta sandalia"
-										aria-label={`Subir ${producto.nombre}`}
-									>
-										↑
-									</button>
-								</form>
-
-								<form method="POST" action="/admin/api/mover">
-									<input type="hidden" name="id" value={producto.id} />
-									<input type="hidden" name="direccion" value="bajar" />
-									<button
-										class="orden__boton"
-										type="submit"
-										disabled={indice === productos.length - 1}
-										title="Bajar esta sandalia"
-										aria-label={`Bajar ${producto.nombre}`}
-									>
-										↓
-									</button>
-								</form>
-							</div>
-
+						<li
+							class="fila"
+							data-nombre={producto.nombre.toLowerCase()}
+							data-categoria={(producto.categoria ?? "").toLowerCase()}
+						>
 							<img class="fila__foto" src={producto.imagen} alt={producto.nombre} />
 
 							<div class="fila__datos">
-								<p class="fila__nombre">{producto.nombre}</p>
+								<p class="fila__nombre">
+									{producto.nombre}
+									{producto.destacado && <span class="fila__badge">Destacada</span>}
+								</p>
 								<p class="fila__precio">{formatearPrecio(producto.precio)}</p>
+								{producto.categoria && <p class="fila__categoria">{producto.categoria}</p>}
 								{listaColores.length > 0 && (
 									<p class="fila__colores">
 										<strong>Colores:</strong> {listaColores.join(" · ")}
@@ -141,6 +132,20 @@ const error = Astro.url.searchParams.get("error");
 			}
 		});
 	});
+
+	// Búsqueda simple: filtra las filas ya renderizadas, sin ida y vuelta al servidor.
+	const buscador = document.getElementById("buscador-input") as HTMLInputElement | null;
+	const filas = document.querySelectorAll<HTMLElement>("#lista-productos .fila");
+
+	buscador?.addEventListener("input", () => {
+		const termino = buscador.value.trim().toLowerCase();
+		filas.forEach((fila) => {
+			const nombre = fila.dataset.nombre ?? "";
+			const categoria = fila.dataset.categoria ?? "";
+			const coincide = !termino || nombre.includes(termino) || categoria.includes(termino);
+			fila.hidden = !coincide;
+		});
+	});
 </script>
 
 <style>
@@ -175,6 +180,53 @@ const error = Astro.url.searchParams.get("error");
 	.cabecera__titulo {
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		margin-bottom: 0.5rem;
+	}
+
+	.cabecera__botones {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.buscador {
+		display: block;
+		margin-bottom: 2rem;
+		max-width: 360px;
+	}
+
+	.buscador span {
+		display: block;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		margin-bottom: 0.5rem;
+	}
+
+	.buscador input {
+		width: 100%;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--color-border);
+	}
+
+	.fila__badge {
+		display: inline-block;
+		margin-left: 0.6rem;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+		border: 1px solid var(--color-accent);
+		padding: 0.15rem 0.5rem;
+		vertical-align: middle;
+	}
+
+	.fila__categoria {
+		font-size: 0.875rem;
+		color: var(--color-accent-soft);
+		margin-bottom: 0.35rem;
 	}
 
 	.cabecera__sub {
@@ -225,35 +277,6 @@ const error = Astro.url.searchParams.get("error");
 		padding: 1.25rem 0;
 		border-bottom: 1px solid var(--color-border);
 		flex-wrap: wrap;
-	}
-
-	.orden {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		flex-shrink: 0;
-	}
-
-	.orden__boton {
-		font-family: var(--font-body);
-		font-size: 1.1rem;
-		line-height: 1;
-		width: 40px;
-		height: 34px;
-		background-color: #fff;
-		border: 1px solid var(--color-border);
-		color: var(--color-text);
-		cursor: pointer;
-	}
-
-	.orden__boton:hover:not(:disabled) {
-		border-color: var(--color-accent);
-		color: var(--color-accent);
-	}
-
-	.orden__boton:disabled {
-		opacity: 0.3;
-		cursor: default;
 	}
 
 	.fila__foto {

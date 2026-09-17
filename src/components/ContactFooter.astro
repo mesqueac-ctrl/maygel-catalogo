@@ -4,57 +4,55 @@ import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, INSTAGRAM_URL, INSTAGRAM_H
 const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 
 const navLinks = [
-	{ href: "#inicio", label: "Inicio" },
-	{ href: "#sobre-nosotros", label: "Sobre Maygel" },
-	{ href: "#catalogo", label: "Catálogo" },
+	{ href: "#catalogo", label: "Colección" },
+	{ href: "#sobre-nosotros", label: "Nuestra historia" },
 	{ href: "#como-comprar", label: "Cómo comprar" },
-	{ href: "#por-mayor", label: "Por mayor" },
+	{ href: "#por-mayor", label: "Mayoristas" },
 ];
 ---
 
-<footer class="footer section" id="contacto">
+<footer class="footer section section--dark" id="contacto">
 	<div class="container">
+		<p class="footer__brand">Maygel</p>
+
 		<div class="footer__top">
-			<p class="eyebrow">Contacto</p>
 			<h2 class="section-title footer__title">Hablemos</h2>
 			<p class="footer__lead">
 				¿Tienes dudas sobre tallas, colores o encargos especiales? Escríbenos, con gusto te
 				ayudamos.
 			</p>
-			<a class="btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+			<a class="btn btn-on-dark" href={whatsappLink} target="_blank" rel="noopener noreferrer">
 				Escríbenos por WhatsApp
 			</a>
 		</div>
 
 		<div class="footer__bottom">
-			<div class="footer__col">
-				<p class="footer__label">Navegación</p>
-				<nav class="footer__nav" aria-label="Navegación del pie de página">
-					{navLinks.map((link) => (
-						<a class="footer__link" href={link.href}>{link.label}</a>
-					))}
-				</nav>
-			</div>
-
-			<div class="footer__col">
-				<p class="footer__label">Instagram</p>
+			<nav class="footer__nav" aria-label="Navegación del pie de página">
+				{navLinks.map((link) => (
+					<a class="footer__link" href={link.href}>{link.label}</a>
+				))}
 				<a class="footer__link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
 					@{INSTAGRAM_HANDLE}
 				</a>
-			</div>
+			</nav>
 
-			<div class="footer__col">
-				<p class="footer__label">Maygel</p>
-				<p class="footer__value">© {new Date().getFullYear()}<br />Hecho a mano, con familia.</p>
-			</div>
+			<p class="footer__copy">© {new Date().getFullYear()} Maygel — Hecho a mano, con familia.</p>
 		</div>
 	</div>
 </footer>
 
 <style>
 	.footer {
-		border-top: 1px solid var(--color-border);
-		padding-bottom: clamp(3rem, 6vw, 4rem);
+		border-top: 1px solid var(--color-line);
+		padding-block: clamp(4rem, 10vw, 6rem) clamp(3rem, 6vw, 4rem);
+	}
+
+	.footer__brand {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: clamp(2.5rem, 7vw, 4rem);
+		letter-spacing: 0.005em;
+		margin-bottom: clamp(3rem, 8vw, 5rem);
 	}
 
 	.footer__top {
@@ -63,70 +61,52 @@ const navLinks = [
 	}
 
 	.footer__title {
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.25rem;
 	}
 
 	.footer__lead {
-		color: var(--color-accent-soft);
-		font-weight: 300;
+		color: rgba(244, 236, 225, 0.7);
 		margin-bottom: 2.5rem;
 	}
 
 	.footer__bottom {
-		display: grid;
-		gap: 2.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.75rem;
 		padding-top: 2.5rem;
-		border-top: 1px solid var(--color-border);
-	}
-
-	.footer__label {
-		font-size: 0.75rem;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.75rem;
+		border-top: 1px solid var(--color-dark-line);
 	}
 
 	.footer__nav {
 		display: flex;
-		flex-direction: column;
-		margin-block: -0.6rem;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.5rem;
 	}
 
 	.footer__link {
 		display: inline-flex;
 		align-items: center;
 		min-height: 44px;
-		box-sizing: border-box;
 		text-decoration: none;
-		border-bottom: 1px solid var(--color-border);
-		align-self: flex-start;
-		padding-block: 0.6rem;
-		transition:
-			color 0.2s ease,
-			border-color 0.2s ease;
+		font-size: 0.875rem;
+		color: rgba(244, 236, 225, 0.65);
+		transition: color 0.2s ease;
 	}
 
 	.footer__link:hover {
-		color: var(--color-accent);
-		border-color: var(--color-accent);
+		color: var(--color-champagne);
 	}
 
-	.footer__value {
-		font-weight: 300;
-		line-height: 1.6;
+	.footer__copy {
+		font-size: 0.8125rem;
+		color: rgba(244, 236, 225, 0.45);
 	}
 
 	@media (min-width: 700px) {
 		.footer__bottom {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 2.5rem 3rem;
-		}
-	}
-
-	@media (min-width: 1000px) {
-		.footer__bottom {
-			grid-template-columns: repeat(3, 1fr);
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
 		}
 	}
 </style>

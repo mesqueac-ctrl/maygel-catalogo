@@ -20,22 +20,18 @@ const pasos = [
 	},
 ];
 
-const datos = [
+const confianza = [
 	{
-		etiqueta: "Fabricación",
-		valor: "Bajo pedido. Tu sandalia se hace especialmente a partir de tu encargo.",
+		titulo: "Hecho bajo pedido",
+		texto: "Tu sandalia se fabrica especialmente para ti, no antes de que la pidas.",
 	},
 	{
-		etiqueta: "Entregas",
-		valor: "Soledad y Barranquilla. Envíos nacionales para pedidos al por mayor.",
+		titulo: "Cambio de talla",
+		texto: "Si no queda bien, lo solucionamos. El domicilio del cambio corre por tu cuenta.",
 	},
 	{
-		etiqueta: "Formas de pago",
-		valor: "Contraentrega local, Nequi, Daviplata o transferencia bancaria.",
-	},
-	{
-		etiqueta: "Cambio de talla",
-		valor: "Sí lo hacemos. El domicilio del cambio corre por cuenta de la clienta.",
+		titulo: "Atención directa",
+		texto: "Hablas con nosotros por WhatsApp, sin intermediarios ni respuestas automáticas.",
 	},
 ];
 
@@ -44,9 +40,8 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 
 <section class="comprar section" id="como-comprar">
 	<div class="container">
-		<header class="comprar__header">
-			<p class="eyebrow">Cómo comprar</p>
-			<h2 class="section-title">Así de simple</h2>
+		<header class="comprar__header" data-reveal>
+			<h2 class="section-title">Así trabajamos</h2>
 		</header>
 
 		<ol class="pasos">
@@ -61,18 +56,21 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 			}
 		</ol>
 
-		<dl class="datos">
+		<div class="confianza">
 			{
-				datos.map((dato) => (
-					<div class="dato">
-						<dt class="dato__etiqueta">{dato.etiqueta}</dt>
-						<dd class="dato__valor">{dato.valor}</dd>
+				confianza.map((item) => (
+					<div class="confianza__item">
+						<h3 class="confianza__titulo">{item.titulo}</h3>
+						<p class="confianza__texto">{item.texto}</p>
 					</div>
 				))
 			}
-		</dl>
+		</div>
 
-		<p class="comprar__ayuda">
+		<p class="comprar__logistica">
+			Entregas en Soledad y Barranquilla; envíos nacionales para pedidos al por mayor. Pago
+			contraentrega local, Nequi, Daviplata o transferencia bancaria.
+			{" "}
 			¿No sabes qué talla pedir?{" "}
 			<a href={whatsappLink} target="_blank" rel="noopener noreferrer">Escríbenos y te ayudamos</a>.
 		</p>
@@ -81,7 +79,7 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 
 <style>
 	.comprar {
-		border-top: 1px solid var(--color-border);
+		border-top: 1px solid var(--color-line);
 	}
 
 	.comprar__header {
@@ -98,53 +96,52 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 
 	.paso__numero {
 		display: block;
-		font-family: var(--font-heading);
-		font-size: 2.5rem;
+		font-family: var(--font-body);
+		font-weight: 600;
+		font-variant-numeric: lining-nums tabular-nums;
+		font-size: clamp(2.5rem, 5.5vw, 3.25rem);
 		line-height: 1;
 		color: var(--color-accent);
-		margin-bottom: 1.25rem;
+		margin-bottom: 1rem;
 	}
 
 	.paso__titulo {
-		font-size: 1.25rem;
-		margin-bottom: 0.6rem;
+		font-size: 1.1875rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.paso__texto {
-		color: var(--color-accent-soft);
-		font-weight: 300;
+		color: var(--color-muted);
 		max-width: 34ch;
 	}
 
-	.datos {
+	.confianza {
 		margin: 0;
 		padding-top: clamp(2.5rem, 5vw, 3rem);
-		border-top: 1px solid var(--color-border);
+		border-top: 1px solid var(--color-line);
 		display: grid;
 		gap: 2rem;
 	}
 
-	.dato__etiqueta {
-		font-size: 0.75rem;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.75rem;
+	.confianza__titulo {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
 	}
 
-	.dato__valor {
+	.confianza__texto {
 		margin: 0;
-		font-weight: 300;
-		max-width: 30ch;
+		color: var(--color-muted);
+		max-width: 36ch;
 	}
 
-	.comprar__ayuda {
+	.comprar__logistica {
 		margin-top: clamp(2.5rem, 5vw, 3rem);
-		font-weight: 300;
-		color: var(--color-accent-soft);
+		color: var(--color-muted);
+		max-width: 62ch;
 	}
 
-	.comprar__ayuda a {
+	.comprar__logistica a {
 		color: var(--color-text);
 		text-decoration: none;
 		border-bottom: 1px solid var(--color-accent);
@@ -152,7 +149,7 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 		transition: color 0.2s ease;
 	}
 
-	.comprar__ayuda a:hover {
+	.comprar__logistica a:hover {
 		color: var(--color-accent);
 	}
 
@@ -161,15 +158,9 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 			grid-template-columns: repeat(3, 1fr);
 		}
 
-		.datos {
-			grid-template-columns: repeat(2, 1fr);
+		.confianza {
+			grid-template-columns: repeat(3, 1fr);
 			gap: 2.5rem 3rem;
-		}
-	}
-
-	@media (min-width: 1000px) {
-		.datos {
-			grid-template-columns: repeat(4, 1fr);
 		}
 	}
 </style>

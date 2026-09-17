@@ -2,20 +2,16 @@
 import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
 
 const navLinks = [
-	{ href: "#inicio", label: "Inicio" },
-	{ href: "#sobre-nosotros", label: "Sobre Maygel" },
-	{ href: "#catalogo", label: "Catálogo" },
+	{ href: "#catalogo", label: "Colección" },
+	{ href: "#sobre-nosotros", label: "Nuestra historia" },
 	{ href: "#como-comprar", label: "Cómo comprar" },
-	{ href: "#por-mayor", label: "Por mayor" },
-	{ href: "#contacto", label: "Contacto" },
+	{ href: "#por-mayor", label: "Mayoristas" },
 ];
 
 const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
-<header class="header">
-	<input type="checkbox" id="menu-toggle" class="header__toggle-input" aria-hidden="true" tabindex="-1" />
-
+<header class="header" id="header">
 	<div class="container header__inner">
 		<a href="#inicio" class="header__brand">Maygel</a>
 
@@ -27,16 +23,16 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 
 		<div class="header__actions">
 			<a class="header__cta" href={whatsappLink} target="_blank" rel="noopener noreferrer">
-				WhatsApp
+				WhatsApp<span aria-hidden="true"> ↗</span>
 			</a>
 
 			<button
 				type="button"
 				class="header__toggle"
-				id="header-toggle-label"
+				id="header-toggle"
 				aria-label="Abrir menú"
 				aria-expanded="false"
-				aria-controls="header-mobile-nav"
+				aria-controls="menu-movil"
 			>
 				<span></span>
 				<span></span>
@@ -44,40 +40,76 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 			</button>
 		</div>
 	</div>
-
-	<nav class="header__mobile-nav" aria-label="Navegación móvil" id="header-mobile-nav">
-		{navLinks.map((link) => (
-			<a href={link.href}>{link.label}</a>
-		))}
-	</nav>
 </header>
 
-<script>
-	// El checkbox oculto solo guarda el estado abierto/cerrado para el CSS
-	// (":checked" controla la animación del menú); no es interactivo para el
-	// usuario ni para lectores de pantalla (aria-hidden + tabindex="-1"). El
-	// botón real es el que recibe foco, teclado y anuncia su estado.
-	const toggle = document.getElementById("menu-toggle") as HTMLInputElement | null;
-	const boton = document.getElementById("header-toggle-label");
-	const mobileNav = document.getElementById("header-mobile-nav");
+<div class="menu-movil" id="menu-movil" hidden>
+	<nav class="menu-movil__nav" aria-label="Navegación móvil">
+		<ul>
+			{navLinks.map((link) => (
+				<li><a href={link.href}>{link.label}</a></li>
+			))}
+		</ul>
+	</nav>
 
-	function actualizarEstado(abierto: boolean) {
-		boton?.setAttribute("aria-expanded", String(abierto));
-		boton?.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
+	<a class="menu-movil__whatsapp btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+		Escríbenos por WhatsApp
+	</a>
+</div>
+
+<script>
+	const boton = document.getElementById("header-toggle");
+	const menu = document.getElementById("menu-movil");
+	const header = document.getElementById("header");
+	const contenidoDeFondo = document.querySelectorAll<HTMLElement>("main, .footer");
+
+	function abrirMenu() {
+		if (!menu || !boton) return;
+		menu.hidden = false;
+		boton.setAttribute("aria-expanded", "true");
+		boton.setAttribute("aria-label", "Cerrar menú");
+		document.body.style.overflow = "hidden";
+		// El resto de la página queda fuera del foco/lectura mientras el menú
+		// a pantalla completa está abierto — evita un focus trap manual propenso
+		// a errores, usando el atributo nativo `inert`.
+		contenidoDeFondo.forEach((el) => el.setAttribute("inert", ""));
+		menu.querySelector("a")?.focus();
+	}
+
+	function cerrarMenu(devolverFoco = true) {
+		if (!menu || !boton) return;
+		menu.hidden = true;
+		boton.setAttribute("aria-expanded", "false");
+		boton.setAttribute("aria-label", "Abrir menú");
+		document.body.style.overflow = "";
+		contenidoDeFondo.forEach((el) => el.removeAttribute("inert"));
+		if (devolverFoco) boton.focus();
 	}
 
 	boton?.addEventListener("click", () => {
-		if (!toggle) return;
-		toggle.checked = !toggle.checked;
-		actualizarEstado(toggle.checked);
+		const abierto = boton.getAttribute("aria-expanded") === "true";
+		if (abierto) cerrarMenu();
+		else abrirMenu();
 	});
 
-	mobileNav?.querySelectorAll("a").forEach((enlace) => {
-		enlace.addEventListener("click", () => {
-			if (toggle) toggle.checked = false;
-			actualizarEstado(false);
-		});
+	menu?.querySelectorAll("a").forEach((enlace) => {
+		enlace.addEventListener("click", () => cerrarMenu(false));
 	});
+
+	document.addEventListener("keydown", (evento) => {
+		if (evento.key === "Escape" && boton?.getAttribute("aria-expanded") === "true") {
+			cerrarMenu();
+		}
+	});
+
+	// Estado "con scroll": el header se compacta y su línea inferior, casi
+	// imperceptible en reposo, gana algo más de presencia.
+	function actualizarScroll() {
+		if (!header) return;
+		header.classList.toggle("header--con-scroll", window.scrollY > 12);
+	}
+
+	actualizarScroll();
+	window.addEventListener("scroll", actualizarScroll, { passive: true });
 </script>
 
 <style>
@@ -85,8 +117,13 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 		position: sticky;
 		top: 0;
 		z-index: 50;
-		background-color: var(--color-bg);
-		border-bottom: 1px solid var(--color-border);
+		background-color: rgba(247, 242, 234, 0.9);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border-bottom: 1px solid var(--color-line);
+		transition:
+			padding 0.25s ease,
+			border-color 0.25s ease;
 	}
 
 	.header__inner {
@@ -94,28 +131,38 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 		align-items: center;
 		justify-content: space-between;
 		gap: 1.5rem;
-		padding-block: 1.15rem;
+		padding-block: 1.25rem;
+		transition: padding 0.25s ease;
+	}
+
+	.header--con-scroll .header__inner {
+		padding-block: 0.75rem;
 	}
 
 	.header__brand {
-		font-family: var(--font-heading);
-		font-size: 1.4rem;
-		letter-spacing: 0.03em;
+		font-family: var(--font-display);
+		font-size: 1.625rem;
+		font-weight: 600;
+		letter-spacing: 0.01em;
 		text-decoration: none;
 		color: var(--color-text);
 		flex-shrink: 0;
+		/* Ancla la altura del header al tamaño del wordmark, no al bloque de
+		   línea del navegador: evita cualquier salto al compactarse en scroll. */
+		line-height: 1;
 	}
 
 	.header__nav {
 		display: none;
-		gap: clamp(1.5rem, 2.2vw, 2.25rem);
+		gap: clamp(1.75rem, 2.4vw, 2.5rem);
 		font-size: 0.875rem;
 		font-weight: 400;
+		letter-spacing: 0.01em;
 	}
 
 	.header__nav a {
 		text-decoration: none;
-		color: var(--color-accent-soft);
+		color: var(--color-muted);
 		transition: color 0.2s ease;
 		white-space: nowrap;
 	}
@@ -127,35 +174,26 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 	.header__actions {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 1.25rem;
 		flex-shrink: 0;
 	}
 
 	.header__cta {
 		display: inline-flex;
 		align-items: center;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		letter-spacing: 0.03em;
-		text-decoration: none;
-		color: var(--color-bg);
-		background-color: var(--color-accent);
-		padding: 0.8rem 1.1rem;
 		min-height: 44px;
-		box-sizing: border-box;
-		transition: opacity 0.2s ease;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--color-accent);
+		transition: color 0.2s ease;
 		white-space: nowrap;
 	}
 
 	.header__cta:hover {
-		opacity: 0.85;
-	}
-
-	/* Botón hamburguesa: solo visible por debajo del breakpoint de escritorio */
-	.header__toggle-input {
-		position: absolute;
-		opacity: 0;
-		pointer-events: none;
+		color: var(--color-accent-hover);
 	}
 
 	.header__toggle {
@@ -165,19 +203,19 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 		justify-content: center;
 		gap: 5px;
 		width: 44px;
+		height: 44px;
 		background: transparent;
 		border: none;
 		padding: 0;
 		font: inherit;
 		appearance: none;
-		height: 44px;
 		margin-right: -0.5rem;
 		cursor: pointer;
 	}
 
 	.header__toggle span {
 		display: block;
-		height: 1.5px;
+		height: 1px;
 		width: 22px;
 		background-color: var(--color-text);
 		transition:
@@ -185,49 +223,70 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 			opacity 0.2s ease;
 	}
 
-	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(1) {
+	.header__toggle[aria-expanded="true"] span:nth-child(1) {
 		transform: translateY(6.5px) rotate(45deg);
 	}
 
-	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(2) {
+	.header__toggle[aria-expanded="true"] span:nth-child(2) {
 		opacity: 0;
 	}
 
-	.header__toggle-input:checked ~ .header__inner .header__toggle span:nth-child(3) {
+	.header__toggle[aria-expanded="true"] span:nth-child(3) {
 		transform: translateY(-6.5px) rotate(-45deg);
 	}
 
-	/* Panel de navegación móvil, plegado por defecto */
-	.header__mobile-nav {
+	/* Menú móvil: overlay editorial a pantalla completa, no un drawer
+	   genérico — tipografía grande, mucho aire, un solo acento. */
+	.menu-movil {
+		position: fixed;
+		inset: 0;
+		z-index: 60;
+		background-color: var(--color-bg);
 		display: flex;
 		flex-direction: column;
-		max-height: 0;
-		overflow: hidden;
-		transition: max-height 0.25s ease;
-		border-top: 1px solid transparent;
+		justify-content: space-between;
+		padding: clamp(6rem, 22vw, 8rem) clamp(1.5rem, 8vw, 3rem) clamp(2.5rem, 6vw, 3.5rem);
+		opacity: 1;
+		transition: opacity 0.32s ease;
 	}
 
-	.header__toggle-input:checked ~ .header__mobile-nav {
-		max-height: 26rem;
-		border-top-color: var(--color-border);
+	.menu-movil[hidden] {
+		display: flex;
+		opacity: 0;
+		pointer-events: none;
+		visibility: hidden;
+		transition:
+			opacity 0.32s ease,
+			visibility 0s 0.32s;
 	}
 
-	.header__mobile-nav a {
+	.menu-movil__nav ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.menu-movil__nav a {
+		display: block;
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 9vw, 2.75rem);
+		font-weight: 600;
+		letter-spacing: -0.01em;
 		text-decoration: none;
 		color: var(--color-text);
-		font-size: 1.0625rem;
-		padding: 1.1rem clamp(1.5rem, 5vw, 3rem);
+		padding-block: 0.6rem;
+		border-bottom: 1px solid var(--color-line);
 		min-height: 44px;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-		border-bottom: 1px solid var(--color-border);
 	}
 
-	.header__mobile-nav a:active,
-	.header__mobile-nav a:hover {
-		color: var(--color-accent);
-		background-color: #f7efe7;
+	.menu-movil__nav li:first-child a {
+		padding-top: 0;
+	}
+
+	.menu-movil__whatsapp {
+		align-self: flex-start;
 	}
 
 	@media (min-width: 780px) {
@@ -235,8 +294,11 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 			display: flex;
 		}
 
-		.header__toggle,
-		.header__mobile-nav {
+		.header__toggle {
+			display: none;
+		}
+
+		.menu-movil {
 			display: none;
 		}
 	}

@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { listarDisponibles, slugDeProducto } from "../lib/productos";
+import { listarDisponibles } from "../lib/productos";
 
 // Se genera dinámicamente en lugar de mantenerse como archivo estático para
 // incluir automáticamente las fichas de producto reales, sin hardcodear URLs.
@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ site }) => {
 	const urls = [
 		{ loc: `${base}/`, priority: "1.0" },
 		...productos.map((producto) => ({
-			loc: `${base}/productos/${slugDeProducto(producto)}`,
+			loc: `${base}/productos/${producto.slug}`,
 			priority: "0.8",
 		})),
 	];

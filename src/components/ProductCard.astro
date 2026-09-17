@@ -1,287 +1,128 @@
 ---
 import { Image } from "astro:assets";
-import { enlaceProducto } from "../lib/whatsapp";
 import {
 	formatearPrecio,
-	tallasComoLista,
 	coloresComoLista,
-	slugDeProducto,
 	descripcionImagen,
-	imagenesColoresComoMapa,
 	imagenParaColor,
 	COLORES_METADATA,
 	type ProductoRegistro,
 } from "../lib/productos";
 
+// Fase 5: la ficha de producto (variante "ficha" de versiones anteriores) se
+// reescribió como una página propia — ver src/pages/productos/[slug].astro.
+// Este componente ahora sirve un único propósito: la tarjeta compacta de
+// catálogo/destacados. Foto + nombre + precio + color, sin más — la tarjeta
+// completa es un enlace ("stretched link").
 interface Props {
 	producto: ProductoRegistro;
-	/** Si el nombre/imagen deben enlazar a la ficha individual. Se desactiva
-	 * cuando la propia ficha ya está mostrando esta tarjeta, para no enlazar
-	 * a sí misma. */
-	enlaceFicha?: boolean;
-	/** Si al elegir un color se debe cambiar la imagen mostrada (cuando el
-	 * producto tiene una imagen específica para ese color). Se mantiene
-	 * apagado en las tarjetas del catálogo para que sigan siendo simples;
-	 * se enciende solo en la ficha individual. */
-	variantesImagen?: boolean;
-	/** URL pública de la ficha, para incluirla como referencia en el mensaje
-	 * de WhatsApp. Solo se pasa desde la ficha individual: en el catálogo el
-	 * mensaje se mantiene breve. */
-	urlProducto?: string;
-	/** Si esta imagen es la más grande visible al cargar la página (LCP) —
-	 * cierto solo en la ficha individual, donde hay una sola foto grande y
-	 * nada más pesado por encima. En el catálogo, con varias tarjetas, las
-	 * imágenes siguen cargando de forma perezosa (comportamiento por
-	 * defecto de <Image>), porque ninguna es crítica para el primer pintado. */
-	prioridadImagen?: boolean;
-	/** Nivel de heading para el nombre del producto. En el catálogo, "h3" es
-	 * correcto porque cuelga del H2 de la sección. En la ficha individual,
-	 * este es el heading visible principal y debe ser "h2" para no saltarse
-	 * un nivel respecto al H1 (oculto) de la página. */
-	nivelTitulo?: "h2" | "h3";
 }
 
-const {
-	producto,
-	enlaceFicha = true,
-	variantesImagen = false,
-	urlProducto,
-	prioridadImagen = false,
-	nivelTitulo = "h3",
-} = Astro.props;
-const Titulo = nivelTitulo;
-const urlFicha = `/productos/${slugDeProducto(producto)}`;
+const { producto } = Astro.props;
+const urlFicha = `/productos/${producto.slug}`;
 
 const precioFormateado = formatearPrecio(producto.precio);
-const tallas = tallasComoLista(producto.tallas);
 const colores = coloresComoLista(producto.colores);
 const unicoColor = colores.length === 1 ? colores[0] : null;
-const mapaImagenesColores = imagenesColoresComoMapa(producto.imagenesColores);
-// Si solo hay un color posible, ya está implícitamente "seleccionado":
-// mostramos de una vez su imagen específica si existe.
-const imagenInicial = imagenParaColor(producto, unicoColor);
-
-const necesitaSeleccion = colores.length > 1;
-// Con varios colores sin elegir, no hay nada honesto que enviar todavía: el
-// CTA queda deshabilitado hasta que la clienta elija uno (comportamiento ya
-// existente, sin cambios).
-const enlaceInicial = necesitaSeleccion ? "#" : enlaceProducto(producto.nombre, unicoColor, urlProducto);
-
-// Las fotos subidas desde el panel son URLs remotas (Vercel Blob) y las optimiza
-// <Image>. Las que viven en /public se sirven tal cual.
-const esRemota = imagenInicial.startsWith("http");
+const imagen = imagenParaColor(producto, unicoColor);
+const esRemota = imagen.startsWith("http");
 const altImagen = descripcionImagen(producto.nombre);
 ---
 
-<article
-	class="card"
-	data-product-card
-	data-product-name={producto.nombre}
-	data-url-producto={urlProducto ?? ""}
-	data-variantes-imagen={variantesImagen ? "true" : "false"}
-	data-imagenes-colores={JSON.stringify(mapaImagenesColores)}
-	data-imagen-principal={producto.imagen}
-	data-alt-base={altImagen}
->
+<article class="card">
 	<div class="card__image">
+		{producto.destacado && <span class="card__destacado">Selección</span>}
 		{
-			enlaceFicha ? (
-				<a href={urlFicha} aria-label={`Ver detalles de ${producto.nombre}`}>
-					{esRemota ? (
-						<Image
-							src={imagenInicial}
-							alt={altImagen}
-							width={800}
-							height={1000}
-							format="webp"
-							loading={prioridadImagen ? "eager" : "lazy"}
-							fetchpriority={prioridadImagen ? "high" : "auto"}
-							data-card-image
-						/>
-					) : (
-						<img
-							src={imagenInicial}
-							alt={altImagen}
-							width="800"
-							height="1000"
-							loading={prioridadImagen ? "eager" : "lazy"}
-							fetchpriority={prioridadImagen ? "high" : "auto"}
-							decoding="async"
-							data-card-image
-						/>
-					)}
-				</a>
-			) : esRemota ? (
+			esRemota ? (
 				<Image
-					src={imagenInicial}
+					src={imagen}
 					alt={altImagen}
 					width={800}
 					height={1000}
+					widths={[400, 800, 1200]}
+					sizes="(min-width: 1000px) 30vw, (min-width: 480px) 45vw, 90vw"
 					format="webp"
-					loading={prioridadImagen ? "eager" : "lazy"}
-					fetchpriority={prioridadImagen ? "high" : "auto"}
-					data-card-image
+					loading="lazy"
 				/>
 			) : (
-				<img
-					src={imagenInicial}
-					alt={altImagen}
-					width="800"
-					height="1000"
-					loading={prioridadImagen ? "eager" : "lazy"}
-					fetchpriority={prioridadImagen ? "high" : "auto"}
-					decoding="async"
-					data-card-image
-				/>
+				<img src={imagen} alt={altImagen} width="800" height="1000" loading="lazy" decoding="async" />
 			)
 		}
 	</div>
 
 	<div class="card__body">
 		<div class="card__header">
-			<Titulo class="card__name">
-				{enlaceFicha ? <a href={urlFicha}>{producto.nombre}</a> : producto.nombre}
-			</Titulo>
+			<h3 class="card__name">
+				<a class="card__link" href={urlFicha}>{producto.nombre}</a>
+			</h3>
 			<p class="card__price">{precioFormateado}</p>
 		</div>
 
-		<p class="card__tag">Fabricación bajo pedido</p>
-		<p class="card__description">{producto.descripcion}</p>
-
-		{tallas.length > 0 && <p class="card__sizes">Tallas {tallas.join(" · ")}</p>}
-
 		{
 			colores.length > 0 && (
-				<div class="card__colors" role="group" aria-label={`Colores disponibles para ${producto.nombre}`}>
-					<span class="card__colors-label">Colores disponibles:</span>
-					<div class="card__colors-list">
-						{colores.map((color) => {
-							const meta = COLORES_METADATA[color];
-							const esActivo = unicoColor === color;
-							return (
-								<button
-									type="button"
-									class={`card__color-btn ${esActivo ? "card__color-btn--active" : ""}`}
-									data-color={color}
-									aria-label={`Elegir color ${color}`}
-									aria-pressed={esActivo ? "true" : "false"}
-									title={`Color ${color}`}
-								>
-									<span
-										class="card__color-dot"
-										style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
-										aria-hidden="true"
-									/>
-									<span class="card__color-name">{color}</span>
-								</button>
-							);
-						})}
-					</div>
+				<div class="card__colors" role="img" aria-label={`Colores disponibles: ${colores.join(", ")}`}>
+					{colores.map((color) => {
+						const meta = COLORES_METADATA[color];
+						return (
+							<span
+								class="card__color-dot"
+								style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
+								aria-hidden="true"
+							/>
+						);
+					})}
 				</div>
 			)
 		}
-
-		<a
-			class={`card__cta ${necesitaSeleccion ? "card__cta--disabled" : ""}`}
-			href={enlaceInicial}
-			target={necesitaSeleccion ? "_self" : "_blank"}
-			rel="noopener noreferrer"
-			data-card-cta
-			aria-disabled={necesitaSeleccion ? "true" : undefined}
-		>
-			{necesitaSeleccion ? "Selecciona un color" : "Encargar por WhatsApp"}
-		</a>
 	</div>
 </article>
-
-<script>
-	import { mensajeProducto, buildWhatsappLink } from "../lib/whatsapp";
-
-	document.querySelectorAll<HTMLElement>("[data-product-card]").forEach((card) => {
-		const nombre = card.dataset.productName ?? "";
-		const urlProducto = card.dataset.urlProducto || undefined;
-		const colorBtns = card.querySelectorAll<HTMLButtonElement>("[data-color]");
-		const cta = card.querySelector<HTMLAnchorElement>("[data-card-cta]");
-		if (!cta || colorBtns.length <= 1) return;
-
-		// Solo la ficha individual cambia la imagen al elegir color; en el
-		// catálogo la tarjeta se mantiene simple (solo cambia el CTA).
-		const cambiaImagen = card.dataset.variantesImagen === "true";
-		const img = card.querySelector<HTMLImageElement>("[data-card-image]");
-		const imagenPrincipal = card.dataset.imagenPrincipal ?? "";
-		const altBase = card.dataset.altBase ?? nombre;
-		let mapaImagenesColores: Record<string, string> = {};
-		try {
-			mapaImagenesColores = JSON.parse(card.dataset.imagenesColores ?? "{}");
-		} catch {
-			mapaImagenesColores = {};
-		}
-
-		colorBtns.forEach((btn) => {
-			btn.addEventListener("click", () => {
-				const color = btn.dataset.color;
-				if (!color) return;
-
-				colorBtns.forEach((b) => {
-					b.classList.remove("card__color-btn--active");
-					b.setAttribute("aria-pressed", "false");
-				});
-				btn.classList.add("card__color-btn--active");
-				btn.setAttribute("aria-pressed", "true");
-
-				if (cambiaImagen && img) {
-					const imagenColor = mapaImagenesColores[color];
-					img.src = imagenColor ?? imagenPrincipal;
-					img.alt = imagenColor ? `${altBase} — color ${color}` : altBase;
-				}
-
-				const mensaje = mensajeProducto(nombre, color, urlProducto);
-				const url = buildWhatsappLink(mensaje);
-
-				cta.href = url;
-				cta.target = "_blank";
-				cta.textContent = `Encargar en ${color} por WhatsApp`;
-				cta.classList.remove("card__cta--disabled");
-				cta.removeAttribute("aria-disabled");
-			});
-		});
-
-		cta.addEventListener("click", (evento) => {
-			if (cta.getAttribute("aria-disabled") === "true" || cta.classList.contains("card__cta--disabled")) {
-				evento.preventDefault();
-			}
-		});
-	});
-</script>
 
 <style>
 	.card {
 		display: flex;
 		flex-direction: column;
+		position: relative;
+	}
+
+	/* La tarjeta completa es clicable: el enlace visible es solo el nombre,
+	   pero su pseudo-elemento se extiende sobre toda la tarjeta ("stretched
+	   link") — evita duplicar el mismo enlace en imagen + nombre. */
+	.card__link::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 1;
 	}
 
 	.card__image {
+		position: relative;
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background-color: #f2ece4;
-		margin-bottom: 1.5rem;
+		background-color: #ede4d6;
+		margin-bottom: 1.1rem;
 	}
 
-	.card__image a {
-		display: block;
-		width: 100%;
-		height: 100%;
+	.card__destacado {
+		position: absolute;
+		top: 0.9rem;
+		left: 0.9rem;
+		z-index: 1;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-dark-text);
 	}
 
 	.card__image :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.5s ease;
+		transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
 	.card:hover .card__image :global(img) {
-		transform: scale(1.03);
+		transform: scale(1.02);
 	}
 
 	.card__body {
@@ -295,133 +136,43 @@ const altImagen = descripcionImagen(producto.nombre);
 		justify-content: space-between;
 		align-items: baseline;
 		gap: 1rem;
-		margin-bottom: 0.35rem;
+		margin-bottom: 0.4rem;
 	}
 
 	.card__name {
-		font-size: 1.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
 	}
 
-	.card__name a {
+	.card__link {
 		color: inherit;
 		text-decoration: none;
 	}
 
-	.card__name a:hover {
+	.card__link:hover {
 		color: var(--color-accent);
 	}
 
 	.card__price {
-		font-size: 1rem;
-		font-weight: 500;
-		color: var(--color-accent);
+		font-size: 0.875rem;
+		font-weight: 400;
+		color: var(--color-muted);
 		white-space: nowrap;
 	}
 
-	.card__tag {
-		font-size: 0.75rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-accent);
-		margin-bottom: 0.75rem;
-		font-weight: 500;
-	}
-
-	.card__description {
-		font-size: 0.9375rem;
-		font-weight: 300;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.85rem;
-		line-height: 1.6;
-	}
-
-	.card__sizes {
-		font-size: 0.8125rem;
-		letter-spacing: 0.04em;
-		color: var(--color-accent-soft);
-		margin-bottom: 1.25rem;
-	}
-
 	.card__colors {
-		margin-bottom: 1.5rem;
-	}
-
-	.card__colors-label {
-		display: block;
-		font-size: 0.75rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.5rem;
-	}
-
-	.card__colors-list {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem;
-	}
-
-	.card__color-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		min-height: 44px;
-		box-sizing: border-box;
-		background: transparent;
-		border: 1px solid var(--color-border);
-		padding: 0.6rem 0.85rem;
-		cursor: pointer;
-		font-family: var(--font-body);
-		font-size: 0.8125rem;
-		color: var(--color-text);
-		transition: border-color 0.2s ease, background-color 0.2s ease;
-	}
-
-	.card__color-btn:hover {
-		border-color: var(--color-accent);
-	}
-
-	.card__color-btn--active {
-		border-color: var(--color-accent);
-		background-color: #f7efe7;
-		font-weight: 500;
+		gap: 0.35rem;
 	}
 
 	.card__color-dot {
-		width: 12px;
-		height: 12px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
 		border: 1px solid;
 		flex-shrink: 0;
-	}
-
-	.card__cta {
-		align-self: stretch;
-		margin-top: auto;
-		text-align: center;
-		font-family: var(--font-body);
-		font-size: 0.8125rem;
-		font-weight: 500;
-		letter-spacing: 0.04em;
-		text-decoration: none;
-		color: var(--color-bg);
-		background-color: var(--color-accent);
-		padding: 0.85rem 1.25rem;
-		transition:
-			opacity 0.2s ease,
-			background-color 0.2s ease,
-			color 0.2s ease;
-	}
-
-	.card__cta:hover:not(.card__cta--disabled) {
-		opacity: 0.85;
-	}
-
-	.card__cta--disabled {
-		background-color: transparent;
-		color: var(--color-accent-soft);
-		border: 1px solid var(--color-border);
-		cursor: not-allowed;
-		opacity: 1;
 	}
 </style>

@@ -3,120 +3,670 @@ import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import ContactFooter from "../../components/ContactFooter.astro";
 import ProductCard from "../../components/ProductCard.astro";
+import { Image } from "astro:assets";
 import {
 	obtenerPorSlug,
+	listarDisponibles,
 	formatearPrecio,
 	descripcionImagen,
 	coloresComoLista,
+	tallasComoLista,
 	imagenParaColor,
+	imagenesColoresComoMapa,
+	COLORES_METADATA,
 } from "../../lib/productos";
+import { enlaceProducto } from "../../lib/whatsapp";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, MENSAJE_DUDA_COMPRA } from "../../consts";
 
 const { slug } = Astro.params;
 const producto = slug ? await obtenerPorSlug(slug) : undefined;
 
+// Slug inexistente: 404 real, nunca una página 200 vacía.
 if (!producto) {
 	return Astro.rewrite("/404");
 }
 
-// Si el producto solo tiene un color posible, ya está implícitamente
-// seleccionado: el schema y el og:image deben reflejar esa imagen.
-const coloresProducto = coloresComoLista(producto.colores);
-const colorInicial = coloresProducto.length === 1 ? coloresProducto[0] : null;
-const imagenPrincipal = imagenParaColor(producto, colorInicial);
+// "No disponible" es distinto de "no encontrado": la página se conserva
+// (puede tener enlaces externos o historial de indexación), pero se marca
+// noindex y no se ofrece ningún flujo de compra sobre un producto oculto.
+const disponible = producto.disponible;
 
-const paginaUrl = new URL(`/productos/${slug}`, Astro.url.origin).href;
-const imagenUrl = new URL(imagenPrincipal, Astro.url.origin).href;
+const colores = coloresComoLista(producto.colores);
+const tallas = tallasComoLista(producto.tallas);
+const unicoColor = colores.length === 1 ? colores[0] : null;
+const unicaTalla = tallas.length === 1 ? tallas[0] : null;
+const mapaImagenesColores = imagenesColoresComoMapa(producto.imagenesColores);
+
+// Galería: el modelo de datos actual solo soporta una foto principal +,
+// opcionalmente, una foto distinta por color — no una galería de varias
+// imágenes por producto. Este bloque ya soporta ese caso (cambia de foto al
+// elegir color cuando existe una específica); una galería real de N fotos es
+// una capacidad futura, documentada en HOMEPAGE_SPEC.md § Photography
+// Production Needs, no inventada aquí.
+const imagenInicial = imagenParaColor(producto, unicoColor);
+const esRemota = imagenInicial.startsWith("http");
+const altImagen = descripcionImagen(producto.nombre);
+
+const paginaUrl = new URL(`/productos/${producto.slug}`, Astro.url.origin).href;
+const coleccionUrl = new URL("/#catalogo", Astro.url.origin).href;
+const inicioUrl = new URL("/", Astro.url.origin).href;
+const imagenUrl = new URL(imagenInicial, Astro.url.origin).href;
 const title = `${producto.nombre} — Sandalias Maygel`;
 const description = `${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(producto.precio)}.`;
 const ogImageAlt = descripcionImagen(producto.nombre);
+// "No disponible" hoy no significa "página sin valor": sigue teniendo
+// enlaces internos reales (migas, relacionados, footer) que conviene que se
+// sigan rastreando — solo se retira de los resultados de búsqueda como
+// producto (noindex), no se corta el rastreo hacia el resto del sitio
+// (nofollow). Ver docs/SEO_RULES.md § disponibilidad.
+const robots = disponible ? "index, follow" : "noindex, follow";
 
-// El producto se fabrica a partir del pedido: MadeToOrder refleja mejor la
-// realidad del negocio que InStock, que implicaría inventario físico previo.
-const datosEstructurados = {
+const necesitaColor = disponible && colores.length > 1;
+const necesitaTalla = disponible && tallas.length > 1;
+
+const enlaceWhatsappInicial =
+	disponible && !necesitaColor && !necesitaTalla
+		? enlaceProducto(producto.nombre, unicoColor, paginaUrl, unicaTalla)
+		: "#";
+
+// No se afirma rating, review, SKU, GTIN ni stock — no existen en los datos.
+//
+// `availability` se omite a propósito (Fase 5.1): Schema.org sí define
+// `MadeToOrder` dentro de ItemAvailability, pero la documentación de Google
+// para Product structured data (developers.google.com/search/docs/appearance/
+// structured-data/product-snippet, verificado en esta fase) no lo incluye en
+// su lista de valores reconocidos para `availability` — solo BackOrder,
+// Discontinued, InStock, InStoreOnly, LimitedAvailability, OnlineOnly,
+// OutOfStock, PreOrder, PreSale y SoldOut. Ninguno describe con honestidad
+// "se fabrica después de pedirlo, sin inventario previo": `InStock` sería
+// falso, `PreOrder`/`BackOrder` implican un concepto de inventario que no
+// existe en este negocio. Google documenta `availability` como propiedad
+// "recomendada", no requerida — se omite en vez de forzar un valor
+// incorrecto. El hecho de que sea "bajo pedido" sigue comunicado como texto
+// real y visible en la página ("Hecho a mano, bajo pedido..."), no como dato
+// estructurado falso.
+const datosEstructurados = disponible
+	? {
+			"@context": "https://schema.org",
+			"@type": "Product",
+			name: producto.nombre,
+			description: producto.descripcion,
+			image: imagenUrl,
+			url: paginaUrl,
+			brand: { "@type": "Brand", name: "Maygel" },
+			offers: {
+				"@type": "Offer",
+				price: producto.precio,
+				priceCurrency: "COP",
+				url: paginaUrl,
+			},
+		}
+	: null;
+
+const breadcrumbLd = {
 	"@context": "https://schema.org",
-	"@type": "Product",
-	name: producto.nombre,
-	description: producto.descripcion,
-	image: imagenUrl,
-	url: paginaUrl,
-	brand: {
-		"@type": "Brand",
-		name: "Maygel",
-	},
-	offers: {
-		"@type": "Offer",
-		price: producto.precio,
-		priceCurrency: "COP",
-		availability: "https://schema.org/MadeToOrder",
-		url: paginaUrl,
-	},
+	"@type": "BreadcrumbList",
+	itemListElement: [
+		{ "@type": "ListItem", position: 1, name: "Inicio", item: inicioUrl },
+		{ "@type": "ListItem", position: 2, name: "Colección", item: coleccionUrl },
+		{ "@type": "ListItem", position: 3, name: producto.nombre, item: paginaUrl },
+	],
 };
+
+// Relacionados: solo si hay valor real que mostrar (otros productos
+// disponibles) — máximo 3, excluyendo el actual. Nada de recomendación
+// "inteligente": mismo orden de catálogo.
+const relacionados = disponible
+	? (await listarDisponibles()).filter((p) => p.id !== producto.id).slice(0, 3)
+	: [];
+
+const whatsappGeneral = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
+const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 ---
 
-<Layout title={title} description={description} ogType="product" ogImage={imagenUrl} ogImageAlt={ogImageAlt}>
+<Layout
+	title={title}
+	description={description}
+	ogType="product"
+	ogImage={imagenUrl}
+	ogImageAlt={ogImageAlt}
+	robots={robots}
+>
 	<Header />
-	<main>
+	<main id="contenido">
 		<section class="ficha section">
-			<div class="container ficha__inner">
-				<a class="ficha__volver" href="/#catalogo">← Volver al catálogo</a>
-				<h1 class="sr-only">{producto.nombre}</h1>
-				<div class="ficha__card">
-					<ProductCard
-						producto={producto}
-						enlaceFicha={false}
-						variantesImagen={true}
-						urlProducto={paginaUrl}
-						prioridadImagen={true}
-						nivelTitulo="h2"
-					/>
+			<div class="container">
+				<nav class="migas" aria-label="Ruta de navegación">
+					<ol>
+						<li><a href="/">Inicio</a></li>
+						<li><a href="/#catalogo">Colección</a></li>
+						<li aria-current="page">{producto.nombre}</li>
+					</ol>
+				</nav>
+
+				<div class="ficha__layout">
+					<div class="ficha__galeria">
+						{
+							esRemota ? (
+								<Image
+									src={imagenInicial}
+									alt={altImagen}
+									width={1000}
+									height={1250}
+									widths={[500, 1000, 1500]}
+									sizes="(min-width: 700px) 50vw, 100vw"
+									format="webp"
+									loading="eager"
+									fetchpriority="high"
+									data-ficha-imagen
+								/>
+							) : (
+								<img
+									src={imagenInicial}
+									alt={altImagen}
+									width="1000"
+									height="1250"
+									loading="eager"
+									fetchpriority="high"
+									decoding="async"
+									data-ficha-imagen
+								/>
+							)
+						}
+					</div>
+
+					<div class="ficha__info">
+						<h1 class="ficha__nombre">{producto.nombre}</h1>
+						<p class="ficha__precio">{formatearPrecio(producto.precio)}</p>
+
+						{
+							!disponible && (
+								<div class="ficha__no-disponible" role="status">
+									<p>
+										Este modelo ya no está disponible. Escríbenos por WhatsApp si buscas algo
+										similar o quieres consultar otras opciones.
+									</p>
+									<a class="btn" href={whatsappGeneral} target="_blank" rel="noopener noreferrer">
+										Escríbenos por WhatsApp
+									</a>
+									<a class="ficha__volver" href="/#catalogo">← Volver al catálogo</a>
+								</div>
+							)
+						}
+
+						{
+							disponible && (
+								<>
+									<p class="ficha__descripcion">{producto.descripcion}</p>
+
+									{colores.length > 0 && (
+										<fieldset class="ficha__grupo" data-grupo-color>
+											<legend class="ficha__etiqueta">
+												Color{necesitaColor && <span class="ficha__requerido"> (elige uno)</span>}
+											</legend>
+											<div class="ficha__opciones" role="group" aria-label="Elegir color">
+												{colores.map((color) => {
+													const meta = COLORES_METADATA[color];
+													const esActivo = unicoColor === color;
+													return (
+														<button
+															type="button"
+															class={`ficha__color ${esActivo ? "ficha__color--activo" : ""}`}
+															data-color={color}
+															data-imagen-color={mapaImagenesColores[color] ?? ""}
+															aria-pressed={esActivo ? "true" : "false"}
+														>
+															<span
+																class="ficha__color-muestra"
+																style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
+																aria-hidden="true"
+															/>
+															<span class="ficha__color-nombre">{color}</span>
+														</button>
+													);
+												})}
+											</div>
+										</fieldset>
+									)}
+
+									{tallas.length > 0 && (
+										<fieldset class="ficha__grupo" data-grupo-talla>
+											<legend class="ficha__etiqueta">
+												Talla{necesitaTalla && <span class="ficha__requerido"> (elige una)</span>}
+											</legend>
+											<div class="ficha__opciones" role="group" aria-label="Elegir talla">
+												{tallas.map((talla) => (
+													<button
+														type="button"
+														class={`ficha__talla ${unicaTalla === talla ? "ficha__talla--activo" : ""}`}
+														data-talla={talla}
+														aria-pressed={unicaTalla === talla ? "true" : "false"}
+													>
+														{talla}
+													</button>
+												))}
+											</div>
+											<details class="ficha__guia">
+												<summary>Guía de tallas</summary>
+												<p>
+													Todavía no tenemos una guía de tallas publicada. Escríbenos por WhatsApp
+													y te ayudamos a elegir la talla correcta.
+												</p>
+												<a href={whatsappDudaTalla} target="_blank" rel="noopener noreferrer">
+													Preguntar por WhatsApp
+												</a>
+											</details>
+										</fieldset>
+									)}
+
+									<p class="ficha__mensaje" id="ficha-mensaje" role="alert" aria-live="assertive" hidden />
+
+									<a
+										class="btn ficha__cta"
+										id="ficha-cta"
+										href={enlaceWhatsappInicial}
+										target={enlaceWhatsappInicial === "#" ? undefined : "_blank"}
+										rel={enlaceWhatsappInicial === "#" ? undefined : "noopener noreferrer"}
+										data-nombre={producto.nombre}
+										data-url={paginaUrl}
+									>
+										Pedir este par
+									</a>
+
+									<p class="ficha__tag">Hecho a mano, bajo pedido — se fabrica después de tu pedido.</p>
+
+									<details class="ficha__disclosure">
+										<summary>Envíos y cambios de talla</summary>
+										<p>
+											Entregas en Soledad y Barranquilla; envíos nacionales para pedidos al por
+											mayor. Si la talla no queda bien, hacemos el cambio — el domicilio corre por
+											cuenta de la clienta.
+										</p>
+									</details>
+								</>
+							)
+						}
+					</div>
 				</div>
+
+				{
+					relacionados.length > 0 && (
+						<div class="relacionados">
+							<h2 class="relacionados__titulo">También puede gustarte</h2>
+							<div class="relacionados__grid">
+								{relacionados.map((rel) => (
+									<ProductCard producto={rel} />
+								))}
+							</div>
+						</div>
+					)
+				}
 			</div>
 		</section>
 	</main>
 	<ContactFooter />
-	<script type="application/ld+json" is:inline set:html={JSON.stringify(datosEstructurados)} />
+	{datosEstructurados && <script type="application/ld+json" is:inline set:html={JSON.stringify(datosEstructurados)} />}
+	<script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbLd)} />
 </Layout>
+
+<script>
+	import { mensajeProducto, buildWhatsappLink } from "../../lib/whatsapp";
+
+	const cta = document.getElementById("ficha-cta") as HTMLAnchorElement | null;
+	const mensajeError = document.getElementById("ficha-mensaje");
+	const imagen = document.querySelector<HTMLImageElement>("[data-ficha-imagen]");
+	const gruposColor = document.querySelectorAll<HTMLButtonElement>("[data-grupo-color] [data-color]");
+	const gruposTalla = document.querySelectorAll<HTMLButtonElement>("[data-grupo-talla] [data-talla]");
+
+	if (cta) {
+		const nombre = cta.dataset.nombre ?? "";
+		const url = cta.dataset.url;
+		let colorElegido: string | null = gruposColor.length === 1 ? gruposColor[0].dataset.color ?? null : null;
+		let tallaElegida: string | null = gruposTalla.length === 1 ? gruposTalla[0].dataset.talla ?? null : null;
+
+		gruposColor.forEach((boton) => {
+			if (boton.classList.contains("ficha__color--activo")) colorElegido = boton.dataset.color ?? null;
+		});
+		gruposTalla.forEach((boton) => {
+			if (boton.classList.contains("ficha__talla--activo")) tallaElegida = boton.dataset.talla ?? null;
+		});
+
+		function limpiarError() {
+			if (!mensajeError) return;
+			mensajeError.hidden = true;
+			mensajeError.textContent = "";
+		}
+
+		function actualizarEnlace() {
+			if (!cta) return;
+			const faltaColor = gruposColor.length > 1 && !colorElegido;
+			const faltaTalla = gruposTalla.length > 1 && !tallaElegida;
+
+			if (faltaColor || faltaTalla) {
+				cta.href = "#";
+				cta.removeAttribute("target");
+				return;
+			}
+
+			const mensaje = mensajeProducto(nombre, colorElegido, url, tallaElegida);
+			cta.href = buildWhatsappLink(mensaje);
+			cta.target = "_blank";
+			cta.rel = "noopener noreferrer";
+		}
+
+		gruposColor.forEach((boton) => {
+			boton.addEventListener("click", () => {
+				gruposColor.forEach((b) => {
+					b.classList.remove("ficha__color--activo");
+					b.setAttribute("aria-pressed", "false");
+				});
+				boton.classList.add("ficha__color--activo");
+				boton.setAttribute("aria-pressed", "true");
+				colorElegido = boton.dataset.color ?? null;
+
+				// Solo cambia la foto si existe una relación real color→imagen
+				// para ese color (nunca se inventa una imagen distinta).
+				const imagenColor = boton.dataset.imagenColor;
+				if (imagen && imagenColor) {
+					imagen.src = imagenColor;
+					imagen.alt = `${nombre} — color ${colorElegido}`;
+				}
+
+				limpiarError();
+				actualizarEnlace();
+			});
+		});
+
+		gruposTalla.forEach((boton) => {
+			boton.addEventListener("click", () => {
+				gruposTalla.forEach((b) => {
+					b.classList.remove("ficha__talla--activo");
+					b.setAttribute("aria-pressed", "false");
+				});
+				boton.classList.add("ficha__talla--activo");
+				boton.setAttribute("aria-pressed", "true");
+				tallaElegida = boton.dataset.talla ?? null;
+				limpiarError();
+				actualizarEnlace();
+			});
+		});
+
+		cta.addEventListener("click", (evento) => {
+			const faltaColor = gruposColor.length > 1 && !colorElegido;
+			const faltaTalla = gruposTalla.length > 1 && !tallaElegida;
+
+			if (faltaColor || faltaTalla) {
+				evento.preventDefault();
+				if (mensajeError) {
+					mensajeError.hidden = false;
+					mensajeError.textContent = faltaColor
+						? "Selecciona un color para continuar."
+						: "Selecciona una talla para continuar.";
+				}
+				const grupo = faltaColor
+					? document.querySelector<HTMLElement>("[data-grupo-color] button")
+					: document.querySelector<HTMLElement>("[data-grupo-talla] button");
+				grupo?.focus();
+			}
+		});
+
+		actualizarEnlace();
+	}
+</script>
 
 <style>
 	.ficha {
-		padding-top: clamp(2rem, 5vw, 3rem);
+		padding-top: clamp(1.5rem, 4vw, 2.5rem);
 	}
 
-	.ficha__inner {
-		max-width: 780px;
+	.migas {
+		margin-bottom: clamp(2rem, 5vw, 3rem);
+	}
+
+	.migas ol {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-size: 0.8125rem;
+		color: var(--color-muted);
+	}
+
+	.migas li:not(:last-child)::after {
+		content: "/";
+		margin-left: 0.4rem;
+		color: var(--color-line);
+	}
+
+	.migas a {
+		text-decoration: none;
+		color: var(--color-muted);
+	}
+
+	.migas a:hover {
+		color: var(--color-accent);
+	}
+
+	.migas li[aria-current="page"] {
+		color: var(--color-text);
+	}
+
+	.ficha__layout {
+		display: grid;
+		gap: clamp(2rem, 5vw, 3rem);
+	}
+
+	.ficha__galeria {
+		width: 100%;
+		aspect-ratio: 4 / 5;
+		overflow: hidden;
+		background-color: #ede4d6;
+	}
+
+	.ficha__galeria :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.ficha__nombre {
+		font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+		margin-bottom: 0.5rem;
+	}
+
+	.ficha__precio {
+		font-size: 1.1875rem;
+		color: var(--color-accent);
+		margin-bottom: 1.5rem;
+	}
+
+	.ficha__descripcion {
+		color: var(--color-muted);
+		margin-bottom: 2rem;
+		max-width: 46ch;
+	}
+
+	.ficha__no-disponible {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.25rem;
+		max-width: 42ch;
+	}
+
+	.ficha__no-disponible p {
+		color: var(--color-muted);
 	}
 
 	.ficha__volver {
-		display: inline-flex;
-		align-items: center;
-		min-height: 44px;
 		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--color-accent-soft);
+		color: var(--color-muted);
 		text-decoration: none;
-		margin-bottom: clamp(2rem, 5vw, 3rem);
-		transition: color 0.2s ease;
 	}
 
 	.ficha__volver:hover {
 		color: var(--color-accent);
 	}
 
-	.ficha__card :global(.card__image) {
-		aspect-ratio: 4 / 3;
+	.ficha__grupo {
+		border: none;
+		padding: 0;
+		margin: 0 0 1.75rem;
+	}
+
+	.ficha__etiqueta {
+		display: block;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+		padding: 0;
+	}
+
+	.ficha__requerido {
+		font-weight: 400;
+		text-transform: none;
+		letter-spacing: normal;
+		color: var(--color-muted);
+	}
+
+	.ficha__opciones {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.ficha__color,
+	.ficha__talla {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 44px;
+		box-sizing: border-box;
+		background: transparent;
+		border: 1px solid var(--color-line);
+		padding: 0.6rem 0.9rem;
+		cursor: pointer;
+		font-family: var(--font-body);
+		font-size: 0.8125rem;
+		color: var(--color-text);
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+	}
+
+	.ficha__talla {
+		min-width: 44px;
+		justify-content: center;
+	}
+
+	.ficha__color:hover,
+	.ficha__talla:hover {
+		border-color: var(--color-accent);
+	}
+
+	.ficha__color--activo,
+	.ficha__talla--activo {
+		border-color: var(--color-accent);
+		background-color: var(--color-bg);
+		font-weight: 600;
+	}
+
+	.ficha__color-muestra {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		border: 1px solid;
+		flex-shrink: 0;
+	}
+
+	.ficha__guia {
+		margin-top: 0.85rem;
+		font-size: 0.8125rem;
+	}
+
+	.ficha__guia summary {
+		cursor: pointer;
+		color: var(--color-muted);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.ficha__guia p {
+		margin-top: 0.6rem;
+		color: var(--color-muted);
+		max-width: 40ch;
+	}
+
+	.ficha__guia a {
+		display: inline-block;
+		margin-top: 0.4rem;
+		color: var(--color-text);
+	}
+
+	.ficha__mensaje {
+		font-size: 0.875rem;
+		color: var(--color-error);
+		margin-bottom: 1rem;
+	}
+
+	.ficha__cta {
+		width: 100%;
+		justify-content: center;
+		margin-bottom: 1.25rem;
+	}
+
+	.ficha__tag {
+		font-size: 0.8125rem;
+		color: var(--color-muted);
+		margin-bottom: 1.5rem;
+	}
+
+	.ficha__disclosure {
+		font-size: 0.875rem;
+		border-top: 1px solid var(--color-line);
+		padding-top: 1.25rem;
+	}
+
+	.ficha__disclosure summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+
+	.ficha__disclosure p {
+		margin-top: 0.75rem;
+		color: var(--color-muted);
+		max-width: 48ch;
+	}
+
+	.relacionados {
+		margin-top: clamp(4rem, 9vw, 6rem);
+		padding-top: clamp(3rem, 6vw, 4rem);
+		border-top: 1px solid var(--color-line);
+	}
+
+	.relacionados__titulo {
+		font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+		margin-bottom: clamp(2rem, 4vw, 3rem);
+	}
+
+	.relacionados__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: clamp(2rem, 5vw, 3rem);
 	}
 
 	@media (min-width: 700px) {
-		.ficha__card :global(.card) {
-			display: grid;
+		.ficha__layout {
 			grid-template-columns: 1fr 1fr;
-			gap: clamp(2.5rem, 5vw, 3.5rem);
 			align-items: start;
 		}
+	}
 
-		.ficha__card :global(.card__image) {
-			aspect-ratio: 4 / 5;
-			margin-bottom: 0;
+	@media (min-width: 1000px) {
+		.relacionados__grid {
+			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 </style>

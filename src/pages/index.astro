@@ -2,21 +2,29 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
+import BrandManifesto from "../components/BrandManifesto.astro";
 import ProductGrid from "../components/ProductGrid.astro";
+import CraftMoment from "../components/CraftMoment.astro";
+import FeaturedProducts from "../components/FeaturedProducts.astro";
 import ComoComprar from "../components/ComoComprar.astro";
+import About from "../components/About.astro";
 import VentaMayor from "../components/VentaMayor.astro";
+import CustomModelCTA from "../components/CustomModelCTA.astro";
 import ContactFooter from "../components/ContactFooter.astro";
 ---
 
 <Layout>
 	<Header />
-	<main>
+	<main id="contenido">
 		<Hero />
-		<About />
+		<BrandManifesto />
 		<ProductGrid />
+		<CraftMoment />
+		<FeaturedProducts />
 		<ComoComprar />
+		<About />
 		<VentaMayor />
+		<CustomModelCTA />
 	</main>
 	<ContactFooter />
 </Layout>

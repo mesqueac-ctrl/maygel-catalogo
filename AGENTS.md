@@ -1,22 +1,19 @@
-## Development
+# Maygel — Instrucciones para agentes
 
-When starting the dev server, use background mode:
+Este proyecto gobierna sus reglas de trabajo, arquitectura y sistema de marca
+en **[`CLAUDE.md`](./CLAUDE.md)** y en **[`/docs`](./docs)**. Ese es el único
+lugar donde viven las reglas — este archivo existe solo por compatibilidad con
+herramientas que buscan `AGENTS.md` por convención, y no debe acumular una
+segunda copia de las reglas.
 
-```
-astro dev --background
-```
+Antes de modificar cualquier cosa en este repositorio:
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+1. Lee `CLAUDE.md` — orden de autoridad y reglas obligatorias.
+2. Lee el documento de `/docs` relevante a la tarea (`BRAND_SYSTEM.md`,
+   `DESIGN_SYSTEM.md`, `ARCHITECTURE.md`, `SEO_RULES.md`, `UX_RULES.md`,
+   `PERFORMANCE_RULES.md`, `CONTENT_GUIDE.md`, `HOMEPAGE_SPEC.md`,
+   `PRODUCT_PAGE_SPEC.md`, `ROADMAP.md`).
+3. Sigue el protocolo de trabajo descrito en `CLAUDE.md`.
 
-## Documentation
-
-Full documentation: https://docs.astro.build
-
-Consult these guides before working on related tasks:
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+Si tu herramienta no soporta leer `CLAUDE.md` directamente, trátalo como si
+fuera este archivo.

@@ -19,6 +19,12 @@ export const MENSAJE_MAYORISTA =
 	"Cantidad aproximada de interés:\n" +
 	"Productos que le interesan:";
 
+// Mensaje para consultar un modelo/referencia propia: deja claro que es una
+// consulta, no un pedido confirmado, para no prometer fabricación de algo
+// que todavía no se ha revisado.
+export const MENSAJE_MODELO_PERSONALIZADO =
+	"Hola, tengo un modelo/referencia en mente y quisiera saber si lo pueden fabricar. Les comparto una foto o imagen de referencia.";
+
 export function buildWhatsappLink(mensaje: string): string {
 	return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
 }

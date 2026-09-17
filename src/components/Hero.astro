@@ -1,136 +1,87 @@
 ---
-import { Image } from "astro:assets";
-import heroImage from "../assets/hero.svg";
-import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
-
-const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
 <section class="hero" id="inicio">
-	<div class="container hero__inner">
-		<div class="hero__text">
-			<h1>Sandalias hechas a mano, con alma de familia</h1>
-			<p class="hero__subtitle">
-				Cada par de sandalias planas Maygel se elabora a mano bajo pedido, con cuero seleccionado y el cuidado de un taller familiar.
-			</p>
-			<div class="hero__actions">
-				<a class="btn" href="#catalogo">Ver colección</a>
-				<a class="hero__whatsapp" href={whatsappLink} target="_blank" rel="noopener noreferrer">
-					Escríbenos por WhatsApp
-				</a>
-			</div>
-		</div>
+	<!--
+		Espacio reservado para fotografía editorial real (ver
+		docs/HOMEPAGE_SPEC.md § Photography Production Needs — HERO). Mientras
+		no exista: un bloque textil (no un mockup ni un degradado con letra).
+		Al llegar la foto, reemplaza .hero__visual por el componente Image (o
+		una etiqueta img) dentro de .hero__media — el layout no cambia.
+	-->
+	<div class="hero__media">
+		<div class="hero__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
+	</div>
 
-		<div class="hero__image">
-			<Image src={heroImage} alt="Sandalias artesanales Maygel" width={1600} height={1100} priority />
-		</div>
+	<div class="container hero__text">
+		<h1>Hecho despacio.</h1>
+		<p class="hero__subtitle">
+			Sandalias artesanales, hechas por encargo en nuestro taller familiar.
+		</p>
+		<a class="btn" href="#catalogo">Descubrir la colección</a>
 	</div>
 </section>
 
 <style>
 	.hero {
-		padding-top: clamp(2.5rem, 6vw, 4rem);
-		padding-bottom: var(--space-section);
+		padding-top: clamp(1rem, 3vw, 1.75rem);
+		padding-bottom: clamp(3rem, 7vw, 5rem);
 	}
 
-	.hero__inner {
-		display: flex;
-		flex-direction: column;
-		gap: clamp(2.5rem, 6vw, 4rem);
+	.hero__media {
+		width: 100%;
+		margin-bottom: clamp(2rem, 5vw, 3rem);
+	}
+
+	.hero__visual {
+		position: relative;
+		width: 100%;
+		height: clamp(360px, 62vh, 640px);
+		overflow: hidden;
+		background: linear-gradient(165deg, #3a2414 0%, #5a3a20 48%, #7a5230 100%);
+	}
+
+	/* Textura tipo lino/papel de archivo: ruido sutil vía SVG turbulence,
+	   nunca un icono ni una letra — evita la sensación de mockup mientras no
+	   hay fotografía real. */
+	.hero__visual::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		opacity: 0.35;
+		mix-blend-mode: overlay;
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+	}
+
+	.hero__visual::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.1), transparent 45%),
+			radial-gradient(circle at 85% 88%, rgba(0, 0, 0, 0.3), transparent 55%);
 	}
 
 	.hero__text {
-		max-width: 36ch;
+		max-width: 46ch;
 	}
 
 	.hero__text h1 {
-		font-size: clamp(2.6rem, 7vw, 5.75rem);
-		line-height: 1.05;
-		letter-spacing: -0.02em;
-		margin-bottom: 1.75rem;
+		font-size: clamp(2.75rem, 8vw, 5.5rem);
+		line-height: 0.96;
+		margin-bottom: 1.25rem;
 	}
 
 	.hero__subtitle {
-		max-width: 44ch;
-		color: var(--color-accent-soft);
-		font-weight: 300;
+		max-width: 38ch;
+		color: var(--color-muted);
 		font-size: 1.0625rem;
-		margin-bottom: 2.25rem;
-	}
-
-	.hero__actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 1.5rem;
-	}
-
-	.hero__whatsapp {
-		display: inline-flex;
-		align-items: center;
-		min-height: 44px;
-		box-sizing: border-box;
-		font-size: 0.875rem;
-		font-weight: 500;
-		letter-spacing: 0.03em;
-		text-decoration: none;
-		color: var(--color-text);
-		border-bottom: 1px solid var(--color-border);
-		padding-block: 0.6rem;
-		transition:
-			color 0.2s ease,
-			border-color 0.2s ease;
-	}
-
-	.hero__whatsapp:hover {
-		color: var(--color-accent);
-		border-color: var(--color-accent);
-	}
-
-	.hero__image {
-		width: 100%;
-	}
-
-	.hero__image :global(img) {
-		width: 100%;
-		height: clamp(280px, 50vh, 420px);
-		object-fit: cover;
+		margin-bottom: 1.75rem;
 	}
 
 	@media (min-width: 768px) {
-		.hero {
-			padding-top: clamp(3rem, 6vw, 4.5rem);
-		}
-
-		.hero__inner {
-			flex-direction: row;
-			align-items: stretch;
-			gap: clamp(2.5rem, 5vw, 5rem);
-		}
-
-		.hero__text {
-			flex: 0 0 auto;
-			width: 42%;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-		}
-
-		.hero__image {
-			flex: 1;
-			width: auto;
-		}
-
-		.hero__image :global(img) {
-			height: 100%;
-			min-height: 420px;
-			max-height: 80vh;
-		}
-	}
-
-	@media (min-width: 1024px) {
-		.hero__image :global(img) {
-			min-height: 480px;
+		.hero__visual {
+			height: clamp(480px, 72vh, 760px);
 		}
 	}
 </style>

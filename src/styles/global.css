@@ -1,20 +1,81 @@
 :root {
-	--color-bg: #faf6f1;
-	--color-text: #2b2420;
-	/* Oscurecido ligeramente respecto al original (#b5651d) para cumplir
-	   contraste AA (4.5:1) en texto sobre fondo crema/blanco y en botones
-	   con texto claro sobre este color; el tono de marca se mantiene. */
-	--color-accent: #a0591a;
-	/* Oscurecido ligeramente respecto al original (#8a7b6c) para cumplir
-	   contraste AA (4.5:1) sobre --color-bg; el tono se mantiene igual. */
-	--color-accent-soft: #79695b;
-	--color-border: #e4dacd;
+	/* Quiet luxury: cálido, casi sin naranja saturado — espresso, camel y
+	   champagne en vez de terracota brillante. Todos los pares texto/fondo
+	   están calibrados a 4.5:1 (ver notas junto a cada token). */
+	--color-bg: #f7f2ea;
+	--color-surface: #fcfaf7;
+	--color-text: #241a15;
+	/* Taupe calibrado para AA como texto (el valor "de referencia" #8c7b6e
+	   da 3.64:1 sobre --color-bg; este da 5.51:1). */
+	--color-muted: #6e5f52;
+	/* Camel calibrado para AA como texto y como fondo de botón con texto
+	   blanco (el valor de referencia #a66c3d da 3.90:1 como texto y 4.34:1
+	   con blanco encima; este da 5.2–5.8:1 en ambos casos). */
+	--color-accent: #8c5a2f;
+	--color-accent-hover: #6f4724;
+	/* Decorativo únicamente (líneas, chips, texturas) — nunca portador de texto. */
+	--color-champagne: #c8aa86;
+	--color-line: rgba(36, 26, 15, 0.14);
 
-	--font-heading: "Playfair Display", Georgia, serif;
-	--font-body: "Inter", system-ui, -apple-system, sans-serif;
+	/* Editorial oscuro: espresso profundo, no negro puro. */
+	--color-dark: #1c130e;
+	--color-dark-text: #f4ece1;
+	--color-dark-line: rgba(244, 236, 225, 0.16);
 
-	--max-width: 1140px;
-	--space-section: clamp(5rem, 12vw, 9rem);
+	--color-border: var(--color-line);
+
+	/* Alias de compatibilidad: el admin sigue usando --color-accent-soft. */
+	--color-accent-soft: var(--color-muted);
+
+	--font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+	--font-body: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+	/* Alias de compatibilidad con el admin (no rediseñado en esta fase). */
+	--font-heading: var(--font-body);
+
+	--max-width: 1180px;
+	--space-section: clamp(4.5rem, 11vw, 9rem);
+
+	--reveal-duration: 600ms;
+	--reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+	/* ---------------------------------------------------------------------
+	   Fase 1 — Quiet Colombian Craft: capa de roles semánticos.
+	   Ningún valor cambia respecto a Fase 0 — son alias con nombre claro
+	   para que los componentes futuros dejen de depender de nombres
+	   heredados (--color-accent-soft, etc.). Ver docs/DESIGN_SYSTEM.md § 1.
+	------------------------------------------------------------------------ */
+	--bg-primary: var(--color-bg);
+	--bg-secondary: var(--color-surface);
+	--surface: var(--color-surface);
+	--text-primary: var(--color-text);
+	--text-secondary: var(--color-muted);
+	--accent: var(--color-accent);
+	/* Nuevo: énfasis bajo, decorativo únicamente — 2.75:1 sobre --bg-primary,
+	   no cumple AA ni siquiera a tamaño grande. Nunca portador de texto. */
+	--accent-subtle: #b98a5c;
+	--border: var(--color-line);
+	--inverse-surface: var(--color-dark);
+	--inverse-text: var(--color-dark-text);
+	--decorative: var(--color-champagne);
+
+	/* Nuevo: feedback público (el admin conserva sus propios colores de
+	   aviso). --color-error reutiliza el mismo rojo-marrón que ya usa el
+	   admin, en vez de introducir un tercer tono de error en el sistema. */
+	--color-success: #3f6b3f;
+	--color-error: #8c3a22;
+
+	/* Escala de espaciado formal. --space-section se conserva como alias de
+	   --space-3xl: ningún componente existente necesita cambiar. */
+	--space-3xs: 0.25rem;
+	--space-2xs: 0.5rem;
+	--space-xs: 0.75rem;
+	--space-sm: 1rem;
+	--space-md: 1.5rem;
+	--space-lg: 2rem;
+	--space-xl: clamp(2.5rem, 5vw, 3.5rem);
+	--space-2xl: clamp(3rem, 6vw, 4.5rem);
+	--space-3xl: var(--space-section);
+	--space-4xl: clamp(6rem, 14vw, 11rem);
 }
 
 *,
@@ -33,19 +94,26 @@ body {
 	color: var(--color-text);
 	font-family: var(--font-body);
 	font-size: 1rem;
-	line-height: 1.7;
+	line-height: 1.65;
 	font-weight: 400;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
 
 h1,
-h2,
-h3 {
-	font-family: var(--font-heading);
-	font-weight: 400;
-	line-height: 1.2;
+h2 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	line-height: 0.98;
 	letter-spacing: -0.01em;
+	margin: 0;
+}
+
+h3 {
+	font-family: var(--font-body);
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.005em;
 	margin: 0;
 }
 
@@ -72,8 +140,37 @@ a {
 	padding-block: var(--space-section);
 }
 
+.section--surface {
+	background-color: var(--color-surface);
+}
+
+.section--dark {
+	background-color: var(--color-dark);
+	color: var(--color-dark-text);
+}
+
 .section-title {
-	font-size: clamp(1.9rem, 4vw, 2.75rem);
+	font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+}
+
+/* Skip link: invisible en reposo, visible y por encima de todo al recibir
+   foco por teclado — primer elemento tabulable de cada página. */
+.skip-link {
+	position: absolute;
+	top: -100%;
+	left: 1rem;
+	z-index: 100;
+	background-color: var(--color-dark);
+	color: var(--color-dark-text);
+	padding: 0.85rem 1.25rem;
+	font-size: 0.9375rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: top 0.2s ease;
+}
+
+.skip-link:focus-visible {
+	top: 1rem;
 }
 
 .sr-only {
@@ -88,41 +185,102 @@ a {
 	border: 0;
 }
 
-.eyebrow {
-	font-size: 0.75rem;
-	letter-spacing: 0.18em;
+/* Botón sobrio: texto + flecha, sin relleno ni sombra. Reemplaza el botón
+   rectangular sólido de la fase anterior en toda la interfaz pública. */
+.btn,
+.btn-outline {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: var(--font-body);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.09em;
 	text-transform: uppercase;
-	color: var(--color-accent-soft);
-	margin-bottom: 1.25rem;
+	text-decoration: none;
+	background: none;
+	border: none;
+	border-bottom: 1px solid currentColor;
+	padding-block: 0.6rem;
+	cursor: pointer;
+	transition:
+		color 0.22s ease,
+		border-color 0.22s ease;
 }
 
 .btn {
+	color: var(--color-accent);
+}
+
+.btn::after {
+	content: "→";
 	display: inline-block;
-	padding: 0.9rem 2rem;
-	font-family: var(--font-body);
-	font-size: 0.875rem;
-	font-weight: 500;
-	letter-spacing: 0.04em;
-	text-decoration: none;
-	border: 1px solid transparent;
-	background-color: var(--color-accent);
-	color: var(--color-bg);
-	cursor: pointer;
-	transition: opacity 0.2s ease;
+	transition: transform 0.22s ease;
 }
 
 .btn:hover {
-	opacity: 0.82;
+	color: var(--color-accent-hover);
+}
+
+.btn:hover::after {
+	transform: translateX(3px);
 }
 
 .btn-outline {
-	background-color: transparent;
-	color: var(--color-text);
-	border-color: var(--color-border);
+	color: var(--color-muted);
+	border-bottom-color: var(--color-line);
+}
+
+.btn-outline::after {
+	content: "↗";
+	display: inline-block;
 }
 
 .btn-outline:hover {
-	opacity: 1;
-	border-color: var(--color-accent);
-	color: var(--color-accent);
+	color: var(--color-text);
+	border-bottom-color: var(--color-text);
+}
+
+.btn-on-dark {
+	color: var(--color-dark-text);
+	border-bottom-color: var(--color-dark-line);
+}
+
+.btn-on-dark:hover {
+	color: var(--color-champagne);
+	border-bottom-color: var(--color-champagne);
+}
+
+/* Fase 1 — foco visible global. Ningún elemento interactivo público o
+   heredado del admin queda sin anillo de foco explícito al navegar con
+   teclado. El admin ya usaba el mismo valor de --color-accent en sus inputs
+   (ver ProductoForm.astro, login.astro): sin conflicto de valor, solo se
+   generaliza a todos los elementos interactivos. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* Revelado discreto: un único gesto de movimiento (fade + 10px), no
+   distinto por sección. Respeta prefers-reduced-motion. El estado por
+   defecto es visible: si el script no llega a correr, nada se oculta. */
+@media (prefers-reduced-motion: no-preference) {
+	[data-reveal] {
+		opacity: 0;
+		transform: translateY(12px);
+		transition:
+			opacity var(--reveal-duration) var(--reveal-ease),
+			transform var(--reveal-duration) var(--reveal-ease);
+	}
+
+	[data-reveal].is-visible {
+		opacity: 1;
+		transform: none;
+	}
 }

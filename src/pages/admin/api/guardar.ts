@@ -3,8 +3,13 @@ import { put, del } from "@vercel/blob";
 import {
 	actualizar,
 	crear,
+	obtenerPorId,
 	COLORES_VALIDOS,
+	CATEGORIAS_VALIDAS,
 	imagenesColoresComoMapa,
+	slugify,
+	existeSlug,
+	generarSlugDisponible,
 	type ColorValido,
 	type ProductoNuevo,
 } from "../../../lib/productos";
@@ -83,11 +88,58 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 	const tallas = String(datos.get("tallas") ?? "").trim();
 	const descripcion = String(datos.get("descripcion") ?? "").trim();
 	const disponible = datos.get("disponible") === "si";
+	const destacado = datos.get("destacado") === "si";
 	const imagenActual = String(datos.get("imagenActual") ?? "");
 	const foto = datos.get("foto");
 
+	// Categoría: opcional (vacío = sin categoría), pero si viene un valor
+	// debe pertenecer estrictamente a CATEGORIAS_VALIDAS. Un valor que no
+	// coincide (manipulado a mano, o un valor viejo/renombrado) detiene el
+	// guardado por completo — nunca se convierte en null silenciosamente,
+	// para no perder de vista un error real de datos.
+	const categoriaEntrante = String(datos.get("categoria") ?? "").trim();
+	const categoria = categoriaEntrante === "" ? null : categoriaEntrante;
+
+	if (categoria !== null && !(CATEGORIAS_VALIDAS as readonly string[]).includes(categoria)) {
+		return errorRedirect(redirect, "Categoría no válida.");
+	}
+
 	if (!nombre || !tallas || !descripcion) {
 		return errorRedirect(redirect, "Faltan datos por llenar.");
+	}
+
+	// Slug — contrato final (Fase 5.1): una vez creado un producto, su slug
+	// NUNCA cambia desde el admin, sin excepción. Al editar, se reutiliza
+	// siempre el slug ya guardado en DB — el formulario ni siquiera envía un
+	// valor editable en ese caso (el campo se muestra de solo lectura), pero
+	// aunque alguien manipulara la petición a mano, el servidor ignora
+	// cualquier "slug" entrante al editar. Solo al crear se acepta un slug
+	// nuevo (propuesto automáticamente o escrito a mano antes del primer
+	// guardado) y se valida/normaliza.
+	const idActual = esEdicion && Number.isInteger(id) ? id : undefined;
+	let slug: string;
+
+	if (idActual !== undefined) {
+		const productoExistente = await obtenerPorId(idActual);
+		if (!productoExistente) {
+			return errorRedirect(redirect, "Esa sandalia ya no existe.");
+		}
+		slug = productoExistente.slug;
+	} else {
+		const slugEntrada = String(datos.get("slug") ?? "").trim();
+
+		if (slugEntrada === "") {
+			slug = await generarSlugDisponible(nombre);
+		} else {
+			const normalizado = slugify(slugEntrada);
+			if (!normalizado) {
+				return errorRedirect(redirect, "El slug no es válido. Usa letras, números y guiones.");
+			}
+			if (await existeSlug(normalizado)) {
+				return errorRedirect(redirect, "Ese slug ya lo usa otra sandalia. Elige uno diferente.");
+			}
+			slug = normalizado;
+		}
 	}
 
 	if (!Number.isFinite(precio) || precio < 0) {
@@ -166,6 +218,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
 	const producto: ProductoNuevo = {
 		nombre,
+		slug,
 		precio,
 		tallas,
 		colores,
@@ -173,6 +226,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		imagenesColores,
 		descripcion,
 		disponible,
+		categoria,
+		destacado,
 	};
 
 	try {

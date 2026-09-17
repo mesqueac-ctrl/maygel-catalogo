@@ -2,6 +2,7 @@
 import {
 	COLORES_VALIDOS,
 	COLORES_METADATA,
+	CATEGORIAS_VALIDAS,
 	coloresComoLista,
 	imagenesColoresComoMapa,
 	type ProductoRegistro,
@@ -28,11 +29,44 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 			class="campo__input"
 			type="text"
 			name="nombre"
+			id="campo-nombre"
 			required
 			maxlength="120"
 			placeholder="Ej: Sandalia trenzada café"
 			value={producto?.nombre ?? ""}
 		/>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Dirección web (slug)</span>
+		{
+			esEdicion ? (
+				<input
+					class="campo__input campo__input--solo-lectura"
+					type="text"
+					id="campo-slug"
+					value={producto!.slug}
+					disabled
+					aria-readonly="true"
+				/>
+			) : (
+				<input
+					class="campo__input"
+					type="text"
+					name="slug"
+					id="campo-slug"
+					maxlength="160"
+					placeholder="se genera sola desde el nombre si la dejas vacía"
+					value=""
+					data-slug-tocado="false"
+				/>
+			)
+		}
+		<span class="campo__ayuda">
+			{esEdicion
+				? "Es la parte final del enlace de esta sandalia (maygel.co/productos/...). No se puede cambiar una vez creada la sandalia, para que el enlace nunca se rompa."
+				: "Déjala vacía y se genera sola desde el nombre. Solo letras, números y guiones. Una vez que guardes, ya no se podrá cambiar."}
+		</span>
 	</label>
 
 	<label class="campo">
@@ -48,6 +82,21 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 			value={producto?.precio ?? ""}
 		/>
 		<span class="campo__ayuda">Escribe solo números, sin puntos ni comas.</span>
+	</label>
+
+	<label class="campo">
+		<span class="campo__etiqueta">Categoría</span>
+		<select class="campo__input" name="categoria">
+			<option value="" selected={!producto?.categoria}>Sin categoría</option>
+			{
+				CATEGORIAS_VALIDAS.map((cat) => (
+					<option value={cat} selected={producto?.categoria === cat}>
+						{cat}
+					</option>
+				))
+			}
+		</select>
+		<span class="campo__ayuda">Elige la que mejor describa el estilo de esta sandalia.</span>
 	</label>
 
 	<fieldset class="campo campo--fieldset" id="campo-colores">
@@ -177,6 +226,11 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 		</span>
 	</fieldset>
 
+	<label class="opcion">
+		<input type="checkbox" name="destacado" value="si" checked={producto?.destacado === true} />
+		<span>Destacar en la portada</span>
+	</label>
+
 	<div class="acciones">
 		<button class="boton-principal" type="submit">
 			{esEdicion ? "Guardar cambios" : "Guardar sandalia"}
@@ -186,6 +240,34 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 </form>
 
 <script>
+	// Previsualización del slug: mientras la administradora no toque el campo
+	// a mano, se propone uno desde el nombre (solo una vista previa — el
+	// valor real, normalizado y verificado único, se calcula en el servidor
+	// al guardar). En edición no se toca nunca automáticamente.
+	const campoNombre = document.getElementById("campo-nombre") as HTMLInputElement | null;
+	const campoSlug = document.getElementById("campo-slug") as HTMLInputElement | null;
+
+	function vistaPreviaSlug(texto: string): string {
+		return texto
+			.normalize("NFD")
+			.replace(/[̀-ͯ]/g, "")
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-+|-+$/g, "");
+	}
+
+	campoSlug?.addEventListener("input", () => {
+		campoSlug.dataset.slugTocado = "true";
+	});
+
+	campoNombre?.addEventListener("input", () => {
+		// El slug es inmutable al editar (el campo llega deshabilitado): nunca
+		// se actualiza su vista previa, aunque cambie el nombre.
+		if (!campoSlug || campoSlug.disabled || campoSlug.dataset.slugTocado === "true") return;
+		campoSlug.value = vistaPreviaSlug(campoNombre.value);
+	});
+
 	// Muestra la foto elegida antes de guardar, para evitar sustos.
 	const entrada = document.getElementById("campo-foto") as HTMLInputElement | null;
 	const contenedor = document.getElementById("previsualizacion");
@@ -371,6 +453,12 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 		border: 1px solid var(--color-border);
 		background-color: #fff;
 		color: var(--color-text);
+	}
+
+	.campo__input--solo-lectura {
+		background-color: #f2ece4;
+		color: var(--color-accent-soft);
+		cursor: not-allowed;
 	}
 
 	.campo__input:focus {

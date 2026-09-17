@@ -121,6 +121,94 @@ Orden seguro para rotarlo (no ejecutado — requiere acceso a Turso/Vercel):
 5. Verificar que el sitio y el admin siguen funcionando con normalidad.
 6. Solo entonces, revocar el token anterior desde el proveedor.
 
+## Historial de migraciones aplicadas
+
+| Fecha | Cambio | Filas antes/después | Notas |
+|---|---|---|---|
+| (Fase 0) | `ALTER TABLE Producto ADD COLUMN imagenesColores TEXT;` | 0/0 | Ver `CONTEXTO-PROYECTO.md` § 10.1 |
+| (Fase 0/1) | `ALTER TABLE Producto ADD COLUMN categoria TEXT; ALTER TABLE Producto ADD COLUMN destacado INTEGER NOT NULL DEFAULT 0;` | 0/0 | — |
+| Fase 5 | `ALTER TABLE Producto ADD COLUMN slug TEXT; CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);` | 0/0 | Slug persistente — ver `ARCHITECTURE.md` § slug. Índice único creado además de la columna (dos sentencias, ambas aditivas) |
+
+## Migración diseñada, NO ejecutada: `slug NOT NULL` físico en remoto (Fase 5.1)
+
+**Estado: diseñada y documentada aquí, pendiente de autorización explícita del
+negocio antes de ejecutarse. No se ha corrido nada de lo siguiente.**
+
+### Por qué no se ejecutó ya
+
+`db/config.ts` declara `slug: column.text({ unique: true })` — sin
+`optional: true`, es decir NOT NULL a nivel de esquema declarado. Local
+(`astro dev`/`build:local`) ya cumple esto de verdad porque recrea la tabla
+en cada arranque. Remoto no: la columna se añadió con `ALTER TABLE ADD
+COLUMN` (Fase 5), y SQLite no permite añadir `NOT NULL` a una columna
+existente sin recrear la tabla completa (el procedimiento "12 pasos" de
+SQLite: crear tabla nueva con la restricción, copiar filas, borrar la vieja,
+renombrar la nueva). Eso es exactamente la clase de operación que este mismo
+documento prohíbe hacer sin "una decisión extraordinaria y explícitamente
+autorizada por el negocio, documentada aparte" (ver arriba), después del
+incidente que vació `Producto` una vez. Por eso, aunque remoto tiene
+actualmente 0 filas (riesgo real de pérdida de datos: ninguno hoy), esta
+migración se deja diseñada pero sin correr, en vez de ejecutarse dentro de
+esta misma fase de trabajo.
+
+La restricción de unicidad **ya está aplicada de verdad** en remoto vía
+`CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug)` (Fase 5) — un
+índice único en SQLite rechaza duplicados exactamente igual que una columna
+`UNIQUE`. Solo falta la parte NOT NULL.
+
+### Script exacto para cuando se autorice
+
+```sql
+-- 1. Tabla nueva con la misma forma que Producto, pero slug NOT NULL.
+CREATE TABLE "Producto_new" (
+  "id" INTEGER PRIMARY KEY,
+  "nombre" TEXT NOT NULL,
+  "slug" TEXT NOT NULL,
+  "precio" REAL NOT NULL,
+  "tallas" TEXT NOT NULL,
+  "colores" TEXT NOT NULL,
+  "imagen" TEXT NOT NULL,
+  "imagenesColores" TEXT,
+  "descripcion" TEXT NOT NULL,
+  "disponible" INTEGER NOT NULL DEFAULT 1,
+  "orden" INTEGER NOT NULL DEFAULT 0,
+  "categoria" TEXT,
+  "destacado" INTEGER NOT NULL DEFAULT 0
+);
+
+-- 2. Copiar todas las filas. Si existiera alguna fila con slug NULL, esta
+--    sentencia falla sola (constraint violation) y no se pierde nada — señal
+--    de que hay que rellenar ese slug a mano antes de reintentar.
+INSERT INTO "Producto_new" SELECT
+  "id", "nombre", "slug", "precio", "tallas", "colores", "imagen",
+  "imagenesColores", "descripcion", "disponible", "orden", "categoria",
+  "destacado"
+FROM "Producto";
+
+-- 3. Reemplazar. DROP solo ocurre después de que el INSERT SELECT anterior
+--    ya tuvo éxito completo.
+DROP TABLE "Producto";
+ALTER TABLE "Producto_new" RENAME TO "Producto";
+
+-- 4. Recrear el índice único (se pierde al recrear la tabla).
+CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);
+```
+
+### Condiciones para ejecutarla
+
+1. Autorización explícita y documentada del negocio (no solo de quien
+   programa) para esta recreación de tabla puntual — sigue la misma regla que
+   toda otra recreación de tabla en este documento.
+2. Seguir el "Procedimiento seguro" completo de más arriba (backup/point-in-time
+   check, `db:inspect:remote` antes y después, script fuera de git, smoke test).
+3. Confirmar antes de correr el paso 2 que ninguna fila real tiene
+   `slug IS NULL` (`SELECT id, nombre FROM Producto WHERE slug IS NULL;`) —
+   si las hay, resolverlas primero a mano, no dejar que el INSERT falle a
+   medias.
+4. Una vez ejecutada, actualizar la tabla de "Historial de migraciones
+   aplicadas" de abajo con fecha real y filas antes/después, y quitar esta
+   sección o marcarla como completada.
+
 ## Principio de mínimo acceso (scopes del token)
 
 **NO VERIFICABLE** desde este entorno — no hay forma segura de inspeccionar

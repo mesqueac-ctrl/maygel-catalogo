@@ -5,6 +5,7 @@ export default async function seed() {
 		{
 			id: 1,
 			nombre: "Sandalia Trenzada Terracota",
+			slug: "sandalia-trenzada-terracota",
 			precio: 89000,
 			tallas: "35, 36, 37, 38, 39, 40",
 			colores: "Miel, Negro, Beige",
@@ -17,6 +18,7 @@ export default async function seed() {
 		{
 			id: 2,
 			nombre: "Sandalia Clásica de Cuero",
+			slug: "sandalia-clasica-de-cuero",
 			precio: 95000,
 			tallas: "36, 37, 38, 39, 40, 41",
 			colores: "Negro, Blanco, Miel",
@@ -32,6 +34,7 @@ export default async function seed() {
 		{
 			id: 3,
 			nombre: "Sandalia Doble Correa Ocre",
+			slug: "sandalia-doble-correa-ocre",
 			precio: 102000,
 			tallas: "34, 35, 36, 37, 38",
 			colores: "Miel, Beige",

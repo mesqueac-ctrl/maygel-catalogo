@@ -1,0 +1,123 @@
+---
+import { Image } from "astro:assets";
+import {
+	listarDisponibles,
+	formatearPrecio,
+	descripcionImagen,
+	imagenParaColor,
+	coloresComoLista,
+} from "../lib/productos";
+import { enlaceProducto } from "../lib/whatsapp";
+
+// Regla determinista: de los productos marcados como destacados, se muestra
+// siempre el primero según el orden real del catálogo (listarDisponibles ya
+// llega ordenado por `orden`) — nunca el "más nuevo" ni uno elegido al azar.
+// Si no hay ninguno destacado, la sección no existe (no hay nada que inventar).
+const producto = (await listarDisponibles()).find((p) => p.destacado);
+
+let urlFicha = "";
+let precioFormateado = "";
+let imagen = "";
+let esRemota = false;
+let alt = "";
+let enlaceWhatsapp = "";
+let necesitaSeleccion = false;
+
+if (producto) {
+	urlFicha = `/productos/${producto.slug}`;
+	precioFormateado = formatearPrecio(producto.precio);
+	const colores = coloresComoLista(producto.colores);
+	const unicoColor = colores.length === 1 ? colores[0] : null;
+	necesitaSeleccion = colores.length > 1;
+	imagen = imagenParaColor(producto, unicoColor);
+	esRemota = imagen.startsWith("http");
+	alt = descripcionImagen(producto.nombre);
+	enlaceWhatsapp = necesitaSeleccion ? urlFicha : enlaceProducto(producto.nombre, unicoColor, urlFicha);
+}
+---
+
+{
+	producto && (
+		<section class="destacado section section--surface" id="favoritas">
+			<div class="container destacado__inner">
+				<div class="destacado__media" data-reveal>
+					{esRemota ? (
+						<Image src={imagen} alt={alt} width={1000} height={1250} format="webp" loading="lazy" />
+					) : (
+						<img src={imagen} alt={alt} width="1000" height="1250" loading="lazy" decoding="async" />
+					)}
+				</div>
+
+				<div class="destacado__info" data-reveal>
+					<h2 class="destacado__titulo">La favorita del taller</h2>
+					<p class="destacado__nombre">{producto.nombre}</p>
+					<p class="destacado__precio">{precioFormateado}</p>
+					<p class="destacado__descripcion">{producto.descripcion}</p>
+					<a
+						class="btn"
+						href={enlaceWhatsapp}
+						target={necesitaSeleccion ? undefined : "_blank"}
+						rel={necesitaSeleccion ? undefined : "noopener noreferrer"}
+					>
+						{necesitaSeleccion ? "Ver este modelo" : "Encargar este modelo"}
+					</a>
+				</div>
+			</div>
+		</section>
+	)
+}
+
+<style>
+	.destacado__inner {
+		display: grid;
+		gap: clamp(2rem, 5vw, 3rem);
+	}
+
+	.destacado__media {
+		width: 100%;
+		aspect-ratio: 4 / 5;
+		overflow: hidden;
+		background-color: #ede4d6;
+	}
+
+	.destacado__media :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.destacado__info {
+		max-width: 46ch;
+	}
+
+	.destacado__titulo {
+		font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+		margin-bottom: 1rem;
+	}
+
+	.destacado__nombre {
+		font-family: var(--font-display);
+		font-size: clamp(1.75rem, 3.2vw, 2.25rem);
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	.destacado__precio {
+		font-size: 1.125rem;
+		color: var(--color-accent);
+		margin-bottom: 1.5rem;
+	}
+
+	.destacado__descripcion {
+		color: var(--color-muted);
+		margin-bottom: 2rem;
+	}
+
+	@media (min-width: 900px) {
+		.destacado__inner {
+			grid-template-columns: 3fr 2fr;
+			align-items: center;
+			gap: clamp(3rem, 6vw, 5rem);
+		}
+	}
+</style>

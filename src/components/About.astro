@@ -1,65 +1,69 @@
 ---
 ---
 
-<section class="about section" id="sobre-nosotros">
+<section class="about section section--surface" id="sobre-nosotros">
 	<div class="container about__inner">
-		<p class="eyebrow">Sobre nosotros</p>
-		<h2 class="sr-only">Sobre Maygel: sandalias artesanales hechas a mano en familia</h2>
+		<!--
+			Espacio reservado para fotografía real del taller/familia. Al llegar
+			la foto, reemplaza .about__visual por el componente Image (o una etiqueta img) dentro de
+			.about__media — el layout no cambia.
+		-->
+		<div class="about__media" data-reveal>
+			<div class="about__visual" role="img" aria-label="Taller Maygel — fotografía próximamente"></div>
+		</div>
 
-		<div class="about__text">
-			<!-- TODO: reemplaza este texto con la historia real de Maygel -->
-			<p class="about__lead">
-				Maygel nació en la mesa de nuestra casa, entre retazos de cuero y las manos de toda la
-				familia.
-			</p>
-			<p>
-				Empezamos haciendo sandalias para nosotros mismos, y con el tiempo amigos y vecinos
-				empezaron a pedirnos un par. Hoy seguimos haciendo cada sandalia como si fuera la
-				primera: con paciencia, materiales de calidad y mucho cariño por lo que hacemos.
-			</p>
-			<p>
-				Creemos en el trabajo hecho a mano, sin prisa, pensado para que dure y se sienta bien
-				en cada paso.
+		<div class="about__text" data-reveal>
+			<!-- TODO: contenido provisional — reemplazar con la historia real de Maygel -->
+			<h2 class="about__titulo">Maygel nació en la mesa de nuestra casa.</h2>
+			<p class="about__parrafo">
+				Entre retazos de cuero y las manos de toda la familia. Empezamos haciendo sandalias para
+				nosotros mismos, y con el tiempo amigos y vecinos empezaron a pedirnos un par. Hoy
+				seguimos haciendo cada sandalia como si fuera la primera: con paciencia, materiales de
+				calidad y mucho cariño por lo que hacemos.
 			</p>
 		</div>
 	</div>
 </section>
 
 <style>
-	.about {
-		border-top: 1px solid var(--color-border);
-	}
-
 	.about__inner {
 		display: grid;
-		gap: 2rem;
+		gap: clamp(2rem, 5vw, 3rem);
+	}
+
+	.about__media {
+		width: 100%;
+	}
+
+	.about__visual {
+		width: 100%;
+		aspect-ratio: 4 / 3;
+		background: linear-gradient(135deg, #efe3d3 0%, #d8c1a0 100%);
 	}
 
 	.about__text {
-		max-width: 58ch;
-		display: grid;
-		gap: 1.5rem;
+		max-width: 52ch;
 	}
 
-	.about__lead {
-		font-family: var(--font-heading);
-		font-size: clamp(1.5rem, 3vw, 2.125rem);
-		line-height: 1.35;
+	.about__titulo {
+		font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+		line-height: 1.15;
+		margin-bottom: 1.5rem;
 	}
 
-	.about__text p:not(.about__lead) {
-		color: var(--color-accent-soft);
-		font-weight: 300;
+	.about__parrafo {
+		color: var(--color-muted);
 	}
 
 	@media (min-width: 900px) {
 		.about__inner {
-			grid-template-columns: 1fr 2fr;
-			gap: 4rem;
+			grid-template-columns: 1fr 1fr;
+			gap: clamp(3rem, 6vw, 5rem);
+			align-items: center;
 		}
 
-		.eyebrow {
-			margin-bottom: 0;
+		.about__visual {
+			aspect-ratio: 4 / 5;
 		}
 	}
 </style>

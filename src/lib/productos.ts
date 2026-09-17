@@ -3,6 +3,10 @@ import { db, Producto, eq, asc, sql } from "astro:db";
 export const COLORES_VALIDOS = ["Negro", "Blanco", "Miel", "Beige"] as const;
 export type ColorValido = (typeof COLORES_VALIDOS)[number];
 
+/** Taxonomía de categorías aprobada. Cada producto tiene como máximo una. */
+export const CATEGORIAS_VALIDAS = ["Brillos", "Tiras", "Trenzadas", "Clásicas", "Elegantes"] as const;
+export type CategoriaValida = (typeof CATEGORIAS_VALIDAS)[number];
+
 export const COLORES_METADATA: Record<ColorValido, { nombre: string; hex: string; border: string }> = {
 	Negro: { nombre: "Negro", hex: "#222222", border: "#222222" },
 	Blanco: { nombre: "Blanco", hex: "#FFFFFF", border: "#D8CFC4" },
@@ -13,6 +17,9 @@ export const COLORES_METADATA: Record<ColorValido, { nombre: string; hex: string
 export interface ProductoRegistro {
 	id: number;
 	nombre: string;
+	/** Slug persistente de la URL pública — independiente del nombre. Nunca se
+	 * regenera automáticamente al editar `nombre`. */
+	slug: string;
 	precio: number;
 	tallas: string;
 	colores: string;
@@ -23,27 +30,47 @@ export interface ProductoRegistro {
 	descripcion: string;
 	disponible: boolean;
 	orden: number;
+	/** Una de CATEGORIAS_VALIDAS, o null si todavía no se asignó ninguna. */
+	categoria?: string | null;
+	/** Si aparece en la sección de destacados de la homepage. */
+	destacado: boolean;
 }
 
 export type ProductoNuevo = Omit<ProductoRegistro, "id" | "orden">;
 
+// `slug` ya es NOT NULL + UNIQUE en el schema (db/config.ts) y guardar.ts
+// siempre lo rellena al crear — nunca debería llegar null en la práctica.
+// Este fallback solo cubre el desfase real que existe hoy en la base remota:
+// la columna se añadió con ALTER TABLE (físicamente nullable, SQLite no
+// permite NOT NULL ahí sin recrear la tabla — ver ARCHITECTURE.md § slug),
+// así que el tipo de esta función sigue siendo defensivo hasta que esa
+// migración se ejecute. Nunca inventa un valor distinto al que ya se
+// derivaba del nombre antes de que `slug` existiera como columna.
+function conSlugSeguro<T extends { id: number; nombre: string; slug: string | null }>(
+	fila: T,
+): T & { slug: string } {
+	return { ...fila, slug: fila.slug ?? `${slugify(fila.nombre)}-${fila.id}` };
+}
+
 /** Todos los productos, en el orden que definió la administradora. */
 export async function listarTodos(): Promise<ProductoRegistro[]> {
-	return db.select().from(Producto).orderBy(asc(Producto.orden), asc(Producto.id));
+	const filas = await db.select().from(Producto).orderBy(asc(Producto.orden), asc(Producto.id));
+	return filas.map(conSlugSeguro);
 }
 
 /** Solo los productos visibles, para la página pública. */
 export async function listarDisponibles(): Promise<ProductoRegistro[]> {
-	return db
+	const filas = await db
 		.select()
 		.from(Producto)
 		.where(eq(Producto.disponible, true))
 		.orderBy(asc(Producto.orden), asc(Producto.id));
+	return filas.map(conSlugSeguro);
 }
 
 export async function obtenerPorId(id: number): Promise<ProductoRegistro | undefined> {
 	const filas = await db.select().from(Producto).where(eq(Producto.id, id));
-	return filas[0];
+	return filas[0] ? conSlugSeguro(filas[0]) : undefined;
 }
 
 export async function crear(datos: ProductoNuevo): Promise<void> {
@@ -64,37 +91,25 @@ export async function eliminar(id: number): Promise<void> {
 }
 
 /**
- * Sube o baja un producto una posición, intercambiando el orden con su vecino.
- * Devuelve false si ya estaba en el extremo.
+ * Persiste el orden completo del catálogo de una sola vez. `idsEnOrden` debe
+ * llegar ya validado por quien llama (todos los IDs existentes, sin
+ * duplicados, sin faltantes, sin extras) — esta función asume esa garantía
+ * y solo se encarga de escribir `orden = índice + 1` para cada uno.
+ *
+ * Se ejecuta como un único `batch` de libSQL (soportado nativamente por el
+ * driver `drizzle-orm/libsql` que usa Astro DB): todas las escrituras viajan
+ * en una sola petición atómica al servidor — o se aplican todas, o ninguna —
+ * evitando que una lista de 50+ productos quede en un estado a medio guardar
+ * si algo falla a mitad de camino.
  */
-export async function mover(id: number, direccion: "subir" | "bajar"): Promise<boolean> {
-	const lista = await listarTodos();
-	const posicion = lista.findIndex((producto) => producto.id === id);
-
-	if (posicion === -1) return false;
-
-	const destino = direccion === "subir" ? posicion - 1 : posicion + 1;
-	if (destino < 0 || destino >= lista.length) return false;
-
-	const actual = lista[posicion];
-	const vecino = lista[destino];
-
-	// Reescribimos el orden de toda la lista para que quede consecutivo aunque
-	// venga con valores repetidos o con huecos.
-	const reordenada = [...lista];
-	reordenada[posicion] = vecino;
-	reordenada[destino] = actual;
-
-	await Promise.all(
-		reordenada.map((producto, indice) =>
-			db
-				.update(Producto)
-				.set({ orden: indice + 1 })
-				.where(eq(Producto.id, producto.id)),
-		),
+export async function guardarOrdenCompleto(idsEnOrden: number[]): Promise<void> {
+	const escrituras = idsEnOrden.map((id, indice) =>
+		db.update(Producto).set({ orden: indice + 1 }).where(eq(Producto.id, id)),
 	);
 
-	return true;
+	if (escrituras.length === 0) return;
+
+	await db.batch(escrituras as [(typeof escrituras)[number], ...(typeof escrituras)[number][]]);
 }
 
 /** Convierte "35, 36, 37" en ["35", "36", "37"], quitando espacios y vacíos. */
@@ -160,18 +175,39 @@ export function slugify(texto: string): string {
 }
 
 /**
- * Slug público de un producto. Se le añade el id para garantizar unicidad
- * sin depender de que los nombres no choquen entre sí (no hay campo slug en
- * Astro DB y no queremos migrar el esquema solo para esta fase).
+ * Comprueba si un slug ya está en uso por otro producto (excluyendo, al
+ * editar, el propio producto que se está guardando).
  */
-export function slugDeProducto(producto: Pick<ProductoRegistro, "id" | "nombre">): string {
-	return `${slugify(producto.nombre)}-${producto.id}`;
+export async function existeSlug(slug: string, excluirId?: number): Promise<boolean> {
+	const filas = await db.select({ id: Producto.id }).from(Producto).where(eq(Producto.slug, slug));
+	return filas.some((fila) => fila.id !== excluirId);
 }
 
-/** Busca un producto disponible por su slug público. */
+/**
+ * Genera un slug disponible a partir de un nombre: normaliza con `slugify()`
+ * y, si ya existe, añade `-2`, `-3`... hasta encontrar uno libre. Se usa
+ * solo cuando no se indicó un slug explícito (alta sin campo, o el campo se
+ * dejó vacío) — nunca sobrescribe un slug ya persistido.
+ */
+export async function generarSlugDisponible(nombre: string, excluirId?: number): Promise<string> {
+	const base = slugify(nombre) || "sandalia";
+	let candidato = base;
+	let sufijo = 2;
+
+	while (await existeSlug(candidato, excluirId)) {
+		candidato = `${base}-${sufijo}`;
+		sufijo += 1;
+	}
+
+	return candidato;
+}
+
+/** Busca un producto por su slug persistente, exista o no `disponible`. La
+ * página pública decide qué mostrar según ese campo — ver
+ * docs/PRODUCT_PAGE_SPEC.md § producto no disponible. */
 export async function obtenerPorSlug(slug: string): Promise<ProductoRegistro | undefined> {
-	const productos = await listarDisponibles();
-	return productos.find((producto) => slugDeProducto(producto) === slug);
+	const filas = await db.select().from(Producto).where(eq(Producto.slug, slug));
+	return filas[0] ? conSlugSeguro(filas[0]) : undefined;
 }
 
 /** Texto alt/descripción reutilizable para las imágenes de un producto. */
