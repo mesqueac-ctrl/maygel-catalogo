@@ -45,9 +45,11 @@
   `src/lib/whatsapp.ts` — nunca se escribe un mensaje ad-hoc en un componente
   nuevo.
 - El mensaje de encargo de producto siempre incluye: nombre del producto,
-  color elegido (si aplica) y la frase "Entiendo que es un producto fabricado
-  bajo pedido" — esta frase existe para gestionar expectativas de tiempo de
-  entrega y no debe eliminarse sin decisión de negocio explícita.
+  color y talla elegidos (si aplica), el precio formateado (añadido en Fase
+  7 — antes faltaba, y Maygel no podía confirmar de entrada a qué precio
+  exacto se refería la clienta) y la frase "Entiendo que es un producto
+  fabricado bajo pedido" — esta frase existe para gestionar expectativas de
+  tiempo de entrega y no debe eliminarse sin decisión de negocio explícita.
 - Nunca prometer confirmación o disponibilidad inmediata en el copy de un
   botón de WhatsApp — es un canal de conversación, no de checkout instantáneo.
 
@@ -103,6 +105,15 @@
   productos disponibles, porque esa sección es estructuralmente obligatoria
   (ancla de navegación `#catalogo`) — el mensaje invita a escribir por
   WhatsApp en vez de mostrar un grid vacío.
+- **Corregido en Fase 7:** el mensaje de catálogo vacío decía "La próxima
+  colección está tomando forma" — una promesa de trabajo futuro sin fecha ni
+  plan confirmado por el negocio (la razón real de que esté vacío es que
+  todavía no se cargó el catálogo, no que exista una colección en curso).
+  Reemplazado por "Por ahora no tenemos modelos publicados aquí", que no
+  afirma nada que no se pueda verificar. Cualquier copy de estado vacío
+  nuevo debe pasar la misma prueba: si implica una promesa o un plan futuro,
+  no se publica sin confirmación real del negocio (ver
+  `COMMERCIAL_TRUST_MATRIX.md`).
 
 ## 11. Feedback
 

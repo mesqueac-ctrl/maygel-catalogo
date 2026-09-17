@@ -64,9 +64,11 @@ const robots = disponible ? "index, follow" : "noindex, follow";
 const necesitaColor = disponible && colores.length > 1;
 const necesitaTalla = disponible && tallas.length > 1;
 
+const precioFormateado = formatearPrecio(producto.precio);
+
 const enlaceWhatsappInicial =
 	disponible && !necesitaColor && !necesitaTalla
-		? enlaceProducto(producto.nombre, unicoColor, paginaUrl, unicaTalla)
+		? enlaceProducto(producto.nombre, unicoColor, paginaUrl, unicaTalla, precioFormateado)
 		: "#";
 
 // No se afirma rating, review, SKU, GTIN ni stock — no existen en los datos.
@@ -269,6 +271,7 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 										rel={enlaceWhatsappInicial === "#" ? undefined : "noopener noreferrer"}
 										data-nombre={producto.nombre}
 										data-url={paginaUrl}
+										data-precio={precioFormateado}
 									>
 										Pedir este par
 									</a>
@@ -321,6 +324,7 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 	if (cta) {
 		const nombre = cta.dataset.nombre ?? "";
 		const url = cta.dataset.url;
+		const precio = cta.dataset.precio ?? null;
 		let colorElegido: string | null = gruposColor.length === 1 ? gruposColor[0].dataset.color ?? null : null;
 		let tallaElegida: string | null = gruposTalla.length === 1 ? gruposTalla[0].dataset.talla ?? null : null;
 
@@ -348,7 +352,7 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 				return;
 			}
 
-			const mensaje = mensajeProducto(nombre, colorElegido, url, tallaElegida);
+			const mensaje = mensajeProducto(nombre, colorElegido, url, tallaElegida, precio);
 			cta.href = buildWhatsappLink(mensaje);
 			cta.target = "_blank";
 			cta.rel = "noopener noreferrer";

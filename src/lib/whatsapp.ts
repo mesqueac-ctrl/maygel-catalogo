@@ -9,18 +9,24 @@ import { buildWhatsappLink } from "../consts";
  * `null` cuando el producto no tiene esa variante, o cuando tiene varias y
  * ninguna fue elegida todavía — en ese caso simplemente no se mencionan
  * (nunca se envía un valor no seleccionado como si estuviera confirmado).
- * Si se pasa `urlProducto`, se añade como referencia en una línea aparte
- * para que Maygel identifique exactamente qué sandalia vio la clienta.
+ * `precioFormateado` es opcional (algunos llamantes todavía no lo tienen a
+ * mano) pero siempre debe venir de `formatearPrecio(producto.precio)`, nunca
+ * de un valor escrito a mano — así Maygel confirma el precio exacto que vio
+ * la clienta, no uno distinto. Si se pasa `urlProducto`, se añade como
+ * referencia en una línea aparte para identificar exactamente qué sandalia
+ * vio la clienta.
  */
 export function mensajeProducto(
 	nombre: string,
 	color: string | null,
 	urlProducto?: string,
 	talla?: string | null,
+	precioFormateado?: string | null,
 ): string {
 	let base = `Hola, quiero encargar la sandalia ${nombre}`;
 	if (color) base += ` en color ${color}`;
 	if (talla) base += `, talla ${talla}`;
+	if (precioFormateado) base += ` (${precioFormateado})`;
 	base += ". Entiendo que es un producto fabricado bajo pedido.";
 
 	return urlProducto ? `${base}\nProducto: ${urlProducto}` : base;
@@ -32,6 +38,7 @@ export function enlaceProducto(
 	color: string | null,
 	urlProducto?: string,
 	talla?: string | null,
+	precioFormateado?: string | null,
 ): string {
-	return buildWhatsappLink(mensajeProducto(nombre, color, urlProducto, talla));
+	return buildWhatsappLink(mensajeProducto(nombre, color, urlProducto, talla, precioFormateado));
 }

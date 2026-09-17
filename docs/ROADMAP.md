@@ -230,15 +230,37 @@
   Lighthouse/PSI/CrUX real y carga de catálogo real quedan como acción
   externa (ver entrega de la fase).
 
-## Fase 7 — UX WhatsApp / conversión
+## Fase 7 — Confianza, conversión y contenido comercial
 
-- **Objetivo:** revisar mensajes y flujo de conversión con datos reales de
-  uso (si existen) contra `UX_RULES.md` § 5.
-- **Alcance:** `src/lib/whatsapp.ts`, `src/consts.ts`.
-- **Dependencias:** catálogo real, tráfico real (aunque sea mínimo).
-- **Criterios de aprobación:** ningún mensaje genera ambigüedad sobre qué
-  producto/color/talla se pidió.
-- **Estado:** ⬜ Pendiente.
+- **Objetivo:** auditar todo el contenido comercial público (proceso de
+  compra, WhatsApp, CTAs, materiales, envíos, pagos, cambios, mayoristas,
+  historia, footer) contra la realidad confirmada del negocio, sin añadir
+  técnicas artificiales de conversión (badges, urgencia, reviews falsas).
+- **Alcance:** `docs/COMMERCIAL_TRUST_MATRIX.md` (nuevo, fuente de verdad
+  comercial), `docs/SIZE_GUIDE_REQUIREMENTS.md` (nuevo), `docs/
+  BUSINESS_INPUTS.md` (nuevo), `docs/CONTENT_GUIDE.md` (glosario de
+  términos aprobados), `docs/UX_RULES.md`/`docs/PRODUCT_PAGE_SPEC.md`
+  (correcciones de documentación). Código: `src/lib/whatsapp.ts` (el
+  mensaje de encargo de producto ahora incluye el precio, que faltaba),
+  `src/pages/productos/[slug].astro` (pasa el precio al CTA y al script),
+  `src/components/ProductGrid.astro` (copy de catálogo vacío corregido —
+  ya no promete una "próxima colección" sin plan confirmado).
+- **Hallazgos:** el resto del contenido comercial auditado ya era honesto y
+  consistente desde fases anteriores (proceso de compra real de 4 pasos,
+  mayoristas sin cifras inventadas, guía de tallas ya honesta, sin badges ni
+  logos de pago falsos, sin políticas legales inventadas). Las dos
+  correcciones de código de esta fase fueron los únicos defectos reales
+  encontrados; todo lo demás que falta es información que solo el negocio
+  puede dar, documentada en `BUSINESS_INPUTS.md` sin inventar respuestas.
+- **Dependencias:** Fase 6.1.
+- **Criterios de aprobación:** una clienta puede entender qué vende Maygel,
+  cómo pedir, cuánto cuesta, qué debe elegir, qué pasa después, cómo recibe
+  y qué ocurre si tiene un problema, sin depender de suposiciones — cumplido
+  para todo lo que el negocio ya confirmó; lo que falta queda explícito en
+  `BUSINESS_INPUTS.md`, no rellenado con placeholders visibles.
+- **Estado:** ✅ Completa (auditoría + correcciones de código con datos ya
+  confirmados). Catálogo real, historia real, guía de tallas real y el resto
+  de `BUSINESS_INPUTS.md` quedan como acción externa del negocio.
 
 ## Fase 8 — Mayoristas
 

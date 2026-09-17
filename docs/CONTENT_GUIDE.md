@@ -81,6 +81,21 @@ anuncio.
 - ❌ "Comprar ahora", "Enviar" (genéricos, y "Comprar ahora" implica un
   checkout que no existe).
 
+## Términos aprobados (Fase 7)
+
+Para que ninguna sección parezca escrita por una persona distinta. Usar
+siempre la columna "usar", nunca la de "evitar", salvo que el contexto
+gramatical de la frase lo pida de otro modo.
+
+| Concepto | Usar | Evitar | Nota |
+|---|---|---|---|
+| El objeto que se vende | "sandalia", "par", "modelo" (según contexto) | "producto" en copy de cara al público (sí vale en código/docs) | "producto" es correcto en `db/config.ts`, `ProductoRegistro`, etc. — es jerga de dominio interna, no copy |
+| Acción de comprar | "pedir", "encargar", "consultar" | "comprar ahora", "adquirir" | Maygel vende por conversación, no por checkout — "comprar ahora" implica un flujo que no existe (ver `UX_RULES.md` § 13) |
+| Proceso de fabricación | "hecho a mano", "artesanal", "fabricado bajo pedido" | "confeccionado industrialmente" (obviamente, nunca se usaría, pero tampoco "producción en serie" ni nada que sugiera volumen) | — |
+| Calidad | describir el hecho real (material, acabado) | "premium", "de alta calidad", "los mejores materiales" | Ver § "Qué evitar siempre" arriba — se demuestra con datos reales, no se declara |
+| Llamado a la acción | nombra la acción exacta ("Ver colección", "Pedir este par", "Consultar por WhatsApp") | "Comprar ahora", "Añadir al carrito", "Enviar", "Ver más" sin contexto | Ver `UX_RULES.md` § 4 |
+| Disponibilidad temporal | "no disponible", "ya no está disponible" | "agotado", "sin stock" | Maygel no maneja inventario — "agotado"/"sin stock" implican un concepto de stock que no existe (ver `ARCHITECTURE.md` § 4.2) |
+
 ## Reglas para contenido nuevo (categorías, producto real)
 
 - `CATEGORIAS_VALIDAS` es provisional (ver `ARCHITECTURE.md` § 9.3) — no

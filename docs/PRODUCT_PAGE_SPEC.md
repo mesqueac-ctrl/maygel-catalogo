@@ -52,8 +52,10 @@ nunca un `alert()` de navegador.
 ## Mensaje de WhatsApp
 
 `mensajeProducto()` (`src/lib/whatsapp.ts`) incluye nombre, color y talla
-**solo si fueron seleccionados** (nunca un valor no confirmado), más la URL
-de la ficha como referencia.
+**solo si fueron seleccionados** (nunca un valor no confirmado), el precio
+formateado (`formatearPrecio()`, añadido en Fase 7 — antes faltaba) y la URL
+de la ficha como referencia, para que Maygel confirme exactamente qué vio y
+a qué precio la clienta antes de responder.
 
 ## Fabricación
 
