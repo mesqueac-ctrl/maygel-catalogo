@@ -180,6 +180,56 @@
   como acción externa pendiente (ver entrega de la fase) — no bloquean el
   cierre porque dependen de desplegar primero el trabajo comiteado.
 
+## Fase 6.1 — Deploy controlado + verificación post-producción
+
+- **Objetivo:** desplegar de forma segura todo el trabajo acumulado de Fases
+  0→6 (que hasta este punto solo existía en el árbol de trabajo local, sin
+  comitear) y verificar con evidencia real que `https://www.maygel.co`
+  corresponde al código actual.
+- **Alcance:** control de cambios pre-deploy (auditoría completa de
+  `git status`/diff, búsqueda de datos de prueba y secretos), un commit
+  acumulativo (`a667e1d`), push a `origin/master`, verificación de que el
+  deploy automático de Vercel (Git integration ya existente, no se creó
+  ningún proyecto nuevo) sirvió la versión nueva, y verificación funcional
+  de producción real (SEO, cache, responsive, menú móvil, consola, JSON-LD).
+  **Cero cambios de código nuevos** — el único artefacto de código de esta
+  fase es la verificación misma; `vercel.json` ya se había creado en Fase 6.
+- **Hallazgos pre-deploy:** sin datos de prueba filtrados a `db/seed.ts` (los
+  productos editados durante las pruebas de Fase 5.1 vivían solo en
+  `.astro/local.db`, gitignorado y regenerado desde el seed en cada build);
+  sin secretos en el diff (`.env`/`.env.production` gitignorados, solo
+  `.env.example` con placeholders trackeado); sin archivos temporales,
+  screenshots ni logs; 0 divergencia con `origin/master` antes del push.
+- **Migración `slug NOT NULL`:** revisada de nuevo — no bloquea este deploy.
+  El remoto sigue en 0 filas, la unicidad ya es real (`idx_producto_slug`),
+  y la app siempre rellena `slug` al crear — dejarla pendiente no tiene
+  riesgo real hoy. Se mantiene diseñada y sin ejecutar, sin cambios respecto
+  a Fase 5.1.
+- **Verificación post-deploy (evidencia real, no local):** dominio canónico
+  estable (`https://www.maygel.co`, redirects 308 en un solo salto); robots,
+  sitemap, 404 y `/admin` correctos; fuentes/tema nuevos confirmados en vivo
+  (`Cormorant Garamond`/`Manrope`, `#8C5A2F`) — cero rastro de la marca
+  anterior (`#B5651D`, Playfair, Inter) en home/login/404; cache-control
+  `immutable` confirmado en `_astro/*` reales, sin aplicarse a `/public` sin
+  hash; menú móvil probado en producción (abre, `Escape` cierra, foco
+  vuelve, scroll bloqueado, `main` inerte, sin errores de consola); catálogo
+  vacío real (0 productos en remoto) muestra su estado vacío ya diseñado,
+  no un grid roto; sin overflow horizontal real en 375/430/768/1024 (los
+  valores negativos de scroll width en 768/1024 son el ancho de scrollbar
+  del navegador, no overflow de contenido — mismo patrón ya documentado en
+  Fase 2).
+- **No medido en este entorno:** Lighthouse/PSI/CrUX reales — sigue sin
+  existir acceso a esa herramienta desde aquí (ver `PERFORMANCE_RULES.md` §
+  Fase 6.1). No se inventó ningún score.
+- **Dependencias:** Fase 6.
+- **Criterios de aprobación:** la versión de producción corresponde al
+  código actual con evidencia real verificada (no solo "push exitoso" o
+  "build correcto") — cumplido para todo lo que se puede verificar sin
+  Lighthouse real.
+- **Estado:** ✅ Completa (deploy y verificación funcional/SEO). Medición de
+  Lighthouse/PSI/CrUX real y carga de catálogo real quedan como acción
+  externa (ver entrega de la fase).
+
 ## Fase 7 — UX WhatsApp / conversión
 
 - **Objetivo:** revisar mensajes y flujo de conversión con datos reales de

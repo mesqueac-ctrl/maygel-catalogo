@@ -269,7 +269,29 @@ No se detectó ninguna acción pendiente aquí — la configuración de dominio 
 Vercel ya resuelve esto correctamente a nivel de host, antes de que la app
 reciba la petición.
 
-## 21. Aviso importante: estado de producción vs. código actual (Fase 6)
+## 21.1 Actualización — deploy real completado (Fase 6.1, 2026-09-17)
+
+**El aviso de la sección 21 ya no aplica: producción corre el código
+auditado en esta fase.** Comiteado y desplegado en Fase 6.1 (commit
+`a667e1d`). Verificado de nuevo contra `https://www.maygel.co` real
+(no local) después del deploy:
+
+| Chequeo | Resultado |
+|---|---|
+| Host canónico | `https://www.maygel.co`, redirects 308 en un solo salto desde las 3 variantes |
+| `robots.txt` | `Allow: /`, `Disallow: /admin/`, `Sitemap:` correcto |
+| `/sitemap.xml` | 200, `Content-Type: application/xml`, solo `/` (0 productos remotos — esperado) |
+| `/` | 200, `title`/`description`/`canonical`/OG/JSON-LD `LocalBusiness` correctos |
+| 404 real | `noindex, nofollow`, marca conservada |
+| `/admin/productos` | 302 → `/admin/login`, `noindex, nofollow` |
+| Cache `_astro/*.css` | `Cache-Control: public, max-age=31536000, immutable` real |
+| Fuentes/tema en vivo | Cormorant Garamond + Manrope, `#8C5A2F` — sin rastro de la marca anterior |
+| JS servido en home | 0 archivos `.js` |
+
+Sin regresiones encontradas. Detalle completo de la verificación en
+`ROADMAP.md` § Fase 6.1 y `PERFORMANCE_RULES.md` § Fase 6.1.
+
+## 21. Aviso importante: estado de producción vs. código actual (Fase 6, histórico)
 
 **Producción (`https://www.maygel.co`) verificada el 2026-09-17 corre el
 código del último commit empujado (`b9fe47e`), que es *anterior* a todo el

@@ -155,3 +155,44 @@ objetivos, no resultados** — no se pueden marcar como alcanzados hasta medir
 con la herramienta real contra producción desplegada con el código actual
 (ver `SEO_RULES.md` § 21 — producción hoy corre un commit anterior a todo
 este trabajo).
+
+## Fase 6.1 — Deploy real (2026-09-17) y estado de la medición
+
+**El código auditado en Fase 6 ya está desplegado en producción** (commit
+`a667e1d`, ver `ROADMAP.md` § Fase 6.1) — el hallazgo de "producción corre
+un commit anterior" de la sección anterior ya no aplica desde este deploy.
+
+### TARGETS (objetivos, sin cambios — ver tabla al inicio de este documento)
+
+Performance ≥ 95, Accessibility ≥ 95, Best Practices ≥ 95, SEO 100 (móvil);
+LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1.
+
+### CURRENT PRODUCTION RESULTS (2026-09-17)
+
+**Lighthouse/PSI/CrUX real: sigue sin poder ejecutarse desde este entorno**
+(sin acceso a Chrome DevTools/Lighthouse ni a la API de PageSpeed Insights
+aquí, igual que en Fase 6). No se afirma ningún score — sería inventado.
+Verificado en su lugar, contra producción real (no local):
+
+- Fuentes/marca nuevas confirmadas en vivo (`Cormorant Garamond` 500/600,
+  `Manrope` 400/500/600, `theme-color: #8C5A2F`) — cero rastro de la marca
+  anterior (`#B5651D`, Playfair Display, Inter) en home, `/admin/login` ni
+  `/404`.
+- **0 archivos `.js`** servidos por la página de inicio en producción
+  (verificado por HTML real, no por build local) — confirma que el
+  hallazgo de "0 JS" de Fase 6 se mantiene tras el deploy.
+- Cache-control `immutable` confirmado con `curl -I` real contra un archivo
+  `_astro/*.css` de producción — el fix de `vercel.json` de Fase 6 funciona
+  en producción, no solo en configuración.
+- Sin errores de consola en homepage (menú móvil abierto/cerrado, `Escape`,
+  foco, scroll lock) verificados interactuando con la página real, no con
+  una captura.
+- Sin overflow horizontal real en 375/430/768/1024px (valores negativos de
+  `scrollWidth - innerWidth` en 768/1024 son el ancho del scrollbar del
+  navegador emulado, no overflow de contenido).
+
+**Pendiente como acción externa:** ejecutar Lighthouse/PSI real (móvil +
+desktop, homepage — PDP real cuando exista catálogo cargado) desde una
+herramienta con ese acceso, y registrar los resultados aquí con fecha,
+separando explícitamente lab data (Lighthouse) de field data (CrUX) — este
+documento no debe rellenarse con una corrida simulada.
