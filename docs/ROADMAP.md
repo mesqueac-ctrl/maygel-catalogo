@@ -373,6 +373,22 @@
   escribió (nunca "cualquier talla"), `astro check`/builds siguen pasando.
 - **Estado:** ✅ Completa.
 
+## Fase 8.4B — Content Truth Cleanup
+
+- **Objetivo:** garantizar que producción no contenga ninguna afirmación
+  comercial o de marca presentada como hecho sin confirmar por el negocio.
+- **Alcance:** `About.astro` (referencia a "cuero" en la historia
+  provisional, reemplazada por lenguaje neutral sin nombrar material
+  alguno), `COMMERCIAL_TRUST_MATRIX.md` (registro de la corrección).
+  Auditoría global de todo el contenido público (`src/`, excluyendo
+  fixtures no servidas mientras remoto esté en 0 filas) contra materiales,
+  tiempos, garantías, devoluciones, tallas, cobertura nacional, precios
+  mayoristas y descuentos — sin más hallazgos.
+- **Dependencias:** Fase 8.4A.
+- **Criterios de aprobación:** todo hecho comercial visible en Maygel está
+  confirmado por el negocio o redactado de forma neutral — cumplido.
+- **Estado:** ✅ Completa.
+
 ## Fase 9 — Mayoristas
 
 - **Objetivo:** confirmar con el negocio si hay condiciones reales (mínimos,

@@ -12,7 +12,10 @@
 > ayuda visible en el sitio público. Actualizado en Fase 8.4 con la
 > confirmación de suela de goma y la fabricación de talla flexible según
 > pedido (sin rango fijo publicable) — material superior sigue sin
-> confirmar.
+> confirmar. Auditado de nuevo en Fase 8.4B (limpieza de contenido): se
+> encontró y corrigió una referencia no confirmada a "cuero" en la historia
+> provisional de `About.astro` — auditoría global del resto del contenido
+> público sin más hallazgos.
 
 ## Cómo leer esta tabla
 
@@ -41,7 +44,7 @@
 | Precio efectivo mostrado y usado en WhatsApp/JSON-LD | Siempre `producto.precioOferta ?? producto.precio`, calculado por una única función (`precioEfectivo()`), nunca duplicado a mano por componente | `productos.ts` | Sí | — |
 | WhatsApp — número | `+57 324 351 3189` | `consts.ts` | Sí | — |
 | WhatsApp — mensaje de producto | Incluye nombre, color, talla, **precio efectivo** (con descuento si aplica) y URL | `whatsapp.ts`, `[slug].astro` | Sí | — |
-| Historia de marca ("nació en la mesa de nuestra casa...") | **Provisional, marcada `TODO`** — no es la historia real confirmada | `About.astro` | No (ya marcado como no-final) | Ver preguntas en `BRAND_STORY_INPUT.md`/`OWNER_INTERVIEW.md` |
+| Historia de marca ("nació en la mesa de nuestra casa...") | **Provisional, marcada `TODO`** — no es la historia real confirmada. **Corregido en Fase 8.4B:** el texto mencionaba "cuero" (material superior, no confirmado) — reemplazado por lenguaje neutral ("materiales, herramientas") sin nombrar ningún material específico | `About.astro` | No (ya marcado como no-final) | Ver preguntas en `BRAND_STORY_INPUT.md`/`OWNER_INTERVIEW.md` |
 | Mayoristas — canal de contacto | **Confirmado por el negocio: los interesados deben escribir por WhatsApp** — no existe todavía ningún canal ni proceso distinto | `VentaMayor.astro`, `consts.ts` | Sí | — |
 | Mayoristas — condiciones/mínimos/descuentos/escalas de precio | No existen cifras en el código — todo se resuelve por WhatsApp a propósito, **confirmado explícitamente que aún no se deben publicar** | `VentaMayor.astro`, `consts.ts` | No, hasta confirmación real | Mínimo de pedido, escalas de descuento, tiempos de producción de lotes — ver `BUSINESS_INPUTS.md` § mayoristas |
 | Horario de atención | No existe ninguna afirmación — se retiró un bloque ficticio en una fase anterior (`CONTEXTO-PROYECTO.md` § 11) | — | No existe, correcto | Si el negocio quiere publicar un horario real |
