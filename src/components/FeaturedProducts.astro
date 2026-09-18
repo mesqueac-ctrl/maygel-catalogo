@@ -3,6 +3,8 @@ import { Image } from "astro:assets";
 import {
 	listarDisponibles,
 	formatearPrecio,
+	precioEfectivo,
+	tieneDescuento,
 	descripcionImagen,
 	imagenParaColor,
 	coloresComoLista,
@@ -17,6 +19,7 @@ const producto = (await listarDisponibles()).find((p) => p.destacado);
 
 let urlFicha = "";
 let precioFormateado = "";
+let precioAnteriorFormateado: string | null = null;
 let imagen = "";
 let esRemota = false;
 let alt = "";
@@ -25,14 +28,20 @@ let necesitaSeleccion = false;
 
 if (producto) {
 	urlFicha = `/productos/${producto.slug}`;
-	precioFormateado = formatearPrecio(producto.precio);
+	// Mismo precio efectivo que ProductCard/PDP/WhatsApp/JSON-LD (Fase 8.2) —
+	// nunca `producto.precio` directo, para que un descuento activo se vea
+	// igual aquí que en el resto del sitio.
+	precioFormateado = formatearPrecio(precioEfectivo(producto));
+	precioAnteriorFormateado = tieneDescuento(producto) ? formatearPrecio(producto.precio) : null;
 	const colores = coloresComoLista(producto.colores);
 	const unicoColor = colores.length === 1 ? colores[0] : null;
 	necesitaSeleccion = colores.length > 1;
 	imagen = imagenParaColor(producto, unicoColor);
 	esRemota = imagen.startsWith("http");
 	alt = descripcionImagen(producto.nombre);
-	enlaceWhatsapp = necesitaSeleccion ? urlFicha : enlaceProducto(producto.nombre, unicoColor, urlFicha);
+	enlaceWhatsapp = necesitaSeleccion
+		? urlFicha
+		: enlaceProducto(producto.nombre, unicoColor, urlFicha, null, precioFormateado);
 }
 ---
 
@@ -51,7 +60,12 @@ if (producto) {
 				<div class="destacado__info" data-reveal>
 					<h2 class="destacado__titulo">La favorita del taller</h2>
 					<p class="destacado__nombre">{producto.nombre}</p>
-					<p class="destacado__precio">{precioFormateado}</p>
+					<p class="destacado__precio">
+						{precioAnteriorFormateado && (
+							<span class="destacado__precio-anterior">{precioAnteriorFormateado}</span>
+						)}
+						<span class="destacado__precio-actual">{precioFormateado}</span>
+					</p>
 					<p class="destacado__descripcion">{producto.descripcion}</p>
 					<a
 						class="btn"
@@ -103,9 +117,22 @@ if (producto) {
 	}
 
 	.destacado__precio {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
 		font-size: 1.125rem;
-		color: var(--color-accent);
 		margin-bottom: 1.5rem;
+	}
+
+	.destacado__precio-anterior {
+		text-decoration: line-through;
+		color: var(--color-accent-soft);
+		font-size: 1rem;
+	}
+
+	.destacado__precio-actual {
+		color: var(--color-accent);
+		font-weight: 500;
 	}
 
 	.destacado__descripcion {
