@@ -1,7 +1,8 @@
 # Maygel — Información pendiente del negocio
 
-> Lista única y consolidada (Fase 8, actualizada en Fase 8.2 y Fase 8.3 con
-> información real confirmada) de todo lo que el equipo de desarrollo
+> Lista única y consolidada (Fase 8, actualizada en Fase 8.2, Fase 8.3 y
+> Fase 8.4 con información real confirmada) de todo lo que el equipo de
+> desarrollo
 > **no puede decidir por su cuenta** — respuestas de negocio, no decisiones
 > técnicas. Nada de esto se rellena inventando una respuesta plausible;
 > mientras no haya respuesta, el sitio se queda con su estado honesto actual
@@ -36,6 +37,13 @@
 - **Debe existir una capa de ayuda visible y accesible en el sitio**,
   pensada para personas mayores o con poca familiaridad digital — decisión
   de experiencia confirmada, no una pregunta pendiente.
+- **Tallas (Fase 8.4): la fabricación es flexible según pedido — no existe
+  un rango fijo, y no se debe publicar uno inventado.** Copy aprobado:
+  "Talla según pedido" / "Consulta tu talla por WhatsApp". Reemplaza la
+  pregunta anterior sobre "rango formal" — ya no aplica, la respuesta real
+  es que no hay rango fijo, es flexible por pedido.
+- **Suela: goma, confirmado.** Único material confirmado hasta ahora.
+- **Material superior: sigue sin confirmar** (ver CRITICAL más abajo).
 
 ## CRITICAL — bloquea experiencia o venta
 
@@ -48,14 +56,16 @@
 - **Historia real de "Sobre Maygel".** El texto actual está marcado `TODO`
   y es reconocidamente provisional (`About.astro`, `CONTENT_GUIDE.md`). Las
   12 preguntas exactas viven en `BRAND_STORY_INPUT.md` (no se repiten aquí).
-- **Guía de tallas — rango y medidas.** El negocio confirmó que fabrica
-  varias tallas, pero **todavía no hay un rango formal ni medidas en
-  centímetros** — ver `SIZE_GUIDE_REQUIREMENTS.md` completo. No publicar un
-  rango inventado ("tallas 35-42") mientras esto siga pendiente.
-- **Materiales por modelo.** Confirmado que **no están confirmados
-  técnicamente todavía** — no publicar "cuero", "cuero genuino",
-  "sintético", "caucho" ni "materiales premium" hasta tener el dato real.
-  Plantilla exacta en `REAL_CATALOG_INPUT.md`.
+- **Guía de tallas — medidas en centímetros.** Resuelto en parte (Fase 8.4):
+  ya sabemos que no hay ni habrá un rango fijo (fabricación flexible según
+  pedido) — lo que sigue faltando es si existen medidas en cm que ayuden a
+  alguien a elegir su talla al escribir por WhatsApp. Ver
+  `SIZE_GUIDE_REQUIREMENTS.md` completo.
+- **Material superior por modelo.** Confirmado que **sigue sin confirmar**
+  — no publicar "cuero", "cuerina", "sintético", "piel", "PVC" ni ningún
+  otro material superior hasta tener el dato real por modelo. (La suela sí
+  está confirmada: goma — ver arriba.) Plantilla exacta en
+  `REAL_CATALOG_INPUT.md`.
 - **Nombres definitivos de los modelos.** Sin esto no se puede completar la
   ficha de `REAL_CATALOG_INPUT.md` ni cargar el catálogo real.
 - **Fotos reales del catálogo.** Ver `PHOTOGRAPHY_BRIEF.md` (sesión

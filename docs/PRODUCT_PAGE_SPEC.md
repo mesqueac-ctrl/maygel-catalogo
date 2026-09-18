@@ -47,18 +47,37 @@ estado seleccionado (`aria-pressed`, borde), funcional por teclado, con foco
 visible. Si el producto tiene un único color, no se muestra ningún selector
 — ya está implícitamente elegido.
 
-## Talla
+## Talla (rediseñado en Fase 8.4 — fabricación flexible confirmada)
 
-Selector de tallas reales (`tallasComoLista`), mismo patrón que color: sin
-selector si solo hay una talla. **Sin estados "agotado"** — no existe
-concepto de inventario por talla en el modelo de datos, así que no se
-inventa uno.
+**El negocio confirmó que la fabricación es de talla flexible según pedido —
+no existe ni existirá un rango fijo que publicar.** La arquitectura soporta
+dos modos, decididos por el contenido real de `producto.tallas`
+(`esTallaFlexible()` en `productos.ts`), sin ningún cambio de schema:
+
+- **Modo flexible (por defecto, recomendado para todo el catálogo real):**
+  si `tallas` no es una lista de números puros (ej. `"Según pedido"`), la
+  PDP no muestra botones de una lista fija. Muestra el texto real del campo
+  (o "Talla según pedido" si está vacío) + un campo de texto libre opcional
+  para que la clienta escriba su talla exacta + un enlace a WhatsApp para
+  quien no sepa cuál pedir. **Nunca bloquea el CTA** — la talla es
+  información opcional, igual que el color cuando el producto tiene uno
+  solo.
+- **Modo lista fija (compatibilidad, no el caso esperado hoy):** si `tallas`
+  es una lista de números separados por coma (ej. `"35, 36, 37"`), se
+  mantiene el selector de botones ya existente desde Fase 5 — por si algún
+  modelo puntual llega a tener de verdad un rango cerrado confirmado.
+
+**Sin estados "agotado"** en ningún modo — no existe concepto de inventario
+por talla en el modelo de datos, así que no se inventa uno. **No prometer
+"cualquier talla" como garantía absoluta** — el copy siempre es "según
+pedido"/"consulta por WhatsApp", nunca una promesa sin límite.
 
 ## Guía de tallas
 
 `<details>/<summary>` nativo. Contenido honesto: hoy no existe una guía real
-publicada, así que el disclosure lo dice explícitamente y ofrece WhatsApp
-como vía — nunca se inventó una tabla de centímetros.
+de equivalencias en centímetros publicada, así que el disclosure lo dice
+explícitamente y ofrece WhatsApp como vía — nunca se inventó una tabla de
+centímetros ni un rango de tallas.
 
 ## CTA
 
@@ -70,11 +89,14 @@ nunca un `alert()` de navegador.
 ## Mensaje de WhatsApp
 
 `mensajeProducto()` (`src/lib/whatsapp.ts`) incluye nombre, color y talla
-**solo si fueron seleccionados** (nunca un valor no confirmado), el **precio
-efectivo** formateado (con descuento aplicado si existe, ver § Precio —
-añadido en Fase 7, actualizado en Fase 8.2 para usar el precio efectivo en
-vez del precio normal) y la URL de la ficha como referencia, para que Maygel
-confirme exactamente qué vio y a qué precio la clienta antes de responder.
+**solo si fueron seleccionados/escritos** (nunca un valor no confirmado —
+en modo flexible, la talla es lo que la clienta escribió en el campo de
+texto libre, tal cual, nunca "cualquier talla" ni un valor inventado), el
+**precio efectivo** formateado (con descuento aplicado si existe, ver §
+Precio — añadido en Fase 7, actualizado en Fase 8.2 para usar el precio
+efectivo en vez del precio normal) y la URL de la ficha como referencia,
+para que Maygel confirme exactamente qué vio, qué talla pidió y a qué
+precio antes de responder.
 
 ## Fabricación
 
@@ -83,20 +105,25 @@ Etiqueta fija "Hecho a mano, bajo pedido — se fabrica después de tu pedido."
 
 ## Materiales
 
-Siguen dentro de `descripcion` (texto libre por producto, ya real). No se
-añadió un campo estructurado de materiales — no hay variación suficiente en
-el catálogo actual para justificarlo. **Confirmado en Fase 8.2: los
-materiales reales todavía no están confirmados por el negocio** — ninguna
-ficha real debe describir "cuero", "cuero genuino", "sintético", "caucho"
-ni "materiales premium" hasta tener el dato verdadero por modelo (ver
-`COMMERCIAL_TRUST_MATRIX.md`, `REAL_CATALOG_INPUT.md`).
+Material superior sigue dentro de `descripcion` (texto libre por producto,
+ya real) — no se añadió un campo estructurado, no hay variación suficiente
+en el catálogo actual para justificarlo. **El material superior todavía no
+está confirmado por el negocio** — ninguna ficha real debe describir
+"cuero", "cuerina", "sintético", "piel" ni "PVC" hasta tener el dato
+verdadero por modelo (ver `COMMERCIAL_TRUST_MATRIX.md`,
+`REAL_CATALOG_INPUT.md`).
+
+**Suela — confirmado en Fase 8.4: goma, para todos los modelos.** Se
+muestra como una línea fija junto al tag de fabricación ("Suela de goma."),
+igual para todo el catálogo — no depende de `descripcion` porque es un
+hecho de marca, no una variación por producto.
 
 ## Envíos / cambios
 
-`<details>` con las mismas políticas reales que ya existían en "Así
-trabajamos" de la home (entregas Soledad/Barranquilla, cambio de talla a
-cuenta de la clienta) — un solo texto de verdad, no una segunda versión
-distinta.
+`<details>` con las mismas políticas reales que la home (entregas por
+ciudad, cambios por talla/detalles/defectos con envío del cambio a cargo de
+la clienta) — un solo texto de verdad, no una segunda versión distinta. Ver
+`ayuda.astro` para el detalle completo (Fase 8.3).
 
 ## Productos relacionados
 

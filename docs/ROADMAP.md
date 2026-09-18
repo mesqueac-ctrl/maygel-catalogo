@@ -351,6 +351,28 @@
   exista.
 - **Estado:** ✅ Completa.
 
+## Fase 8.4 — Precio, colores, suela y talla flexible confirmados
+
+- **Objetivo:** registrar la reconfirmación de precio/colores/fabricación,
+  la nueva confirmación de suela (goma) y el hecho central de esta fase —
+  la fabricación es de talla flexible según pedido, sin rango fijo — y
+  adaptar la PDP para no imponer una lista cerrada de tallas donde no
+  existe. Preparar el catálogo real sin cargar productos ficticios.
+- **Alcance:** documentación primero (`COMMERCIAL_TRUST_MATRIX.md`,
+  `BUSINESS_INPUTS.md`, `REAL_CATALOG_INPUT.md`, `PRODUCT_PAGE_SPEC.md`,
+  `CONTENT_GUIDE.md`), después código: `productos.ts` (`esTallaFlexible()`
+  nuevo), `[slug].astro` (modo de talla flexible: campo de texto libre en
+  vez de botones cuando `tallas` no es una lista numérica, línea fija de
+  suela de goma), `ProductoForm.astro` (ayuda del campo tallas actualizada).
+  **Sin cambio de schema** — el campo `tallas` ya era texto libre, la
+  arquitectura solo cambia cómo la PDP interpreta su contenido.
+- **Dependencias:** Fase 8.3A.
+- **Criterios de aprobación:** ningún rango de tallas inventado, ningún
+  material superior inventado, la talla nunca bloquea el CTA en modo
+  flexible, el mensaje de WhatsApp incluye la talla exacta que la clienta
+  escribió (nunca "cualquier talla"), `astro check`/builds siguen pasando.
+- **Estado:** ✅ Completa.
+
 ## Fase 9 — Mayoristas
 
 - **Objetivo:** confirmar con el negocio si hay condiciones reales (mínimos,

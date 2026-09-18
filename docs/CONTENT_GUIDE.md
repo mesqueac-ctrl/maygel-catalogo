@@ -21,10 +21,16 @@ anuncio.
 - Claims no comprobables: cualquier afirmación sobre materiales, procesos,
   tiempos o calidad debe poder respaldarse. Si el negocio no lo ha
   confirmado, no se escribe.
-- **Materiales sin confirmar (Fase 8.2):** nunca escribir "cuero", "cuero
-  genuino", "sintético", "caucho" ni "materiales premium" en ninguna ficha
-  de producto hasta que el negocio confirme el material real de ese modelo
-  — ver `COMMERCIAL_TRUST_MATRIX.md` y `REAL_CATALOG_INPUT.md`.
+- **Material superior sin confirmar (actualizado en Fase 8.4):** nunca
+  escribir "cuero", "cuerina", "sintético", "piel" ni "PVC" en ninguna
+  ficha de producto hasta que el negocio confirme el material real de ese
+  modelo — ver `COMMERCIAL_TRUST_MATRIX.md` y `REAL_CATALOG_INPUT.md`. La
+  suela sí está confirmada ("goma") y puede describirse igual en cualquier
+  modelo.
+- **Tallas (Fase 8.4):** la fabricación es flexible según pedido — nunca
+  escribir un rango fijo ("tallas 35 a 40", "disponible del 34 al 41") ni
+  prometer "cualquier talla" como garantía absoluta. Usar "Talla según
+  pedido" o "Consulta tu talla por WhatsApp" según el contexto.
 - **Descuentos (Fase 8.2):** nunca "¡OFERTA!", badges rojos, countdown ni
   "últimas unidades" para comunicar un precio con descuento. El precio
   anterior tachado + el precio actual, con más peso visual para el precio

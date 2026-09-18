@@ -14,60 +14,52 @@
    `OWNER_CONTENT_CHECKLIST.md` si bloquea el lanzamiento.
 3. Solo cuando una ficha esté completa, cargarla en el admin.
 
+## Ya definido globalmente (Fase 8.4 — no repetir por modelo)
+
+Estos datos ya están confirmados para **todo** el catálogo y no hace falta
+volver a preguntarlos modelo por modelo:
+
+- **Precio:** $60.000 COP por par (a menos que el negocio confirme
+  explícitamente un precio distinto para un modelo puntual).
+- **Fabricación:** bajo pedido, siempre.
+- **Suela:** goma, siempre.
+- **Talla:** flexible según pedido — nunca un rango fijo (ver
+  `PRODUCT_PAGE_SPEC.md` § Talla). El campo `tallas` de cada producto puede
+  dejarse como `"Según pedido"` salvo que ese modelo puntual sí tenga un
+  rango real confirmado.
+- **Disponible:** `sí` por defecto al cargar un modelo nuevo.
+
 ## Ficha por producto (copiar por cada modelo)
+
+Con lo global ya definido, cada modelo real solo necesita esto:
 
 ```
 ### [Nombre provisional del modelo]
 
 - Nombre definitivo: ___
-- Slug: (se autogenera del nombre al crear — no escribir uno manual salvo
-  que el nombre genere un slug confuso; ver ARCHITECTURE.md § slug — el
-  slug NO se puede cambiar después de crear el producto)
-- Precio (COP, número entero): ___
-- Disponible (sí/no): ___
-- Descripción corta (la que ya usa `descripcion` en el modelo de datos —
-  aparece en meta description y JSON-LD, se recomienda 1-2 frases con
-  material real):
-  ___
-- Descripción editorial (si el negocio quiere un texto más largo para la
-  ficha — hoy el modelo de datos solo tiene un campo de descripción; si se
-  necesita un segundo campo editorial, es una decisión de arquitectura
-  futura, no inventarlo aquí):
-  ___
-- Colores (de la lista cerrada: Negro, Blanco, Miel, Beige — marcar los que
-  aplican a este modelo): ___
-- Tallas (lista real que se fabrica para este modelo, ej. "35, 36, 37, 38"): ___
-- Materiales (ver plantilla de materiales más abajo — solo si están
-  confirmados, nunca "cuero genuino" sin verificar)
-- Fabricación: ¿este modelo tiene alguna particularidad de fabricación que
-  otros no tienen (tiempo distinto, técnica distinta)? ___
-- Imagen principal: [archivo, ver nomenclatura en PHOTOGRAPHY_BRIEF.md]
-- Imágenes adicionales por color (el modelo de datos soporta una imagen
-  específica por color, opcional — ver `imagenesColores` en
-  ARCHITECTURE.md): ___
+- Foto principal: [archivo, ver nomenclatura en PHOTOGRAPHY_BRIEF.md]
+- Fotos adicionales por color (opcional — el modelo de datos soporta una
+  imagen específica por color, ver `imagenesColores` en ARCHITECTURE.md): ___
+- Colores aplicables (de la lista cerrada: Negro, Blanco, Miel, Beige, Café,
+  Plateado — marcar los que aplican a este modelo): ___
+- Detalle visual / qué lo hace especial (1-2 frases reales — se usa como
+  `descripcion`, aparece en meta description y JSON-LD): ___
+- Material superior (SOLO si el negocio ya lo confirmó para este modelo
+  específico — nunca "cuero", "cuerina", "sintético", "piel" ni "PVC" sin
+  confirmación real; dejar en blanco si no se sabe todavía): ___
 - Producto destacado (sí/no — controla si aparece en "Selección Maygel" de
-  la home; solo uno debería estar marcado a la vez, el primero según orden
-  de catálogo es el que se muestra): ___
+  la home; solo uno debería estar marcado a la vez): ___
 - Orden en catálogo (posición relativa a los demás modelos): ___
 - Categoría (solo si el negocio ya confirmó una taxonomía real — hoy
   `CATEGORIAS_VALIDAS` es provisional, ver `ARCHITECTURE.md` § 9.3; dejar en
   blanco si no hay categorías confirmadas todavía): ___
 ```
 
-### Plantilla de materiales por modelo (solo si están confirmados)
-
-```
-- Material superior (lo que toca la piel/se ve por fuera): ___
-- Plantilla (lo que pisa el pie por dentro): ___
-- Suela: ___
-- Detalles (hebilla, costura visible, adornos): ___
-- Acabado (curtido, tratamiento, color aplicado): ___
-```
-
-**Regla dura:** ninguna palabra como "cuero genuino", "piel", "material
-ecológico" o "suela antideslizante" se escribe en una ficha real sin que el
+**Regla dura:** ninguna palabra de material superior ("cuero genuino",
+"piel", "material ecológico") se escribe en una ficha real sin que el
 negocio confirme exactamente ese material para ese modelo específico — ver
-`COMMERCIAL_TRUST_MATRIX.md` § materiales.
+`COMMERCIAL_TRUST_MATRIX.md` § material superior. La suela sí puede
+describirse como "de goma" siempre, para cualquier modelo.
 
 ## Reglas de naming de productos (Fase 8 — criterio, sin renombrar nada real)
 

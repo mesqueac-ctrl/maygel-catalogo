@@ -132,6 +132,25 @@ export function tallasComoLista(tallas: string): string[] {
 		.filter(Boolean);
 }
 
+/**
+ * Decide el modo de talla de la PDP (Fase 8.4), sin ningún cambio de schema:
+ * `tallas` sigue siendo el mismo campo de texto libre de siempre.
+ *
+ * - `false` (lista fija): el contenido es una lista de números separados
+ *   por coma (ej. "35, 36, 37") — se mantiene el selector de botones ya
+ *   existente desde Fase 5, por si algún modelo puntual sí tiene un rango
+ *   cerrado real confirmado.
+ * - `true` (flexible, el caso esperado para el catálogo real confirmado en
+ *   Fase 8.4): cualquier otro contenido, típicamente `"Según pedido"` — la
+ *   PDP no muestra botones de una lista inventada, sino un campo de texto
+ *   libre opcional + el aviso de que la fabricación es según pedido.
+ */
+export function esTallaFlexible(tallas: string): boolean {
+	const lista = tallasComoLista(tallas);
+	if (lista.length === 0) return true;
+	return !lista.every((talla) => /^\d+$/.test(talla));
+}
+
 /** Convierte "Negro, Blanco, Miel" en array de ColorValido, filtrando vacíos e inválidos. */
 export function coloresComoLista(colores?: string | null): ColorValido[] {
 	if (!colores || typeof colores !== "string") return [];

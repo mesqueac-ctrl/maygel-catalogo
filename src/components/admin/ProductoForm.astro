@@ -173,16 +173,20 @@ const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColore
 	</fieldset>
 
 	<label class="campo">
-		<span class="campo__etiqueta">Tallas disponibles</span>
+		<span class="campo__etiqueta">Tallas</span>
 		<input
 			class="campo__input"
 			type="text"
 			name="tallas"
 			required
-			placeholder="35, 36, 37, 38"
+			placeholder="Según pedido"
 			value={producto?.tallas ?? ""}
 		/>
-		<span class="campo__ayuda">Separa cada talla con una coma.</span>
+		<span class="campo__ayuda">
+			Escribe "Según pedido" si fabricas esta sandalia en la talla que pida la clienta (lo normal
+			hoy). Solo escribe números separados por coma (ej. "35, 36, 37") si este modelo puntual sí
+			tiene un rango cerrado de tallas.
+		</span>
 	</label>
 
 	<label class="campo">

@@ -13,6 +13,7 @@ import {
 	descripcionImagen,
 	coloresComoLista,
 	tallasComoLista,
+	esTallaFlexible,
 	imagenParaColor,
 	imagenesColoresComoMapa,
 	COLORES_METADATA,
@@ -36,7 +37,11 @@ const disponible = producto.disponible;
 const colores = coloresComoLista(producto.colores);
 const tallas = tallasComoLista(producto.tallas);
 const unicoColor = colores.length === 1 ? colores[0] : null;
-const unicaTalla = tallas.length === 1 ? tallas[0] : null;
+// Talla flexible (Fase 8.4): la fabricación es según pedido, no hay rango
+// fijo que publicar — ver ARCHITECTURE.md § tallas / PRODUCT_PAGE_SPEC.md.
+const tallaFlexible = esTallaFlexible(producto.tallas);
+const unicaTalla = !tallaFlexible && tallas.length === 1 ? tallas[0] : null;
+const tallaFlexibleTexto = tallas[0] || "Según pedido";
 const mapaImagenesColores = imagenesColoresComoMapa(producto.imagenesColores);
 
 // Galería: el modelo de datos actual solo soporta una foto principal +,
@@ -64,7 +69,10 @@ const ogImageAlt = descripcionImagen(producto.nombre);
 const robots = disponible ? "index, follow" : "noindex, follow";
 
 const necesitaColor = disponible && colores.length > 1;
-const necesitaTalla = disponible && tallas.length > 1;
+// En modo flexible la talla nunca bloquea el CTA — es información opcional
+// que la clienta escribe libremente, no una selección obligatoria de una
+// lista inventada (Fase 8.4).
+const necesitaTalla = disponible && !tallaFlexible && tallas.length > 1;
 
 const hayDescuento = tieneDescuento(producto);
 const precioFormateado = formatearPrecio(precioEfectivo(producto));
@@ -245,34 +253,59 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 										</fieldset>
 									)}
 
-									{tallas.length > 0 && (
-										<fieldset class="ficha__grupo" data-grupo-talla>
-											<legend class="ficha__etiqueta">
-												Talla{necesitaTalla && <span class="ficha__requerido"> (elige una)</span>}
-											</legend>
-											<div class="ficha__opciones" role="group" aria-label="Elegir talla">
-												{tallas.map((talla) => (
-													<button
-														type="button"
-														class={`ficha__talla ${unicaTalla === talla ? "ficha__talla--activo" : ""}`}
-														data-talla={talla}
-														aria-pressed={unicaTalla === talla ? "true" : "false"}
-													>
-														{talla}
-													</button>
-												))}
-											</div>
+									{tallaFlexible ? (
+										<div class="ficha__grupo" data-grupo-talla-flexible>
+											<span class="ficha__etiqueta">Talla</span>
+											<p class="ficha__talla-flexible-texto">{tallaFlexibleTexto}</p>
+											<label class="ficha__talla-libre-label">
+												<span class="campo__ayuda">¿Cuál es tu talla? (opcional)</span>
+												<input
+													class="ficha__talla-libre"
+													type="text"
+													inputmode="numeric"
+													placeholder="Ej: 37"
+													data-talla-libre
+													maxlength="10"
+												/>
+											</label>
 											<details class="ficha__guia">
-												<summary>Guía de tallas</summary>
-												<p>
-													Todavía no tenemos una guía de tallas publicada. Escríbenos por WhatsApp
-													y te ayudamos a elegir la talla correcta.
-												</p>
+												<summary>¿No sabes tu talla?</summary>
+												<p>Escríbenos por WhatsApp y te ayudamos a elegir la talla correcta.</p>
 												<a href={whatsappDudaTalla} target="_blank" rel="noopener noreferrer">
 													Preguntar por WhatsApp
 												</a>
 											</details>
-										</fieldset>
+										</div>
+									) : (
+										tallas.length > 0 && (
+											<fieldset class="ficha__grupo" data-grupo-talla>
+												<legend class="ficha__etiqueta">
+													Talla{necesitaTalla && <span class="ficha__requerido"> (elige una)</span>}
+												</legend>
+												<div class="ficha__opciones" role="group" aria-label="Elegir talla">
+													{tallas.map((talla) => (
+														<button
+															type="button"
+															class={`ficha__talla ${unicaTalla === talla ? "ficha__talla--activo" : ""}`}
+															data-talla={talla}
+															aria-pressed={unicaTalla === talla ? "true" : "false"}
+														>
+															{talla}
+														</button>
+													))}
+												</div>
+												<details class="ficha__guia">
+													<summary>Guía de tallas</summary>
+													<p>
+														Todavía no tenemos una guía de tallas publicada. Escríbenos por WhatsApp
+														y te ayudamos a elegir la talla correcta.
+													</p>
+													<a href={whatsappDudaTalla} target="_blank" rel="noopener noreferrer">
+														Preguntar por WhatsApp
+													</a>
+												</details>
+											</fieldset>
+										)
 									)}
 
 									<p class="ficha__mensaje" id="ficha-mensaje" role="alert" aria-live="assertive" hidden />
@@ -290,7 +323,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 										Pedir este par
 									</a>
 
-									<p class="ficha__tag">Hecho a mano, bajo pedido — se fabrica después de tu pedido.</p>
+									<p class="ficha__tag">Hecho a mano, bajo pedido — se fabrica después de tu pedido. Suela de goma.</p>
 
 									<p class="ficha__ayuda">
 										¿Necesitas ayuda con talla, color o pedido?{" "}
@@ -341,6 +374,10 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 	const imagen = document.querySelector<HTMLImageElement>("[data-ficha-imagen]");
 	const gruposColor = document.querySelectorAll<HTMLButtonElement>("[data-grupo-color] [data-color]");
 	const gruposTalla = document.querySelectorAll<HTMLButtonElement>("[data-grupo-talla] [data-talla]");
+	// Talla flexible (Fase 8.4): campo de texto libre, opcional, nunca
+	// bloquea el CTA — se envía tal cual lo escribió la clienta, nunca un
+	// valor inventado como "cualquier talla".
+	const inputTallaLibre = document.querySelector<HTMLInputElement>("[data-talla-libre]");
 
 	if (cta) {
 		const nombre = cta.dataset.nombre ?? "";
@@ -414,6 +451,11 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 				limpiarError();
 				actualizarEnlace();
 			});
+		});
+
+		inputTallaLibre?.addEventListener("input", () => {
+			tallaElegida = inputTallaLibre.value.trim() || null;
+			actualizarEnlace();
 		});
 
 		cta.addEventListener("click", (evento) => {
@@ -617,6 +659,37 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		border-radius: 50%;
 		border: 1px solid;
 		flex-shrink: 0;
+	}
+
+	/* Talla flexible (Fase 8.4): sin botones de una lista inventada. */
+	.ficha__talla-flexible-texto {
+		color: var(--color-text);
+		margin-top: 0.4rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.ficha__talla-libre-label {
+		display: block;
+		margin-bottom: 0.5rem;
+	}
+
+	.ficha__talla-libre {
+		display: block;
+		width: 100%;
+		max-width: 12rem;
+		min-height: 44px;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		padding: 0.6rem 0.85rem;
+		margin-top: 0.4rem;
+		border: 1px solid var(--color-border);
+		background-color: #fff;
+		color: var(--color-text);
+	}
+
+	.ficha__talla-libre:focus {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -1px;
 	}
 
 	.ficha__guia {
