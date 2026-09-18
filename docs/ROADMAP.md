@@ -330,6 +330,27 @@
 - **Estado:** ✅ Completa en código y documentación, **deploy y migración
   pendientes de aprobación explícita** (no ejecutados en esta fase).
 
+## Fase 8.3 — Confianza y ayuda visible
+
+- **Objetivo:** registrar información comercial real nueva (cambios,
+  envíos por ciudad, pagos reconfirmados) y construir una capa de ayuda
+  visible en el sitio público, diseñada para personas mayores o con poca
+  familiaridad digital — sin inventar ninguna política no confirmada.
+- **Alcance:** documentación primero (`COMMERCIAL_TRUST_MATRIX.md`,
+  `BUSINESS_INPUTS.md`, `CONTENT_GUIDE.md`, `UX_RULES.md`,
+  `ARCHITECTURE.md`), después código: dos páginas nuevas (`ayuda.astro`,
+  `terminos.astro`), bloque de ayuda en homepage y PDP, footer ampliado
+  (navegación + información útil + legal), mensaje de WhatsApp de ayuda
+  dedicado, y actualización del copy real de envíos/pagos/cambios en
+  `ComoComprar.astro` y `[slug].astro`.
+- **Dependencias:** Fase 8.2A.
+- **Criterios de aprobación:** ninguna política inventada (plazo de días,
+  garantía extendida, devoluciones, cobertura nacional siguen pendientes y
+  documentados como tales); la ayuda es legible y accesible en mobile
+  375px sin volverse una pared de texto; el footer no enlaza a nada que no
+  exista.
+- **Estado:** ✅ Completa.
+
 ## Fase 9 — Mayoristas
 
 - **Objetivo:** confirmar con el negocio si hay condiciones reales (mínimos,

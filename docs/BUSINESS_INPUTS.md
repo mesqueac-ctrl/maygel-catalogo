@@ -1,6 +1,6 @@
 # Maygel — Información pendiente del negocio
 
-> Lista única y consolidada (Fase 8, actualizada en Fase 8.2 con la primera
+> Lista única y consolidada (Fase 8, actualizada en Fase 8.2 y Fase 8.3 con
 > información real confirmada) de todo lo que el equipo de desarrollo
 > **no puede decidir por su cuenta** — respuestas de negocio, no decisiones
 > técnicas. Nada de esto se rellena inventando una respuesta plausible;
@@ -13,7 +13,7 @@
 > `OWNER_CONTENT_CHECKLIST.md` para la versión accionable y no técnica de
 > esta misma lista.
 
-## Ya confirmado por el negocio (Fase 8.2 — no repetir estas preguntas)
+## Ya confirmado por el negocio (Fase 8.2 y Fase 8.3 — no repetir estas preguntas)
 
 - **Precio retail base: $60.000 COP por par.** Se aplicará a los productos
   reales cuando se carguen — no se tocaron los fixtures de `db/seed.ts`.
@@ -24,6 +24,18 @@
 - **Mayoristas: el canal de contacto es WhatsApp.** No existe otro canal ni
   proceso — confirmado, no queda pregunta pendiente sobre *cómo* contactar,
   solo sobre las condiciones (ver más abajo).
+- **Cambios (Fase 8.3): se aceptan por talla, pequeños detalles y defectos.**
+  El domicilio/envío del cambio se cobra nuevamente (no es gratis ni una
+  sola vez) — regla confirmada explícitamente.
+- **Envíos por ciudad (Fase 8.3):** Soledad tiene contraentrega; Barranquilla
+  tiene domicilio pagado por la clienta (normalmente $10.000–$15.000 COP);
+  Cartagena solo se atiende al por mayor, no retail individual.
+- **Medios de pago reconfirmados (Fase 8.3): Nequi, Bancolombia, Llave,
+  efectivo, contraentrega.** Esta lista reemplaza la anterior (ya no se
+  afirma Daviplata ni "transferencia bancaria" genérica).
+- **Debe existir una capa de ayuda visible y accesible en el sitio**,
+  pensada para personas mayores o con poca familiaridad digital — decisión
+  de experiencia confirmada, no una pregunta pendiente.
 
 ## CRITICAL — bloquea experiencia o venta
 
@@ -60,51 +72,43 @@
   ¿Facebook, TikTok? Si no existen, no se inventan ni se añaden enlaces
   vacíos.
 
-### Cambios y garantía (preguntas concretas)
+### Cambios y garantía (lo que falta, tras confirmar motivos en Fase 8.3)
 
-- ¿Hay un plazo máximo para pedir el cambio de talla? (¿días desde la
-  entrega?)
-- ¿El cambio aplica a cualquier motivo, o solo a talla?
+- ¿Hay un plazo máximo para pedir el cambio? (¿días desde la entrega?) —
+  **sigue sin confirmar**, es la única pregunta abierta de esta sección.
 - ¿Qué pasa si la sandalia ya se usó (afuera, no solo probada en casa)?
-- ¿Existe alguna devolución de dinero (no cambio de talla), en algún caso?
-  Si sí, ¿cuál?
-- ¿Qué pasa si una sandalia llega con un defecto real de fabricación —
-  Maygel la repara, la reemplaza, devuelve el dinero?
+- ¿Existe alguna devolución de dinero (no cambio), en algún caso? Si sí,
+  ¿cuál?
+- ¿Hay alguna garantía formal más allá del cambio inmediato por defecto ya
+  confirmado (reparación, reposición, plazo largo)?
 - ¿Los pedidos personalizados (modelo/color fuera de catálogo, ver
-  `CustomModelCTA.astro`) tienen la misma política de cambio, o son "sin
-  cambio" por ser hechos a medida?
+  `CustomModelCTA.astro`) tienen la misma política de cambio?
 
-Estos son conceptos distintos entre sí (cambio de talla ≠ devolución de
-dinero ≠ garantía por defecto, ver `COMMERCIAL_TRUST_MATRIX.md`) — necesitan
-una respuesta cada uno, nunca una política genérica de "devoluciones" que
-los mezcle.
+Estos son conceptos distintos entre sí (cambio ≠ devolución de dinero ≠
+garantía extendida, ver `COMMERCIAL_TRUST_MATRIX.md`) — necesitan una
+respuesta cada uno, nunca una política genérica de "devoluciones" que los
+mezcle.
 
-### Envíos (preguntas concretas)
+### Envíos (lo que falta, tras confirmar cobertura por ciudad en Fase 8.3)
 
-- Cobertura retail (pedido individual, no mayorista): ¿de verdad es solo
-  Soledad y Barranquilla, o existe algún caso real de envío individual a
-  otra ciudad que hoy no se comunica?
-- Dentro de Soledad/Barranquilla: ¿costo del envío (fijo, variable, gratis)?
-- Resto de Colombia (hoy solo confirmado para mayoristas): ¿tiempos?
-  ¿costos? ¿qué transportadora?
-- ¿La opción de pago contraentrega aplica solo dentro de Soledad/Barranquilla
-  o también en envíos nacionales?
-- En un cambio de talla, ¿quién asume el costo del envío de vuelta y el de
-  la sandalia nueva? (hoy el copy dice "el domicilio corre por cuenta de la
-  clienta" — confirmar si eso cubre ambos trayectos o solo uno)
+- El costo de Barranquilla ($10.000–$15.000 COP) — ¿es siempre ese rango o
+  varía según la zona/pedido?
+- ¿Barranquilla también tiene contraentrega, o solo pago anticipado? (hoy
+  solo Soledad tiene contraentrega confirmada)
+- ¿Existe algún caso real de envío individual fuera de Soledad/Barranquilla/
+  Cartagena que hoy no se comunica?
+- En un cambio, ¿el costo de envío que "se cobra nuevamente" es el mismo
+  monto que el envío original, o puede variar?
 
-### Pagos (checklist de confirmación)
+### Pagos — confirmados en Fase 8.3, sin preguntas abiertas
 
-- [ ] Contraentrega local — ¿confirmado, sigue vigente?
-- [ ] Nequi — ¿confirmado, sigue vigente?
-- [ ] Daviplata — ¿confirmado, sigue vigente?
-- [ ] Transferencia bancaria — ¿confirmado, sigue vigente?
-- [ ] ¿Existe algún medio de pago nuevo no listado hoy (tarjeta, PSE, otro)?
+Nequi, Bancolombia, Llave, efectivo y contraentrega ya están confirmados
+(reemplazan la lista anterior). Única pregunta que sigue abierta:
+
 - [ ] ¿Se requiere algún anticipo/abono antes de empezar a fabricar, o el
       pago completo es solo al recibir?
 
-No se cambia nada en el sitio hasta confirmar cada casilla — hoy el código
-ya solo muestra los 4 métodos de la lista, sin logos, y así se mantiene.
+No se cambia nada más en el sitio hasta confirmar esa casilla.
 
 ### Mayoristas (preguntas concretas — el canal ya está confirmado: WhatsApp)
 
@@ -131,11 +135,11 @@ si el negocio prefiere no publicar cifras.
   `CONTEXTO-PROYECTO.md` § 11).
 - **Dirección física**, solo si el negocio decide explícitamente que quiere
   publicarla — hoy la decisión es no publicarla.
-- **Políticas legales** (privacidad, términos y condiciones, cookies) — no
-  existen hoy. No son necesarias para operar por WhatsApp sin checkout ni
-  recolección de datos vía formulario, pero conviene evaluarlas si el
-  negocio empieza a recolectar datos de otra forma (ver auditoría de
-  confianza, § 20, en el reporte de Fase 7).
+- **Políticas legales más formales.** Desde Fase 8.3 existe una página básica
+  de términos (`terminos.astro`) con solo lo confirmado — no es asesoría
+  jurídica. Si el negocio necesita algo más formal (privacidad, cookies,
+  términos revisados por un abogado), sigue pendiente de decisión y de
+  revisión legal real.
 - **Social proof real** (reseñas, con nombre/inicial autorizada, ciudad si
   la persona lo autoriza, foto con autorización) — no se implementa ninguna
   UI vacía mientras no exista contenido real que mostrar.

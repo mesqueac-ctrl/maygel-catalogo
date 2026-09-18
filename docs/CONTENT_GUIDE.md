@@ -91,6 +91,25 @@ anuncio.
 - ❌ "Comprar ahora", "Enviar" (genéricos, y "Comprar ahora" implica un
   checkout que no existe).
 
+## Ayuda visible — tono y palabras (Fase 8.3)
+
+Nueva capa de ayuda pensada para personas mayores o con poca familiaridad
+digital (ver `UX_RULES.md` § Ayuda). El registro es el mismo de siempre
+(cercano, honesto, sin urgencia) pero con una regla extra: **preferir
+palabras humanas sobre palabras de soporte técnico.**
+
+**Usar:** "¿Necesitas ayuda?", "Te guiamos paso a paso", "Si no sabes cuál
+elegir, escríbenos", "Podemos ayudarte con talla, color y pedido".
+
+**Evitar:** "soporte", "ticket", "asistencia", "requerimiento", o cualquier
+palabra que suene a mesa de ayuda corporativa — Maygel resuelve dudas
+conversando, no atendiendo tickets.
+
+**Regla de cambios (Fase 8.3, confirmada por el negocio):** siempre que se
+mencione el cambio de talla/detalle/defecto, decir explícitamente que el
+domicilio/envío se cobra de nuevo — nunca dejarlo implícito ni usar
+"gratis" cuando no lo es.
+
 ## Términos aprobados (Fase 7)
 
 Para que ninguna sección parezca escrita por una persona distinta. Usar

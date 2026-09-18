@@ -48,6 +48,9 @@ maygel/
 │   │   └── admin/ProductoForm.astro   formulario compartido crear/editar
 │   └── pages/
 │       ├── index.astro                ensambla las secciones de home en orden fijo
+│       ├── ayuda.astro                 página estática de ayuda (Fase 8.3) — cómo pedir, pagos,
+│       │                               envíos por ciudad, cambios, WhatsApp de ayuda
+│       ├── terminos.astro              página estática de términos (Fase 8.3) — solo lo confirmado
 │       ├── 404.astro                   noindex, mismo Header/Footer públicos
 │       ├── sitemap.xml.ts              GET dinámico desde listarDisponibles()
 │       ├── productos/[slug].astro      ficha pública (Product JSON-LD, ProductCard variante="ficha")

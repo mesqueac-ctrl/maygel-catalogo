@@ -1,5 +1,5 @@
 ---
-import { buildWhatsappLink, MENSAJE_DUDA_COMPRA } from "../consts";
+import { buildWhatsappLink, MENSAJE_AYUDA } from "../consts";
 
 const pasos = [
 	{
@@ -26,8 +26,8 @@ const confianza = [
 		texto: "Tu sandalia se fabrica especialmente para ti, no antes de que la pidas.",
 	},
 	{
-		titulo: "Cambio de talla",
-		texto: "Si no queda bien, lo solucionamos. El domicilio del cambio corre por tu cuenta.",
+		titulo: "Cambios",
+		texto: "Por talla, detalles o defectos. El envío del cambio se cobra de nuevo.",
 	},
 	{
 		titulo: "Atención directa",
@@ -35,7 +35,9 @@ const confianza = [
 	},
 ];
 
-const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
+// Ayuda visible (Fase 8.3): mensaje propio, distinto de "duda de compra",
+// para que Maygel identifique que viene del bloque de ayuda de la home.
+const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 ---
 
 <section class="comprar section" id="como-comprar">
@@ -67,12 +69,20 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 			}
 		</div>
 
+		<div class="ayuda-visible" data-reveal>
+			<p class="ayuda-visible__titulo">¿Necesitas ayuda para elegir o pedir tu par?</p>
+			<p class="ayuda-visible__texto">Te guiamos paso a paso, sin apuros.</p>
+			<a class="btn ayuda-visible__boton" href={whatsappAyuda} target="_blank" rel="noopener noreferrer">
+				Escríbenos por WhatsApp
+			</a>
+		</div>
+
 		<p class="comprar__logistica">
-			Entregas en Soledad y Barranquilla; envíos nacionales para pedidos al por mayor. Pago
-			contraentrega local, Nequi, Daviplata o transferencia bancaria.
+			Entregamos en Soledad (con pago contraentrega) y Barranquilla (domicilio a cargo de la
+			clienta, entre $10.000 y $15.000 COP). En Cartagena solo atendemos pedidos al por mayor. Pagos
+			con Nequi, Bancolombia, Llave, efectivo o contraentrega.
 			{" "}
-			¿No sabes qué talla pedir?{" "}
-			<a href={whatsappLink} target="_blank" rel="noopener noreferrer">Escríbenos y te ayudamos</a>.
+			<a href="/ayuda">Ver la guía completa de ayuda</a>.
 		</p>
 	</div>
 </section>
@@ -133,6 +143,34 @@ const whatsappLink = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 		margin: 0;
 		color: var(--color-muted);
 		max-width: 36ch;
+	}
+
+	/* Ayuda visible (Fase 8.3): más grande y con más contraste que el resto
+	   de la sección a propósito — pensada para alguien que necesita ver la
+	   salida a WhatsApp de un vistazo, sin leer todo el bloque de confianza. */
+	.ayuda-visible {
+		margin-top: clamp(3rem, 6vw, 4rem);
+		padding: clamp(1.75rem, 4vw, 2.5rem);
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-line);
+		max-width: 46ch;
+	}
+
+	.ayuda-visible__titulo {
+		font-family: var(--font-display);
+		font-size: clamp(1.375rem, 3vw, 1.75rem);
+		font-weight: 600;
+		color: var(--color-text);
+		margin-bottom: 0.5rem;
+	}
+
+	.ayuda-visible__texto {
+		color: var(--color-text);
+		margin-bottom: 1.25rem;
+	}
+
+	.ayuda-visible__boton {
+		display: inline-flex;
 	}
 
 	.comprar__logistica {

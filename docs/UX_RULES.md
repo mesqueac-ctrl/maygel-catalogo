@@ -62,6 +62,32 @@
   incertidumbre de comprar un producto que no existe físicamente todavía —
   no se abrevia ni se oculta en pantallas pequeñas.
 
+## 6.1 Ayuda visible, para personas mayores o poco familiarizadas con ecommerce (Fase 8.3)
+
+Decisión de experiencia confirmada por el negocio: debe existir una opción
+de ayuda **muy visible y muy fácil de entender**, con salida directa a
+WhatsApp, en homepage, PDP y footer como mínimo (ver `ARCHITECTURE.md` §
+rutas para la página `/ayuda`).
+
+- **Texto grande y claro**, nunca al tamaño mínimo del sistema — la ayuda
+  usa el mismo peso tipográfico que un titular de sección, no una nota al
+  pie.
+- **Mucho contraste**, sin texto secundario apagado para la parte que
+  importa (el enlace/botón de WhatsApp nunca en `--color-muted`).
+- **Jerarquía obvia**: un titular corto ("¿Necesitas ayuda?"), una frase de
+  apoyo, un botón — nunca un párrafo largo antes de la acción.
+- **Lenguaje cotidiano**, nunca "soporte"/"ticket"/"asistencia" (ver
+  `CONTENT_GUIDE.md` § Ayuda visible).
+- **Botones/enlaces fáciles de tocar**: mismo mínimo de `44px` que el resto
+  del sitio (`DESIGN_SYSTEM.md` § 15), sin excepción por ser un bloque
+  "secundario".
+- **Nunca**: párrafos largos, FAQ abarrotada con muchas preguntas, iconos
+  ambiguos sin texto, enlaces escondidos dentro de otro párrafo, o más de
+  una acción compitiendo en el mismo bloque de ayuda.
+- La página `/ayuda` en sí sigue esta misma regla: secciones cortas,
+  numeradas donde ayude (como "cómo pedir"), sin acordeones anidados ni
+  tecnicismos — pensada para alguien que nunca ha comprado por WhatsApp.
+
 ## 7. Guía de tallas
 
 - **No implementada todavía.** Hoy el campo `tallas` es una lista simple

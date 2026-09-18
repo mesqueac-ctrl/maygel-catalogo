@@ -18,7 +18,7 @@ import {
 	COLORES_METADATA,
 } from "../../lib/productos";
 import { enlaceProducto } from "../../lib/whatsapp";
-import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, MENSAJE_DUDA_COMPRA } from "../../consts";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, MENSAJE_DUDA_COMPRA, MENSAJE_AYUDA } from "../../consts";
 
 const { slug } = Astro.params;
 const producto = slug ? await obtenerPorSlug(slug) : undefined;
@@ -132,6 +132,7 @@ const relacionados = disponible
 
 const whatsappGeneral = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
+const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 ---
 
 <Layout
@@ -291,12 +292,19 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 
 									<p class="ficha__tag">Hecho a mano, bajo pedido — se fabrica después de tu pedido.</p>
 
+									<p class="ficha__ayuda">
+										¿Necesitas ayuda con talla, color o pedido?{" "}
+										<a href={whatsappAyuda} target="_blank" rel="noopener noreferrer">Te guiamos por WhatsApp</a>.
+									</p>
+
 									<details class="ficha__disclosure">
-										<summary>Envíos y cambios de talla</summary>
+										<summary>Envíos y cambios</summary>
 										<p>
-											Entregas en Soledad y Barranquilla; envíos nacionales para pedidos al por
-											mayor. Si la talla no queda bien, hacemos el cambio — el domicilio corre por
-											cuenta de la clienta.
+											Entregamos en Soledad (con pago contraentrega) y Barranquilla (domicilio a
+											cargo de la clienta, entre $10.000 y $15.000 COP). En Cartagena solo
+											atendemos pedidos al por mayor. Aceptamos cambios por talla, detalles o
+											defectos — el envío del cambio se cobra de nuevo.{" "}
+											<a href="/ayuda">Ver la guía completa</a>.
 										</p>
 									</details>
 								</>
@@ -651,6 +659,19 @@ const whatsappDudaTalla = buildWhatsappLink(MENSAJE_DUDA_COMPRA);
 		font-size: 0.8125rem;
 		color: var(--color-muted);
 		margin-bottom: 1.5rem;
+	}
+
+	/* Ayuda secundaria (Fase 8.3): cerca del CTA, con buen contraste — no es
+	   texto apagado de nota al pie, es una salida real a WhatsApp. */
+	.ficha__ayuda {
+		font-size: 0.9375rem;
+		color: var(--color-text);
+		margin-bottom: 1.5rem;
+	}
+
+	.ficha__ayuda a {
+		color: var(--color-accent);
+		text-decoration: underline;
 	}
 
 	.ficha__disclosure {

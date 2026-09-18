@@ -9,6 +9,10 @@ export const GET: APIRoute = async ({ site }) => {
 
 	const urls = [
 		{ loc: `${base}/`, priority: "1.0" },
+		// Páginas estáticas de ayuda/términos (Fase 8.3) — index,follow reales,
+		// se listan a mano porque no vienen de la base de datos.
+		{ loc: `${base}/ayuda`, priority: "0.6" },
+		{ loc: `${base}/terminos`, priority: "0.3" },
 		...productos.map((producto) => ({
 			loc: `${base}/productos/${producto.slug}`,
 			priority: "0.8",

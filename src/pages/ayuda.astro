@@ -1,0 +1,179 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import ContactFooter from "../components/ContactFooter.astro";
+import { buildWhatsappLink, MENSAJE_AYUDA, MENSAJE_MAYORISTA } from "../consts";
+
+// Página pensada para personas mayores o con poca familiaridad digital
+// (Fase 8.3, decisión de experiencia confirmada) — texto grande, secciones
+// cortas, una sola acción por bloque, sin acordeones ni tecnicismos. Todo lo
+// que dice esta página ya está confirmado en COMMERCIAL_TRUST_MATRIX.md;
+// nada aquí es una política inventada.
+const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
+const whatsappMayorista = buildWhatsappLink(MENSAJE_MAYORISTA);
+
+const pasos = [
+	"Elige tu modelo y color en la colección.",
+	"Revisa las tallas y elige la tuya.",
+	"Escríbenos por WhatsApp — te confirmamos todo ahí.",
+	"Te ayudamos a confirmar tu pedido.",
+	"Fabricamos tu par especialmente para ti.",
+	"Coordinamos la entrega y el pago.",
+];
+---
+
+<Layout title="Ayuda — Maygel" description="Cómo pedir, pagar, recibir y cambiar tu sandalia Maygel. Ayuda clara, en pasos sencillos.">
+	<Header />
+	<main id="contenido">
+		<section class="ayuda section">
+			<div class="container ayuda__intro">
+				<h1 class="ayuda__titulo">¿Necesitas ayuda?</h1>
+				<p class="ayuda__lead">
+					Aquí te explicamos todo, con calma y sin tecnicismos. Si en algún momento no entiendes
+					algo, escríbenos por WhatsApp — con gusto te ayudamos hablando.
+				</p>
+				<a class="btn ayuda__cta" href={whatsappAyuda} target="_blank" rel="noopener noreferrer">
+					Escríbenos por WhatsApp
+				</a>
+			</div>
+
+			<div class="container ayuda__bloques">
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Cómo pedir tu par</h2>
+					<ol class="ayuda__pasos">
+						{pasos.map((paso) => <li>{paso}</li>)}
+					</ol>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Cómo pagar</h2>
+					<p>Aceptamos estas formas de pago:</p>
+					<ul class="ayuda__lista">
+						<li>Nequi</li>
+						<li>Bancolombia</li>
+						<li>Llave</li>
+						<li>Efectivo</li>
+						<li>Contraentrega (según la ciudad, ver abajo)</li>
+					</ul>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Cómo llega tu pedido</h2>
+					<ul class="ayuda__lista">
+						<li><strong>Soledad:</strong> entregamos con pago contraentrega.</li>
+						<li>
+							<strong>Barranquilla:</strong> entregamos a domicilio. El envío lo paga la clienta,
+							normalmente entre $10.000 y $15.000 COP.
+						</li>
+						<li><strong>Cartagena:</strong> por ahora solo atendemos pedidos al por mayor.</li>
+					</ul>
+					<p class="ayuda__nota">
+						¿Vives en otra ciudad? Escríbenos por WhatsApp y te decimos si podemos ayudarte.
+					</p>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Cambios</h2>
+					<p>Aceptamos cambios en estos casos:</p>
+					<ul class="ayuda__lista">
+						<li>La talla no te quedó bien.</li>
+						<li>Algún detalle pequeño no te gustó.</li>
+						<li>La sandalia llegó con un defecto de fabricación.</li>
+					</ul>
+					<p class="ayuda__nota">
+						<strong>Importante:</strong> si haces un cambio, el envío se cobra de nuevo — no es
+						gratis. Escríbenos por WhatsApp para coordinar cualquier cambio.
+					</p>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Compras al por mayor</h2>
+					<p>
+						Si quieres llevar nuestras sandalias a tu negocio, escríbenos por WhatsApp — ahí te
+						contamos modelos, cantidades y precios según lo que necesites.
+					</p>
+					<a class="btn" href={whatsappMayorista} target="_blank" rel="noopener noreferrer">
+						Consultar por mayoristas
+					</a>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">¿Todavía tienes dudas?</h2>
+					<p>Escríbenos por WhatsApp. Te respondemos una persona real, sin respuestas automáticas.</p>
+					<a class="btn ayuda__cta" href={whatsappAyuda} target="_blank" rel="noopener noreferrer">
+						Escríbenos por WhatsApp
+					</a>
+				</article>
+			</div>
+		</section>
+	</main>
+	<ContactFooter />
+</Layout>
+
+<style>
+	.ayuda__intro {
+		max-width: 62ch;
+		margin-bottom: clamp(3rem, 6vw, 4rem);
+	}
+
+	.ayuda__titulo {
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 5vw, 2.75rem);
+		font-weight: 600;
+		margin-bottom: 1.25rem;
+	}
+
+	.ayuda__lead {
+		font-size: 1.1875rem;
+		color: var(--color-text);
+		margin-bottom: 1.75rem;
+		max-width: 56ch;
+	}
+
+	.ayuda__cta {
+		display: inline-flex;
+	}
+
+	.ayuda__bloques {
+		display: grid;
+		gap: clamp(2.5rem, 5vw, 3.5rem);
+		max-width: 62ch;
+	}
+
+	.ayuda__bloque {
+		border-top: 1px solid var(--color-line);
+		padding-top: clamp(2rem, 4vw, 2.5rem);
+	}
+
+	.ayuda__bloque-titulo {
+		font-family: var(--font-display);
+		font-size: clamp(1.375rem, 3vw, 1.75rem);
+		font-weight: 600;
+		margin-bottom: 1rem;
+	}
+
+	.ayuda__bloque p {
+		font-size: 1.0625rem;
+		color: var(--color-text);
+		margin-bottom: 1rem;
+	}
+
+	.ayuda__pasos,
+	.ayuda__lista {
+		font-size: 1.0625rem;
+		color: var(--color-text);
+		display: grid;
+		gap: 0.75rem;
+		padding-left: 1.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.ayuda__nota {
+		font-size: 1.0625rem;
+		color: var(--color-text);
+	}
+
+	.ayuda__bloque .btn {
+		margin-top: 0.5rem;
+	}
+</style>

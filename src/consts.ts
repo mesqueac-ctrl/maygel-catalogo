@@ -8,6 +8,11 @@ export const INSTAGRAM_URL = `https://instagram.com/${INSTAGRAM_HANDLE}`;
 export const MENSAJE_CONTACTO_GENERAL = "Hola, quisiera más información sobre las sandalias Maygel";
 export const MENSAJE_DUDA_COMPRA = "Hola, tengo una duda sobre las sandalias Maygel";
 
+// Ayuda visible (Fase 8.3): mensaje propio y distinto del de "duda de
+// compra" — permite identificar que la persona llegó desde el bloque de
+// ayuda (homepage/PDP/footer/página /ayuda), no desde un CTA de producto.
+export const MENSAJE_AYUDA = "Hola Maygel, necesito ayuda para elegir o pedir una sandalia.";
+
 // Mensaje mayorista: abre con la intención real (Fase 8.2, confirmado por el
 // negocio: los interesados en mayoreo deben escribir por WhatsApp) y queda
 // con campos para completar (nombre, ciudad, etc.) porque eso ayuda a Maygel

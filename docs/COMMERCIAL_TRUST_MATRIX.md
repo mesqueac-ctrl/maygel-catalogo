@@ -6,7 +6,10 @@
 > memoria de fases anteriores) — cada fila cita el archivo donde vive la
 > afirmación hoy. Actualizado en Fase 8.2 con la primera información
 > comercial real confirmada por el negocio (precio retail, colores, canal
-> mayorista) y con la nueva arquitectura de descuentos.
+> mayorista) y con la nueva arquitectura de descuentos. Actualizado en
+> Fase 8.3 con información real de envíos por ciudad, medios de pago
+> reconfirmados y la política real de cambios — y con la nueva capa de
+> ayuda visible en el sitio público.
 
 ## Cómo leer esta tabla
 
@@ -18,13 +21,13 @@
 | Tema | Información confirmada | Fuente actual | Se publica | Falta confirmar |
 |---|---|---|---|---|
 | Fabricación bajo pedido | Cada sandalia se fabrica después de confirmarse el pedido, no hay inventario previo | `[slug].astro` (copy + `availability` omitido a propósito), `ComoComprar.astro`, `whatsapp.ts` | Sí | — |
-| Ciudades de entrega directa | Soledad y Barranquilla | `ComoComprar.astro`, `[slug].astro`, `Layout.astro` (`areaServed`) | Sí | — |
-| Envíos fuera de esas ciudades | Solo para pedidos al por mayor ("envíos nacionales para pedidos al por mayor") — **no** para pedidos individuales fuera de Soledad/Barranquilla | `ComoComprar.astro`, `[slug].astro` | Sí (tal como está escrito hoy) | Confirmar si de verdad no hay ningún envío individual fuera de esas 2 ciudades, o si existe pero no se comunica |
-| Medios de pago | Contraentrega local, Nequi, Daviplata, transferencia bancaria | `ComoComprar.astro` | Sí | — |
-| Logos de pago | No se muestran logos de Visa/Mastercard/PSE/Nequi/Daviplata — solo texto | Todo el código público | Sí (correcto: sin logos no confirmados) | — |
-| Cambio de talla | Se hace el cambio si la talla no queda bien; el domicilio del cambio corre por cuenta de la clienta | `ComoComprar.astro`, `[slug].astro` | Sí | Plazo máximo para pedir el cambio (¿días? ¿sin límite?); si aplica solo a la primera unidad o también a reemplazos posteriores |
-| Devolución (dinero de vuelta, no cambio de talla) | No existe ninguna afirmación en el código — nunca se prometió | — | No existe hoy, no se inventa | ¿Existe alguna política de devolución de dinero, o Maygel solo ofrece cambio de talla? |
-| Garantía por defecto de fabricación | No existe ninguna afirmación en el código | — | No existe hoy, no se inventa | ¿Qué pasa si una sandalia llega con un defecto de fabricación real? |
+| Ciudades de entrega — detalle real por ciudad (Fase 8.3) | **Soledad:** contraentrega disponible. **Barranquilla:** domicilio pagado por la clienta, normalmente entre $10.000 y $15.000 COP (no se confirmó contraentrega ahí — no se afirma). **Cartagena:** solo se atienden pedidos al por mayor, no retail individual | `ComoComprar.astro`, `[slug].astro`, `ayuda.astro` (nuevo), `Layout.astro` (`areaServed`) | Sí | Costo exacto (¿siempre en ese rango o varía?); si Barranquilla también tiene contraentrega o solo pago anticipado |
+| Envíos fuera de Soledad/Barranquilla/Cartagena | Sin confirmar cobertura nacional para pedidos individuales — solo mayoristas tienen envíos nacionales confirmados | `ComoComprar.astro`, `[slug].astro`, `ayuda.astro` | No se afirma envío nacional individual | Si existe algún caso real de envío individual fuera de esas 3 ciudades |
+| Medios de pago (reconfirmados en Fase 8.3 — reemplaza la lista anterior) | **Nequi, Bancolombia, Llave, efectivo, contraentrega** (Daviplata y "transferencia bancaria" genérica ya no se afirman — reemplazados por esta lista más precisa) | `ComoComprar.astro`, `ayuda.astro` | Sí | — |
+| Logos de pago | No se muestran logos de bancos/apps — solo texto | Todo el código público | Sí (correcto: sin logos decorativos) | — |
+| Cambios — motivos confirmados (Fase 8.3) | **Se aceptan cambios por: talla, pequeños detalles, defectos.** El domicilio/envío del cambio se cobra nuevamente (regla confirmada, reemplaza la redacción anterior "el domicilio corre por cuenta de la clienta" — ahora explícito: se cobra de nuevo, no es gratis ni una sola vez) | `ComoComprar.astro`, `[slug].astro`, `ayuda.astro`, `terminos.astro` (nuevos) | Sí | Plazo máximo en días para pedir el cambio — sigue sin confirmar |
+| Devolución (dinero de vuelta, no cambio de talla) | No existe ninguna afirmación en el código — nunca se prometió | — | No existe hoy, no se inventa | ¿Existe alguna política de devolución de dinero, o Maygel solo ofrece cambio? |
+| Garantía formal por defecto (más allá del cambio ya confirmado) | El cambio por defecto ya está confirmado (ver fila de arriba) — lo que no está confirmado es una garantía más amplia (plazo largo, reparación, reposición total) | — | Solo el cambio por defecto, no una garantía extendida | Alcance de garantía más allá del cambio inmediato |
 | Materiales | **No confirmados técnicamente (actualizado — información real del negocio, no fixture).** No publicar "cuero", "cuero genuino", "sintético", "caucho" ni "materiales premium" hasta que el negocio los confirme por modelo | `db/seed.ts` (fixtures, con materiales de ejemplo — nunca catálogo real), `ProductoForm.astro` (campo descripción, arquitectura ya soportada) | No, hasta confirmación real por modelo | Ver `REAL_CATALOG_INPUT.md` § plantilla de materiales y `OWNER_INTERVIEW.md`/`OWNER_INTERVIEW_QUICK.md` bloque de materiales |
 | Colores disponibles | **Confirmado por el negocio:** Negro, Blanco, Miel, Beige, Café, Plateado — lista cerrada validada en código | `productos.ts` (`COLORES_VALIDOS`/`COLORES_METADATA`) | Sí | Si el negocio amplía la paleta de nuevo, requiere otro cambio de código (lista controlada a propósito) |
 | Tallas disponibles | Lista libre por producto (texto, sin validación de rango) — **el negocio confirmó que fabrica varias tallas, pero sin rango formal ni medidas en cm todavía** | `db/config.ts`, `ProductoForm.astro` | Sí (el campo libre), pero **no publicar un rango genérico inventado** ("tallas 35-42") mientras no exista uno confirmado | Ver `SIZE_GUIDE_REQUIREMENTS.md` — rango exacto y medidas |
@@ -42,4 +45,5 @@
 | Instagram | `@maygelcr`, enlace real en footer | `consts.ts`, `ContactFooter.astro` | Sí | — |
 | Producto no disponible (copy) | "Este modelo ya no está disponible. Escríbenos por WhatsApp..." | `[slug].astro` | Sí | — |
 | Catálogo vacío (copy) | Corregido en esta fase — antes implicaba una "próxima colección" sin plan confirmado; ahora dice solo que no hay modelos publicados | `ProductGrid.astro` | Sí (tras el fix de esta fase) | — |
-| Políticas legales (privacidad, términos) | No existen | — | No existen, correcto por ahora (ver § 20 de la auditoría) | Si el negocio necesita publicarlas antes de escalar (ver `BUSINESS_INPUTS.md`) |
+| Ayuda visible en el sitio (Fase 8.3) | **Decisión de experiencia confirmada:** debe existir una opción de ayuda muy visible, pensada para personas mayores o con poca familiaridad digital, con salida fácil a WhatsApp | `ayuda.astro`, bloques en homepage/PDP/footer (nuevos) | Sí | — |
+| Términos y condiciones | Página nueva con solo lo confirmado (fabricación bajo pedido, contacto, pagos, envíos por ciudad, cambios) — **no es asesoría jurídica ni una política legal completa** | `terminos.astro` (nuevo) | Sí, en su alcance básico | Elementos legales más formales (si hacen falta) quedan pendientes de revisión legal futura |
