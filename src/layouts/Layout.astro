@@ -12,7 +12,7 @@ interface Props {
 }
 
 const descripcionNegocio =
-	"Maygel es un taller familiar de sandalias artesanales hechas bajo pedido en Colombia.";
+	"Maygel es un taller familiar de sandalias artesanales hechas bajo pedido en Soledad, Colombia, con entregas en Soledad y Barranquilla.";
 
 const {
 	title = "Maygel — Sandalias artesanales hechas a mano",
@@ -25,26 +25,34 @@ const {
 
 const paginaUrl = new URL(Astro.url.pathname, Astro.url.origin).href;
 const imagenUrl = ogImage ?? new URL("/og-image.jpg", Astro.url.origin).href;
-const logoUrl = new URL("/apple-touch-icon.png", Astro.url.origin).href;
+const logoUrl = new URL("/icon-512.png", Astro.url.origin).href;
 const imagenAlt = ogImageAlt ?? "Maygel — sandalias artesanales hechas a mano, con alma de familia";
 
 // Datos estructurados del negocio: son los mismos en todas las páginas
 // (no dependen del title/description de cada página) porque describen a
 // Maygel como negocio, no el contenido de la página actual.
+//
+// Organization, no LocalBusiness (Fase 13.1 §9): LocalBusiness implica un
+// establecimiento físico visitable — schema.org lo define como "a
+// particular physical business" y Google espera `address`/`openingHours`
+// para elegibilidad. Maygel no tiene local público: opera bajo pedido,
+// coordinando todo por WhatsApp. Organization describe esto con precisión
+// sin implicar ni requerir una dirección, y admite los mismos campos que ya
+// usábamos (name, description, url, image, logo, telephone, areaServed,
+// sameAs). No se inventa `address` ni `openingHours`.
 const urlNegocio = new URL("/", Astro.url.origin).href;
 const imagenNegocio = new URL("/og-image.jpg", Astro.url.origin).href;
 
 const datosEstructurados = {
 	"@context": "https://schema.org",
-	"@type": "LocalBusiness",
+	"@type": "Organization",
 	name: "Maygel",
 	description: descripcionNegocio,
 	url: urlNegocio,
 	image: imagenNegocio,
 	logo: logoUrl,
 	telephone: `+${WHATSAPP_NUMBER}`,
-	priceRange: "$$",
-	areaServed: ["Soledad", "Barranquilla", "Cartagena"],
+	areaServed: ["Soledad", "Barranquilla"],
 	sameAs: [INSTAGRAM_URL],
 };
 ---

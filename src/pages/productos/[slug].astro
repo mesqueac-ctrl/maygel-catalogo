@@ -19,7 +19,7 @@ import {
 	COLORES_METADATA,
 } from "../../lib/productos";
 import { enlaceProducto } from "../../lib/whatsapp";
-import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, MENSAJE_DUDA_COMPRA, MENSAJE_AYUDA } from "../../consts";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, MENSAJE_DUDA_COMPRA, MENSAJE_AYUDA, SEO_PRODUCTO } from "../../consts";
 
 const { slug } = Astro.params;
 const producto = slug ? await obtenerPorSlug(slug) : undefined;
@@ -52,15 +52,21 @@ const mapaImagenesColores = imagenesColoresComoMapa(producto.imagenesColores);
 // Production Needs, no inventada aquí.
 const imagenInicial = imagenParaColor(producto, unicoColor);
 const esRemota = imagenInicial.startsWith("http");
-const altImagen = descripcionImagen(producto.nombre);
+// Fase 13.1: metadata SEO específica por producto (aprobada), con fallback
+// al texto genérico anterior para cualquier slug que todavía no esté en
+// SEO_PRODUCTO (defensivo — nunca debe quedar una página sin alt/meta).
+const seoProducto = SEO_PRODUCTO[producto.slug];
+const altImagen = seoProducto?.alt ?? descripcionImagen(producto.nombre);
 
 const paginaUrl = new URL(`/productos/${producto.slug}`, Astro.url.origin).href;
 const coleccionUrl = new URL("/#catalogo", Astro.url.origin).href;
 const inicioUrl = new URL("/", Astro.url.origin).href;
 const imagenUrl = new URL(imagenInicial, Astro.url.origin).href;
-const title = `${producto.nombre} — Sandalias Maygel`;
-const description = `${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(precioEfectivo(producto))}.`;
-const ogImageAlt = descripcionImagen(producto.nombre);
+const title = `${producto.nombre} — Sandalia plana artesanal | Maygel`;
+const description =
+	seoProducto?.metaDescription ??
+	`${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(precioEfectivo(producto))}.`;
+const ogImageAlt = altImagen;
 // "No disponible" hoy no significa "página sin valor": sigue teniendo
 // enlaces internos reales (migas, relacionados, footer) que conviene que se
 // sigan rastreando — solo se retira de los resultados de búsqueda como
@@ -195,7 +201,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 					</div>
 
 					<div class="ficha__info">
-						<h1 class="ficha__nombre">{producto.nombre}</h1>
+						<h1 class="ficha__nombre">Sandalia {producto.nombre}</h1>
 						<p class="ficha__precio">
 							{precioAnteriorFormateado && (
 								<span class="ficha__precio-anterior">{precioAnteriorFormateado}</span>

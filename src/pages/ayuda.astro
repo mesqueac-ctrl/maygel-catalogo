@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import ContactFooter from "../components/ContactFooter.astro";
 import { buildWhatsappLink, MENSAJE_AYUDA, MENSAJE_MAYORISTA } from "../consts";
+import { COLORES_VALIDOS } from "../lib/productos";
 
 // Página pensada para personas mayores o con poca familiaridad digital
 // (Fase 8.3, decisión de experiencia confirmada) — texto grande, secciones
@@ -43,6 +44,18 @@ const pasos = [
 					<ol class="ayuda__pasos">
 						{pasos.map((paso) => <li>{paso}</li>)}
 					</ol>
+				</article>
+
+				<article class="ayuda__bloque">
+					<h2 class="ayuda__bloque-titulo">Precio y colores</h2>
+					<p>Todas nuestras sandalias cuestan $45.000 COP.</p>
+					<p>Colores disponibles:</p>
+					<ul class="ayuda__lista">
+						{COLORES_VALIDOS.map((color) => <li>{color}</li>)}
+					</ul>
+					<p class="ayuda__nota">
+						La disponibilidad de color puede variar según el modelo — te confirmamos por WhatsApp.
+					</p>
 				</article>
 
 				<article class="ayuda__bloque">
