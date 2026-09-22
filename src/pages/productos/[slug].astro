@@ -528,6 +528,11 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 	.ficha__galeria {
 		width: 100%;
 		aspect-ratio: 4 / 5;
+		/* Fase 11.1: en mobile, sin tope, la imagen ocupa casi toda la primera
+		   pantalla y empuja precio/CTA fuera del viewport inicial. Se limita
+		   por ancho (nunca por vh) para que el nombre/precio empiecen a
+		   asomar de inmediato, sin depender de la altura del dispositivo. */
+		max-height: clamp(320px, 90vw, 420px);
 		overflow: hidden;
 		background-color: #ede4d6;
 	}
@@ -722,10 +727,30 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		margin-bottom: 1rem;
 	}
 
+	/* Fase 11.1: CTA principal con tratamiento exclusivo — borde completo,
+	   más tamaño/peso y superficie propia, para que se distinga con claridad
+	   del link de ayuda secundario que lo acompaña. Sigue sin ser un botón-
+	   caja sólido: el "relleno" solo aparece en hover. */
 	.ficha__cta {
 		width: 100%;
 		justify-content: center;
-		margin-bottom: 1.25rem;
+		margin-bottom: 2rem;
+		margin-top: 0.5rem;
+		border: 1.5px solid var(--color-accent);
+		padding: 1.1rem 1.5rem;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		background-color: var(--color-surface);
+		transition:
+			background-color 0.22s ease,
+			color 0.22s ease,
+			border-color 0.22s ease;
+	}
+
+	.ficha__cta:hover {
+		background-color: var(--color-accent);
+		color: var(--color-bg);
+		border-color: var(--color-accent);
 	}
 
 	.ficha__tag {
@@ -734,17 +759,21 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		margin-bottom: 1.5rem;
 	}
 
-	/* Ayuda secundaria (Fase 8.3): cerca del CTA, con buen contraste — no es
-	   texto apagado de nota al pie, es una salida real a WhatsApp. */
+	/* Ayuda secundaria: deliberadamente más discreta que el CTA principal —
+	   sigue siendo legible y accesible, pero no debe competir por atención. */
 	.ficha__ayuda {
-		font-size: 0.9375rem;
-		color: var(--color-text);
+		font-size: 0.8125rem;
+		color: var(--color-muted);
 		margin-bottom: 1.5rem;
 	}
 
 	.ficha__ayuda a {
-		color: var(--color-accent);
+		color: var(--color-muted);
 		text-decoration: underline;
+	}
+
+	.ficha__ayuda a:hover {
+		color: var(--color-accent);
 	}
 
 	.ficha__disclosure {
@@ -785,6 +814,10 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		.ficha__layout {
 			grid-template-columns: 1fr 1fr;
 			align-items: start;
+		}
+
+		.ficha__galeria {
+			max-height: none;
 		}
 	}
 
