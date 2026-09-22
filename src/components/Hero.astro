@@ -1,65 +1,87 @@
 ---
+import { Image } from "astro:assets";
+import { obtenerPorSlug, imagenParaColor, descripcionImagen } from "../lib/productos";
+
+// Fase 9.1B: imagen temporal de dirección visual (ver
+// docs/COLLECTION_01_VISUAL_DRAFT.md — Luna, "HERO APROBADO PARA DIRECCIÓN
+// VISUAL — FOTO OFICIAL PENDIENTE"). Se lee del producto real "luna" para no
+// duplicar la URL del asset: cuando llegue la fotografía oficial y se
+// reemplace la imagen de Luna en el admin, este hero se actualiza solo.
+const luna = await obtenerPorSlug("luna");
+const heroImagen = luna ? imagenParaColor(luna, null) : null;
+const heroImagenEsRemota = heroImagen?.startsWith("http") ?? false;
+const heroAlt = luna ? descripcionImagen(luna.nombre) : "Sandalias Maygel";
 ---
 
 <section class="hero" id="inicio">
-	<!--
-		Espacio reservado para fotografía editorial real (ver
-		docs/HOMEPAGE_SPEC.md § Photography Production Needs — HERO). Mientras
-		no exista: un bloque textil (no un mockup ni un degradado con letra).
-		Al llegar la foto, reemplaza .hero__visual por el componente Image (o
-		una etiqueta img) dentro de .hero__media — el layout no cambia.
-	-->
-	<div class="hero__media">
-		<div class="hero__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
-	</div>
+	<div class="container hero__inner">
+		<div class="hero__media">
+			{heroImagen ? (
+				heroImagenEsRemota ? (
+					<Image
+						src={heroImagen}
+						alt={heroAlt}
+						width={1200}
+						height={1500}
+						widths={[600, 1200, 1800]}
+						sizes="(min-width: 900px) 55vw, 100vw"
+						format="webp"
+						loading="eager"
+						fetchpriority="high"
+					/>
+				) : (
+					<img src={heroImagen} alt={heroAlt} width="1200" height="1500" loading="eager" fetchpriority="high" decoding="async" />
+				)
+			) : (
+				<div class="hero__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
+			)}
+		</div>
 
-	<div class="container hero__text">
-		<h1>Hecho despacio.</h1>
-		<p class="hero__subtitle">
-			Sandalias artesanales, hechas por encargo en nuestro taller familiar.
-		</p>
-		<a class="btn" href="#catalogo">Descubrir la colección</a>
+		<div class="hero__text">
+			<h1>Hecho despacio.</h1>
+			<p class="hero__subtitle">
+				Sandalias artesanales para acompañar cada paso, con calma.
+			</p>
+			<a class="btn" href="#catalogo">Descubrir la colección</a>
+		</div>
 	</div>
 </section>
 
 <style>
 	.hero {
 		padding-top: clamp(1rem, 3vw, 1.75rem);
-		padding-bottom: clamp(3rem, 7vw, 5rem);
+		padding-bottom: clamp(2.5rem, 6vw, 4rem);
+	}
+
+	.hero__inner {
+		display: flex;
+		flex-direction: column;
 	}
 
 	.hero__media {
 		width: 100%;
-		margin-bottom: clamp(2rem, 5vw, 3rem);
+		aspect-ratio: 4 / 5;
+		max-height: 460px;
+		overflow: hidden;
+		background-color: var(--color-surface);
+		margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
 	}
 
+	.hero__media :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center 30%;
+	}
+
+	/* Fallback compacto si el producto de referencia (Luna) no existe o su
+	   imagen no carga — nunca vuelve a ser el bloque marrón de pantalla
+	   completa: mismo tamaño/posición que la imagen real, fondo neutro. */
 	.hero__visual {
 		position: relative;
 		width: 100%;
-		height: clamp(360px, 62vh, 640px);
-		overflow: hidden;
-		background: linear-gradient(165deg, #3a2414 0%, #5a3a20 48%, #7a5230 100%);
-	}
-
-	/* Textura tipo lino/papel de archivo: ruido sutil vía SVG turbulence,
-	   nunca un icono ni una letra — evita la sensación de mockup mientras no
-	   hay fotografía real. */
-	.hero__visual::before {
-		content: "";
-		position: absolute;
-		inset: 0;
-		opacity: 0.35;
-		mix-blend-mode: overlay;
-		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-	}
-
-	.hero__visual::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background:
-			radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.1), transparent 45%),
-			radial-gradient(circle at 85% 88%, rgba(0, 0, 0, 0.3), transparent 55%);
+		height: 100%;
+		background-color: var(--color-surface);
 	}
 
 	.hero__text {
@@ -79,9 +101,27 @@
 		margin-bottom: 1.75rem;
 	}
 
-	@media (min-width: 768px) {
-		.hero__visual {
-			height: clamp(480px, 72vh, 760px);
+	/* Desktop: composición asimétrica 55/45, imagen y texto lado a lado —
+	   altura gobernada por el ancho de viewport (vw), nunca por vh, para que
+	   no dependa de la altura de pantalla del visitante. */
+	@media (min-width: 900px) {
+		.hero__inner {
+			flex-direction: row;
+			align-items: center;
+			gap: clamp(2.5rem, 5vw, 4rem);
+		}
+
+		.hero__media {
+			flex: 1 1 55%;
+			aspect-ratio: auto;
+			height: clamp(420px, 34vw, 620px);
+			max-height: 620px;
+			margin-bottom: 0;
+		}
+
+		.hero__text {
+			flex: 1 1 45%;
+			max-width: 40ch;
 		}
 	}
 </style>

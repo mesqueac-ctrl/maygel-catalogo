@@ -59,6 +59,13 @@ const cantidad = productos.length;
 		border-top: 1px solid var(--color-line);
 	}
 
+	/* El catálogo es la única sección que necesita más ancho que el resto del
+	   sitio (--max-width: 1180px se mantiene intacto en todas las demás) —
+	   para que las fotografías se sientan protagonistas en pantallas anchas. */
+	.catalogo > .container {
+		max-width: 1440px;
+	}
+
 	.catalogo__header {
 		margin-bottom: clamp(3rem, 7vw, 5rem);
 		max-width: 50ch;
@@ -83,7 +90,7 @@ const cantidad = productos.length;
 	.catalogo__vacio-titulo {
 		font-family: var(--font-display);
 		font-size: clamp(1.5rem, 3vw, 2rem);
-		font-weight: 600;
+		font-weight: 400;
 		color: var(--color-text);
 	}
 

@@ -1,15 +1,40 @@
 ---
+import { Image } from "astro:assets";
+import { obtenerPorSlug, imagenParaColor } from "../lib/productos";
+
+// Fase 9.3: imagen temporal de apoyo visual — reutiliza la foto ya subida
+// del producto real "deriva" (misma fuente que Hero usa "luna"), evitando
+// repetir la imagen del Hero. NO es fotografía del taller/familia real: solo
+// apoyo de marca mientras no exista la sesión editorial (ver
+// docs/HOMEPAGE_SPEC.md § Photography Production Needs). Por eso no lleva
+// caption tipo "nuestro taller" — el copy de la sección no lo afirma.
+const referencia = await obtenerPorSlug("deriva");
+const imagenReferencia = referencia ? imagenParaColor(referencia, null) : null;
+const imagenEsRemota = imagenReferencia?.startsWith("http") ?? false;
+const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 ---
 
 <section class="about section section--surface" id="sobre-nosotros">
 	<div class="container about__inner">
-		<!--
-			Espacio reservado para fotografía real del taller/familia. Al llegar
-			la foto, reemplaza .about__visual por el componente Image (o una etiqueta img) dentro de
-			.about__media — el layout no cambia.
-		-->
 		<div class="about__media" data-reveal>
-			<div class="about__visual" role="img" aria-label="Taller Maygel — fotografía próximamente"></div>
+			{imagenReferencia ? (
+				imagenEsRemota ? (
+					<Image
+						src={imagenReferencia}
+						alt={altReferencia}
+						width={900}
+						height={1125}
+						widths={[450, 900, 1350]}
+						sizes="(min-width: 900px) 45vw, 100vw"
+						format="webp"
+						loading="lazy"
+					/>
+				) : (
+					<img src={imagenReferencia} alt={altReferencia} width="900" height="1125" loading="lazy" decoding="async" />
+				)
+			) : (
+				<div class="about__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
+			)}
 		</div>
 
 		<div class="about__text" data-reveal>
@@ -33,12 +58,25 @@
 
 	.about__media {
 		width: 100%;
+		aspect-ratio: 4 / 3;
+		max-height: clamp(260px, 34vw, 460px);
+		overflow: hidden;
+		background-color: var(--color-surface);
 	}
 
+	.about__media :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center 35%;
+	}
+
+	/* Fallback si el producto de referencia no existe o su imagen no carga —
+	   nunca vuelve a ser un gradiente de pantalla completa. */
 	.about__visual {
 		width: 100%;
-		aspect-ratio: 4 / 3;
-		background: linear-gradient(135deg, #efe3d3 0%, #d8c1a0 100%);
+		height: 100%;
+		background-color: var(--color-surface);
 	}
 
 	.about__text {
@@ -62,7 +100,7 @@
 			align-items: center;
 		}
 
-		.about__visual {
+		.about__media {
 			aspect-ratio: 4 / 5;
 		}
 	}

@@ -27,7 +27,7 @@
 	/* Alias de compatibilidad: el admin sigue usando --color-accent-soft. */
 	--color-accent-soft: var(--color-muted);
 
-	--font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+	--font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
 	--font-body: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
 	/* Alias de compatibilidad con el admin (no rediseñado en esta fase). */
 	--font-heading: var(--font-body);
@@ -103,7 +103,10 @@ body {
 h1,
 h2 {
 	font-family: var(--font-display);
-	font-weight: 600;
+	/* Instrument Serif solo existe en peso 400 (regular/italic) — usar 600
+	   aquí forzaría negrita sintética del navegador, que distorsiona un
+	   serif fino como este. */
+	font-weight: 400;
 	line-height: 0.98;
 	letter-spacing: -0.01em;
 	margin: 0;

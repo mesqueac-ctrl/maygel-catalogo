@@ -1,13 +1,44 @@
 ---
+import { Image } from "astro:assets";
 import { buildWhatsappLink, MENSAJE_MODELO_PERSONALIZADO } from "../consts";
+import { obtenerPorSlug, imagenParaColor } from "../lib/productos";
 
 const whatsappLink = buildWhatsappLink(MENSAJE_MODELO_PERSONALIZADO);
+
+// Fase 9.3: imagen temporal de apoyo visual, reutilizando la foto ya subida
+// del producto real "nudo" — distinta de la usada en Hero (luna) y en
+// About (deriva). Se descartaron "bruma", "nácar", "estela" y "onda" para
+// este uso: sus fotos muestran branding de proveedor visible en la plantilla
+// (monograma dorado, texto "MS", texto "CT SHOES") — ver hallazgo de
+// Fase 9.3 en el reporte. "nudo"/"trazo" y "cristal" se verificaron limpias.
+const referencia = await obtenerPorSlug("nudo");
+const imagenReferencia = referencia ? imagenParaColor(referencia, null) : null;
+const imagenEsRemota = imagenReferencia?.startsWith("http") ?? false;
+const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 ---
 
-<section class="modelo section section--dark">
+<section class="modelo section--dark modelo--compacto">
 	<div class="container modelo__inner">
-		<!-- Espacio reservado para fotografía real (boceto/referencia de clienta). -->
-		<div class="modelo__visual" role="img" aria-label="Consulta de modelo personalizado — fotografía próximamente" data-reveal></div>
+		<div class="modelo__media" data-reveal>
+			{imagenReferencia ? (
+				imagenEsRemota ? (
+					<Image
+						src={imagenReferencia}
+						alt={altReferencia}
+						width={900}
+						height={563}
+						widths={[450, 900, 1350]}
+						sizes="(min-width: 900px) 45vw, 100vw"
+						format="webp"
+						loading="lazy"
+					/>
+				) : (
+					<img src={imagenReferencia} alt={altReferencia} width="900" height="563" loading="lazy" decoding="async" />
+				)
+			) : (
+				<div class="modelo__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
+			)}
+		</div>
 
 		<div class="modelo__texto" data-reveal>
 			<h2 class="section-title modelo__titulo">¿Tienes un diseño en mente?</h2>
@@ -23,15 +54,43 @@ const whatsappLink = buildWhatsappLink(MENSAJE_MODELO_PERSONALIZADO);
 </section>
 
 <style>
+	/* Cierre editorial antes del footer, no otra pantalla completa: padding
+	   propio, más corto que el resto de secciones (.section). */
+	.modelo--compacto {
+		padding-block: clamp(3rem, 6.5vw, 4.5rem);
+	}
+
 	.modelo__inner {
 		display: grid;
 		gap: clamp(2rem, 5vw, 3rem);
 	}
 
-	.modelo__visual {
+	.modelo__media {
 		width: 100%;
 		aspect-ratio: 16 / 10;
-		background: linear-gradient(155deg, #7a5230 0%, #3a2414 100%);
+		max-height: clamp(260px, 34vw, 460px);
+		overflow: hidden;
+		/* Superficie clara a propósito, aunque la sección sea oscura: si la
+		   imagen de referencia no resuelve, este bloque debe leerse como una
+		   superficie vacía distinta del fondo, nunca fundirse con la sección
+		   oscura en una sola masa sin contenido. */
+		background-color: var(--color-surface);
+	}
+
+	.modelo__media :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center 40%;
+	}
+
+	/* Fallback si el producto de referencia no existe o su imagen no carga —
+	   nunca vuelve a ser un gradiente de pantalla completa, y nunca del mismo
+	   color que la sección oscura que lo rodea. */
+	.modelo__visual {
+		width: 100%;
+		height: 100%;
+		background-color: var(--color-surface);
 	}
 
 	.modelo__texto {

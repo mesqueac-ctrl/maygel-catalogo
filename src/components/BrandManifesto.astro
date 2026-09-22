@@ -1,7 +1,7 @@
 ---
 ---
 
-<section class="manifiesto section section--dark">
+<section class="manifiesto section--dark manifiesto--compacto">
 	<div class="container manifiesto__inner" data-reveal>
 		<h2 class="manifiesto__titulo">No producimos en masa.</h2>
 		<p class="manifiesto__texto">
@@ -11,19 +11,25 @@
 </section>
 
 <style>
+	/* Transición breve Hero → Catálogo, no una segunda pantalla hero: padding
+	   propio, más corto que el resto de secciones (.section). */
+	.manifiesto--compacto {
+		padding-block: clamp(2.5rem, 6vw, 3.5rem);
+	}
+
 	.manifiesto__inner {
 		max-width: 48ch;
 	}
 
 	.manifiesto__titulo {
-		font-size: clamp(2rem, 5vw, 3.25rem);
-		margin-bottom: 1.25rem;
+		font-size: clamp(1.625rem, 3.6vw, 2.25rem);
+		margin-bottom: 0.75rem;
 	}
 
 	.manifiesto__texto {
 		font-family: var(--font-display);
-		font-weight: 500;
-		font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+		font-weight: 400;
+		font-size: clamp(1.0625rem, 1.8vw, 1.25rem);
 		line-height: 1.4;
 		color: var(--color-champagne);
 	}
