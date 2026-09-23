@@ -59,7 +59,6 @@ const seoProducto = SEO_PRODUCTO[producto.slug];
 const altImagen = seoProducto?.alt ?? descripcionImagen(producto.nombre);
 
 const paginaUrl = new URL(`/productos/${producto.slug}`, Astro.url.origin).href;
-const coleccionUrl = new URL("/#catalogo", Astro.url.origin).href;
 const inicioUrl = new URL("/", Astro.url.origin).href;
 const imagenUrl = new URL(imagenInicial, Astro.url.origin).href;
 const title = `${producto.nombre} — Sandalia plana artesanal | Maygel`;
@@ -110,7 +109,12 @@ const datosEstructurados = disponible
 			"@context": "https://schema.org",
 			"@type": "Product",
 			name: producto.nombre,
-			description: producto.descripcion,
+			// La capa SEO usa la descripción larga aprobada (SEO_PRODUCTO), no el
+			// slogan editorial corto de `producto.descripcion` (ese sigue siendo
+			// el texto visible en la ficha, sin tocar) — Fase 13.3 §3: el slogan
+			// es demasiado genérico para describir el producto en datos
+			// estructurados.
+			description: seoProducto?.metaDescription ?? producto.descripcion,
 			image: imagenUrl,
 			url: paginaUrl,
 			brand: { "@type": "Brand", name: "Maygel" },
@@ -127,13 +131,20 @@ const datosEstructurados = disponible
 		}
 	: null;
 
+// BreadcrumbList (Fase 13.3 §5): "Colección" no es una página real, es un
+// ancla dentro de home (/#catalogo). Google espera una URL de página para
+// cada nivel del breadcrumb estructurado, y un fragmento no lo es — no se
+// crea una página /coleccion solo para justificar el dato estructurado
+// (instrucción explícita del negocio). Se refleja la jerarquía real del
+// sitio: Inicio → Producto. El breadcrumb visible en pantalla (nav.migas)
+// no cambia — sigue mostrando "Colección" como paso de UX, independiente
+// del dato estructurado.
 const breadcrumbLd = {
 	"@context": "https://schema.org",
 	"@type": "BreadcrumbList",
 	itemListElement: [
 		{ "@type": "ListItem", position: 1, name: "Inicio", item: inicioUrl },
-		{ "@type": "ListItem", position: 2, name: "Colección", item: coleccionUrl },
-		{ "@type": "ListItem", position: 3, name: producto.nombre, item: paginaUrl },
+		{ "@type": "ListItem", position: 2, name: producto.nombre, item: paginaUrl },
 	],
 };
 
@@ -814,6 +825,29 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: clamp(2rem, 5vw, 3rem);
+	}
+
+	/* Fase 13.3 §11: en mobile el CTA queda lejos de precio/selección por la
+	   suma de márgenes verticales (descripción, cada grupo, guía de tallas).
+	   Se acortan solo en mobile — el layout de dos columnas en desktop ya
+	   tiene aire de sobra y no necesita este ajuste. Sin sticky bar, sin
+	   botón verde, sin tocar el tratamiento visual del CTA. */
+	@media (max-width: 699px) {
+		.ficha__precio {
+			margin-bottom: 1rem;
+		}
+
+		.ficha__descripcion {
+			margin-bottom: 1.25rem;
+		}
+
+		.ficha__grupo {
+			margin-bottom: 1.25rem;
+		}
+
+		.ficha__cta {
+			margin-top: 0.25rem;
+		}
 	}
 
 	@media (min-width: 700px) {

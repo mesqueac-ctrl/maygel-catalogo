@@ -1,11 +1,15 @@
 ---
 import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
 
+// Rutas absolutas con ancla (Fase 13.3 §1): fuera de home (PDP, /ayuda,
+// /terminos) un href="#catalogo" apunta a un ancla inexistente en esa
+// página. "/#catalogo" funciona en cualquier página: navega a home y salta
+// al ancla; en home mismo, el navegador resuelve el salto sin recargar.
 const navLinks = [
-	{ href: "#catalogo", label: "Colección" },
-	{ href: "#sobre-nosotros", label: "Nuestra historia" },
-	{ href: "#como-comprar", label: "Cómo comprar" },
-	{ href: "#por-mayor", label: "Mayoristas" },
+	{ href: "/#catalogo", label: "Colección" },
+	{ href: "/#sobre-nosotros", label: "Nuestra historia" },
+	{ href: "/#como-comprar", label: "Cómo comprar" },
+	{ href: "/#por-mayor", label: "Mayoristas" },
 ];
 
 const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
@@ -13,7 +17,7 @@ const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 
 <header class="header" id="header">
 	<div class="container header__inner">
-		<a href="#inicio" class="header__brand">Maygel</a>
+		<a href="/#inicio" class="header__brand">Maygel</a>
 
 		<nav class="header__nav" aria-label="Navegación principal">
 			{navLinks.map((link) => (
