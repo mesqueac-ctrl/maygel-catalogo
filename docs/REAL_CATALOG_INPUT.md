@@ -5,6 +5,14 @@
 > el insumo que la administradora necesita tener a mano para llenar
 > `ProductoForm.astro` sin inventar ni dejar campos a medias. Ver
 > `GUIA-PANEL.md` para el paso a paso de cómo cargarlo una vez completo.
+>
+> **Fase 8.7:** los 10 nombres de la primera colección real ya están
+> `APROBADO POR NEGOCIO` — ver `COLLECTION_01_NAMING.md` § 11 para el
+> mapeo oficial y § 12 para el checklist de carga específico de esos 10
+> modelos (más completo que la plantilla genérica de abajo, porque ya
+> incluye nombre y slug resueltos). Esta plantilla genérica sigue siendo la
+> referencia para cualquier modelo futuro más allá de esta primera
+> colección.
 
 ## Cómo usar este documento
 
@@ -19,8 +27,10 @@
 Estos datos ya están confirmados para **todo** el catálogo y no hace falta
 volver a preguntarlos modelo por modelo:
 
-- **Precio:** $60.000 COP por par (a menos que el negocio confirme
-  explícitamente un precio distinto para un modelo puntual).
+- **Precio:** $60.000 COP por par para un modelo con tacón/no plano;
+  **$45.000 COP para sandalia plana** (confirmado Fase 10.2 — toda la
+  Colección 01 es plana, ver más abajo). Un descuento real y puntual se
+  gestiona con `precioOferta`, nunca subiendo el precio normal.
 - **Fabricación:** bajo pedido, siempre.
 - **Suela:** goma, siempre.
 - **Talla:** flexible según pedido — nunca un rango fijo (ver
@@ -88,3 +98,19 @@ de moda artesanal, no como una ficha técnica de inventario.
 **Ejemplo conceptual (no son productos reales):**
 - Bien: "Sandalia Doble Correa", "Sandalia Trenzada Camel".
 - Mal: "Sandalia negra de cuero premium modelo 3", "SKU-2024-B".
+
+## Estado real de la Colección 01 (post-deploy, Fase 10.2)
+
+Los 10 modelos ya están cargados en producción, con precio final resuelto:
+
+- **$45.000, los 10 modelos** — el negocio confirmó explícitamente (Fase
+  10.2) que toda la Colección 01 es sandalia plana: Luna, Deriva, Onda,
+  Bruma, Nudo, Estela, Llana, Nácar, Trazo, Cristal.
+- Ningún producto tiene `precioOferta` activo — el sistema de descuento
+  existe y está verificado (catálogo, PDP, WhatsApp, JSON-LD), pero es
+  opcional y se activa producto por producto desde el admin cuando el
+  negocio decida una oferta real.
+
+Ver `COLLECTION_01_DRAFT.md` § 11 y `BUSINESS_INPUTS.md` para el detalle
+completo, incluida la decisión de negocio de mantener sin cambio las 4
+fotos con branding de proveedor visible (Nácar, Onda, Bruma, Estela).

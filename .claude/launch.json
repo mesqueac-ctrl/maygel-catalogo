@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 4321
+    },
+    {
+      "name": "maygel-dev-remote",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["astro", "dev", "--remote"],
+      "port": 4321
     }
   ]
 }

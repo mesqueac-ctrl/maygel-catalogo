@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{width:1200px;background:#eee8de;padding:48px;font-family:sans-serif;}
+.row{display:flex;gap:24px;margin-bottom:32px;align-items:center;}
+.card{background:#f7f2ea;border:1px solid #ddd;padding:32px;display:flex;align-items:center;justify-content:center;}
+.card.dark{background:#1c130e;}
+.cap{font-size:12px;color:#555;margin-top:8px;text-align:center;}
+.col{display:flex;flex-direction:column;}
+.fav-row{display:flex;gap:24px;align-items:flex-end;}
+.fav-box{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.fav-box img{background:#fff;border:1px solid #ccc;}
+</style></head>
+<body>
+
+<div class="row">
+  <div class="col"><div class="card" style="width:600px;height:180px;"><img src="logo-horizontal-light.svg" width="480"/></div><div class="cap">logo-horizontal-light.svg (sobre fondo claro)</div></div>
+</div>
+<div class="row">
+  <div class="col"><div class="card dark" style="width:600px;height:180px;"><img src="logo-horizontal-dark.svg" width="480"/></div><div class="cap">logo-horizontal-dark.svg (sobre fondo oscuro)</div></div>
+</div>
+<div class="row">
+  <div class="col"><div class="card" style="width:220px;height:220px;"><img src="monogram.svg" width="140"/></div><div class="cap">monogram.svg</div></div>
+</div>
+
+<div class="row">
+  <div class="fav-row">
+    <div class="fav-box"><img src="icon-16.png" width="16" height="16"/><span>16px</span></div>
+    <div class="fav-box"><img src="icon-32.png" width="32" height="32"/><span>32px</span></div>
+    <div class="fav-box"><img src="icon-48.png" width="48" height="48"/><span>48px</span></div>
+    <div class="fav-box"><img src="icon-180.png" width="90" height="90"/><span>180px (apple-touch, mostrado a 90)</span></div>
+    <div class="fav-box"><img src="icon-512.png" width="90" height="90"/><span>512px (mostrado a 90)</span></div>
+  </div>
+</div>
+
+</body></html>

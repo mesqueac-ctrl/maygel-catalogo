@@ -389,6 +389,59 @@
   confirmado por el negocio o redactado de forma neutral — cumplido.
 - **Estado:** ✅ Completa.
 
+## Fase 8.5 — Primera colección real (borrador a partir de catálogo visual)
+
+- **Objetivo:** usar un catálogo visual/comercial (flyer) recibido como
+  referencia para preparar el borrador de la primera colección real de 10
+  modelos — sin tratar el flyer como fuente de verdad, sin crear productos
+  ni desplegar.
+- **Alcance:** `docs/COLLECTION_01_DRAFT.md` (nuevo) — auditoría de los 10
+  modelos candidatos, tabla de naming (mantener/revisar + alternativas),
+  clasificación de las 10 fotografías (ninguna calificó como directamente
+  publicable), colores pendientes de confirmar por modelo, candidatos a
+  destacado, evaluación de categorías/filtros, datos faltantes por modelo.
+  `docs/BUSINESS_INPUTS.md` actualizado con la discrepancia de WhatsApp/
+  Instagram encontrada entre el flyer y `consts.ts` (no se tocó el
+  código). **Cero cambios de código, cero productos creados, cero
+  deploy.**
+- **Hallazgo central:** la mayoría de las fotos del flyer muestran un
+  grabado en la plantilla del producto que coincide textualmente con el
+  nombre del modelo (SEVEN, MS 99, BEYA, el monograma "N" de NUDO) —
+  evidencia de que las fotos (y posiblemente los nombres) vienen de un
+  catálogo de proveedor mayorista, no son originales de Maygel. Una foto
+  (MS 99) muestra además libros con los nombres "GUCCI" y "Dior" de fondo
+  — riesgo real de marca, no solo estético.
+- **Dependencias:** Fase 8.4B.
+- **Criterios de aprobación:** ningún dato del flyer se trató como verdad
+  automática; los 10 modelos quedan explícitamente `PENDIENTE DE
+  CONFIRMACIÓN`; ningún nombre o logo de terceros se trató como marca de
+  Maygel; no se creó ningún producto ni se desplegó nada.
+- **Estado:** ✅ Completa (borrador de documentación). Confirmación real
+  del negocio (nombres, colores por modelo, fotografía propia) sigue
+  pendiente antes de cargar el catálogo — ver `COLLECTION_01_DRAFT.md`.
+
+## Fase 8.7 — Aprobación final de naming + preparación de datos de producto
+
+- **Objetivo:** registrar la aprobación oficial del negocio sobre los 10
+  nombres propuestos en Fase 8.6 (Luna, Deriva, Onda, Bruma, Nudo, Estela,
+  Llana, Nácar, Trazo, Cristal) y preparar exactamente qué falta por
+  modelo para la futura carga — sin crear productos, sin tocar DB, sin
+  desplegar.
+- **Alcance:** `docs/COLLECTION_01_DRAFT.md` (nombres marcados `NOMBRE
+  APROBADO`, resto de campos siguen `PENDIENTE`), `docs/
+  COLLECTION_01_NAMING.md` (§ 11 mapeo oficial modelo→nombre→slug, § 12
+  checklist de carga futura), `docs/REAL_CATALOG_INPUT.md` (referencia
+  cruzada al mapeo oficial). **Cero cambios de código, cero productos,
+  cero deploy.**
+- **Dependencias:** Fase 8.6.
+- **Criterios de aprobación:** los 10 nombres quedan marcados como
+  definitivos sin alterar ningún dato todavía no confirmado (colores por
+  modelo, foto oficial, material superior, disponibilidad siguen
+  pendientes); los 10 slugs conceptuales son válidos para `slugify()` sin
+  haberse creado en DB.
+- **Estado:** ✅ Completa (documentación). Foto oficial y datos por modelo
+  siguen pendientes de negocio antes de poder cargar el catálogo real.
+
 ## Fase 9 — Mayoristas
 
 - **Objetivo:** confirmar con el negocio si hay condiciones reales (mínimos,
@@ -438,3 +491,19 @@
 - Si una fase requiere información del negocio que no existe todavía
   (contenido real, confirmación de categorías, condiciones mayoristas), se
   marca `⏸ Bloqueada por negocio`, no se avanza inventando el dato.
+
+## Estado de la Colección 01 (post-deploy, 2026-09-22)
+
+Los 10 productos de la Colección 01 están publicados en producción, con el
+sistema visual, la tipografía y el precio final ya aprobados y desplegados.
+
+- **Precio: RESUELTO (Fase 10.2).** Todos los modelos de la Colección 01
+  son sandalias planas (confirmado explícitamente por el negocio) →
+  **$45.000 COP los 10**, sin excepción. El sistema de descuentos
+  (`precioOferta`) queda verificado y disponible como mecanismo opcional,
+  producto por producto — ningún modelo tiene oferta activa hoy.
+- **Fotografía:** `⏸ Bloqueada por negocio`. Nácar, Onda, Bruma y Estela
+  muestran branding de proveedor visible en la plantilla/suela. Decisión de
+  negocio (Fase 10): se dejan así hasta la sesión de fotografía oficial —
+  no hay sustituto limpio disponible en el lote actual sin generar un
+  problema nuevo. Ver `COLLECTION_01_DRAFT.md` § 11 para el detalle.

@@ -1,0 +1,117 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{width:1400px;background:#eee8de;font-family:'Manrope',sans-serif;padding:60px;}
+h1{font-family:'Instrument Serif',serif;font-weight:400;font-size:32px;color:#241a15;margin-bottom:40px;}
+.row{display:flex;gap:32px;margin-bottom:56px;}
+.card{flex:1;background:#f7f2ea;border:1px solid rgba(36,26,15,0.14);padding:48px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;min-height:280px;}
+.card.dark{background:#1c130e;}
+.label{position:absolute;}
+.caption{font-size:13px;color:#6e5f52;text-align:center;margin-top:-4px;letter-spacing:.02em;}
+.wordmark{font-family:'Instrument Serif',serif;font-weight:400;color:#241a15;font-size:64px;letter-spacing:0.01em;}
+.wordmark.on-dark{color:#f4ece1;}
+.sub{font-family:'Manrope',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.16em;color:#8c5a2f;text-transform:uppercase;}
+.sub.on-dark{color:#c8aa86;}
+svg{display:block;}
+.grid3{display:flex;gap:32px;}
+.fav-card{flex:1;background:#f7f2ea;border:1px solid rgba(36,26,15,0.14);padding:32px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.fav-sizes{display:flex;align-items:center;gap:24px;}
+.fav-sizes .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.fav-sizes .box span{font-size:11px;color:#6e5f52;}
+</style></head>
+<body>
+
+<h1>Dirección A — wordmark editorial puro</h1>
+<div class="row">
+  <div class="card">
+    <div class="wordmark">Maygel</div>
+    <div class="sub">Sandalias artesanales</div>
+  </div>
+  <div class="card dark">
+    <div class="wordmark on-dark">Maygel</div>
+    <div class="sub on-dark">Sandalias artesanales</div>
+  </div>
+  <div class="card">
+    <div class="wordmark" style="font-style:italic;">Maygel</div>
+  </div>
+</div>
+
+<h1>Dirección B — wordmark + monograma mínimo (M en trazo fino)</h1>
+<div class="row">
+  <div class="card">
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="34" fill="none" stroke="#8c5a2f" stroke-width="1.2"/>
+      <text x="36" y="48" font-family="Instrument Serif, serif" font-size="38" fill="#241a15" text-anchor="middle">M</text>
+    </svg>
+    <div class="wordmark" style="font-size:48px;">Maygel</div>
+  </div>
+  <div class="card dark">
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="34" fill="none" stroke="#c8aa86" stroke-width="1.2"/>
+      <text x="36" y="48" font-family="Instrument Serif, serif" font-size="38" fill="#f4ece1" text-anchor="middle">M</text>
+    </svg>
+    <div class="wordmark on-dark" style="font-size:48px;">Maygel</div>
+  </div>
+  <div class="card">
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <text x="36" y="50" font-family="Instrument Serif, serif" font-size="44" fill="#241a15" text-anchor="middle">M</text>
+    </svg>
+    <div class="wordmark" style="font-size:48px;">Maygel</div>
+    <div class="caption">sin círculo — solo la letra</div>
+  </div>
+</div>
+
+<h1>Dirección C — wordmark + símbolo abstracto mínimo (tira/lazo, no sandalia literal)</h1>
+<div class="row">
+  <div class="card">
+    <svg width="90" height="54" viewBox="0 0 90 54">
+      <path d="M8,44 C8,20 30,8 45,20 C60,32 82,20 82,10" fill="none" stroke="#8c5a2f" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <div class="wordmark" style="font-size:48px;">Maygel</div>
+  </div>
+  <div class="card dark">
+    <svg width="90" height="54" viewBox="0 0 90 54">
+      <path d="M8,44 C8,20 30,8 45,20 C60,32 82,20 82,10" fill="none" stroke="#c8aa86" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <div class="wordmark on-dark" style="font-size:48px;">Maygel</div>
+  </div>
+  <div class="card">
+    <svg width="70" height="70" viewBox="0 0 70 70">
+      <path d="M15,35 A20,20 0 1 1 55,35 A20,20 0 1 1 15,35" fill="none" stroke="#8c5a2f" stroke-width="1.6" stroke-dasharray="4 5"/>
+    </svg>
+    <div class="wordmark" style="font-size:48px;">Maygel</div>
+    <div class="caption">variante: trazo circular punteado (puntada)</div>
+  </div>
+</div>
+
+<h1>Candidatos de favicon — prueba real a 16 / 32 / 48px</h1>
+<div class="grid3">
+  <div class="fav-card">
+    <div class="caption" style="font-weight:600;color:#241a15;">1 — M simplificada</div>
+    <div class="fav-sizes">
+      <div class="box"><svg width="16" height="16" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="23" font-family="Instrument Serif, serif" font-size="20" fill="#f7f2ea" text-anchor="middle">M</text></svg><span>16px</span></div>
+      <div class="box"><svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="23" font-family="Instrument Serif, serif" font-size="20" fill="#f7f2ea" text-anchor="middle">M</text></svg><span>32px</span></div>
+      <div class="box"><svg width="48" height="48" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="23" font-family="Instrument Serif, serif" font-size="20" fill="#f7f2ea" text-anchor="middle">M</text></svg><span>48px</span></div>
+    </div>
+  </div>
+  <div class="fav-card">
+    <div class="caption" style="font-weight:600;color:#241a15;">2 — monograma MG</div>
+    <div class="fav-sizes">
+      <div class="box"><svg width="16" height="16" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="21" font-family="Instrument Serif, serif" font-size="15" fill="#f7f2ea" text-anchor="middle">MG</text></svg><span>16px</span></div>
+      <div class="box"><svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="21" font-family="Instrument Serif, serif" font-size="15" fill="#f7f2ea" text-anchor="middle">MG</text></svg><span>32px</span></div>
+      <div class="box"><svg width="48" height="48" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><text x="16" y="21" font-family="Instrument Serif, serif" font-size="15" fill="#f7f2ea" text-anchor="middle">MG</text></svg><span>48px</span></div>
+    </div>
+  </div>
+  <div class="fav-card">
+    <div class="caption" style="font-weight:600;color:#241a15;">3 — símbolo abstracto (tira)</div>
+    <div class="fav-sizes">
+      <div class="box"><svg width="16" height="16" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><path d="M6,22 C6,10 16,6 22,12 C27,17 26,9 26,9" fill="none" stroke="#f7f2ea" stroke-width="3" stroke-linecap="round"/></svg><span>16px</span></div>
+      <div class="box"><svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><path d="M6,22 C6,10 16,6 22,12 C27,17 26,9 26,9" fill="none" stroke="#f7f2ea" stroke-width="3" stroke-linecap="round"/></svg><span>32px</span></div>
+      <div class="box"><svg width="48" height="48" viewBox="0 0 32 32"><rect width="32" height="32" fill="#241a15"/><path d="M6,22 C6,10 16,6 22,12 C27,17 26,9 26,9" fill="none" stroke="#f7f2ea" stroke-width="3" stroke-linecap="round"/></svg><span>48px</span></div>
+    </div>
+  </div>
+</div>
+
+</body></html>

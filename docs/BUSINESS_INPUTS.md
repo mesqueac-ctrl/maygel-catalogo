@@ -47,12 +47,48 @@
 
 ## CRITICAL — bloquea experiencia o venta
 
-- **Catálogo real (nombres, fotos, disponibilidad por modelo).** El sitio
-  sigue mostrando los 3 productos de fixture de `db/seed.ts`. Sin catálogo
-  real cargado desde el admin, ninguna venta real puede pasar por el sitio.
-  Ver `GUIA-PANEL.md` para el procedimiento — no requiere ningún cambio de
-  código. El precio ya está confirmado ($60.000, ver arriba); lo que falta
-  es la lista de modelos reales, no el precio.
+- **Discrepancia de contacto (Fase 8.5).** Un flyer de referencia recibido
+  del negocio muestra un WhatsApp (`+57 313 637 9874`) y un Instagram
+  (`@maygel.co`) **distintos** de los ya configurados en el proyecto
+  (`consts.ts`: `+57 324 351 3189`, `@maygelcr`). No se cambió nada en el
+  código — se necesita que el negocio confirme explícitamente cuál es el
+  número y el handle vigentes antes de tocar `consts.ts`. Ver
+  `COLLECTION_01_DRAFT.md` § 0 para el detalle completo.
+- **Primera colección real (Fase 8.5): 10 modelos candidatos sin ningún
+  dato confirmado todavía** (nombre, colores por modelo, fotografía
+  oficial, disponibilidad) — ver `COLLECTION_01_DRAFT.md` completo. 5 de
+  los colores mencionados en el flyer de referencia (Rosa, Azul, Marfil,
+  Nude, Oro Rosado) **no están en la lista global confirmada** y no se
+  agregan sin decisión explícita del negocio.
+
+- **Colores por modelo: RESUELTO (Fase 13.4).** El negocio confirmó que los
+  10 modelos publicados fabrican en los 6 colores de `COLORES_VALIDOS`
+  (Negro, Blanco, Miel, Beige, Café, Plateado). Ver `COLLECTION_01_DRAFT.md`
+  § 3 para el detalle. Ya no es un dato pendiente.
+- **Catálogo real: RESUELTO (Fase 8.9C–9.6).** Los 10 modelos de la
+  Colección 01 (Luna, Deriva, Onda, Bruma, Nudo, Estela, Llana, Nácar,
+  Trazo, Cristal) son productos reales, creados vía admin, publicados y
+  desplegados en producción.
+- **Precio: RESUELTO (Fase 10.2).** El negocio confirmó explícitamente que
+  **todos los modelos de la Colección 01 son sandalias planas.** Precio
+  normal oficial para los 10: **$45.000 COP**. Ya no queda ningún modelo de
+  esta colección a $60.000 (Onda, Bruma, Luna y Nácar, que seguían en
+  $60.000, se actualizaron en Fase 10.2). El precio de $60.000 sigue siendo
+  el precio base por defecto para cualquier modelo futuro que no sea plano.
+- **Sistema de descuentos (Fase 10.2): oficial, opcional, producto por
+  producto.** El campo `precioOferta` del admin es el único mecanismo de
+  descuento — se llena solo cuando el negocio decide una oferta real para
+  un modelo puntual (mayor que 0 y menor que el precio normal; el admin
+  valida ambas condiciones al guardar). Ningún producto tiene oferta activa
+  por defecto. No se sube el precio base para simular un descuento, no hay
+  countdowns ni "últimas unidades" sin dato real.
+- **Fotografía con branding de proveedor visible (Fase 10, decisión: dejar
+  así por ahora).** Nácar, Onda, Bruma y Estela muestran un logo o texto de
+  proveedor en la plantilla/suela de la foto actualmente publicada. El
+  negocio decidió mantenerlas así hasta la sesión de fotografía oficial —
+  no existe sustituto limpio disponible en el lote de fotos temporales sin
+  generar un problema nuevo (reutilizar la foto de otro modelo ya
+  nombrado). Ver `COLLECTION_01_DRAFT.md` § 11 para el detalle por modelo.
 - **Historia real de "Sobre Maygel".** El texto actual está marcado `TODO`
   y es reconocidamente provisional (`About.astro`, `CONTENT_GUIDE.md`). Las
   12 preguntas exactas viven en `BRAND_STORY_INPUT.md` (no se repiten aquí).
