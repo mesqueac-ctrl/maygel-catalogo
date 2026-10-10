@@ -1,13 +1,28 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import { listarTodos, formatearPrecio, coloresComoLista } from "../../../lib/productos";
+import {
+	listarTodos,
+	formatearPrecio,
+	precioEfectivo,
+	coloresComoLista,
+	estaArchivado,
+	COLORES_METADATA,
+} from "../../../lib/productos";
 
-const productos = await listarTodos();
+const todos = await listarTodos();
+const vista = Astro.url.searchParams.get("vista") ?? "activas";
+
+const activas = todos.filter((p) => !estaArchivado(p.archivado));
+const archivadas = todos.filter((p) => estaArchivado(p.archivado));
+const productos = vista === "archivadas" ? archivadas : activas;
 
 const mensajes: Record<string, string> = {
-	guardado: "Producto guardado correctamente.",
-	creado: "La sandalia nueva se agregó correctamente.",
-	eliminado: "La sandalia se eliminó correctamente.",
+	guardado: "Guardado ✓",
+	creado: "Sandalia nueva lista ✓",
+	eliminado: "Se eliminó del todo.",
+	archivado: "Archivada. Ya no se ve en la página.",
+	restaurado: "Volvió a la lista ✓",
+	orden: "Orden guardado ✓",
 };
 
 const aviso = mensajes[Astro.url.searchParams.get("ok") ?? ""];
@@ -15,101 +30,104 @@ const error = Astro.url.searchParams.get("error");
 ---
 
 <AdminLayout titulo="Mis sandalias">
-	{aviso && <p class="aviso aviso--ok">✓ {aviso}</p>}
-	{
-		error && (
-			<p class="aviso aviso--error">
-				No se pudo completar la acción. {decodeURIComponent(error)}
-			</p>
-		)
-	}
+	{aviso && <p class="aviso aviso--ok">{aviso}</p>}
+	{error && <p class="aviso aviso--error">{decodeURIComponent(error)}</p>}
 
-	<div class="cabecera">
+	<header class="cabecera">
 		<div>
-			<h1 class="cabecera__titulo">Mis sandalias</h1>
-			<p class="cabecera__sub">
-				{productos.length === 0
-					? "Todavía no has agregado ninguna sandalia."
-					: `Tienes ${productos.length} ${productos.length === 1 ? "sandalia" : "sandalias"} en tu página.`}
-			</p>
-
-			{
-				productos.length > 1 && (
-					<p class="cabecera__pista">
-						Usa "Ordenar catálogo" para cambiar el orden en que aparecen en tu página.
-					</p>
-				)
-			}
+			<h1>Mis sandalias</h1>
+			<p class="sub">{activas.length} en el catálogo · {archivadas.length} archivadas</p>
 		</div>
+		<a class="btn-admin" href="/admin/productos/nueva">Agregar sandalia</a>
+	</header>
 
-		<div class="cabecera__botones">
-			{productos.length > 1 && (
-				<a class="boton-secundario" href="/admin/productos/ordenar">Ordenar catálogo</a>
-			)}
-			<a class="boton-principal" href="/admin/productos/nueva">+ Agregar sandalia nueva</a>
-		</div>
-	</div>
+	<label class="buscador">
+		<span class="sr-only">Buscar</span>
+		<input type="search" id="buscador" placeholder="Buscar por nombre" autocomplete="off" />
+	</label>
 
-	{
-		productos.length > 1 && (
-			<label class="buscador">
-				<span>Buscar por nombre o categoría</span>
-				<input type="text" id="buscador-input" placeholder="Ej: Aura, Brillos..." autocomplete="off" />
-			</label>
-		)
-	}
+	<nav class="tabs" aria-label="Filtros">
+		<a class:list={["tab", vista !== "archivadas" && "is-on"]} href="/admin/productos">En el catálogo</a>
+		<a class:list={["tab", vista === "archivadas" && "is-on"]} href="/admin/productos?vista=archivadas">
+			Archivadas ({archivadas.length})
+		</a>
+	</nav>
 
 	{
 		productos.length === 0 ? (
-			<div class="vacio">
-				<p>Aquí van a aparecer todas tus sandalias.</p>
-				<p>Empieza agregando la primera con el botón de arriba.</p>
-			</div>
+			<p class="vacio">
+				{vista === "archivadas" ? "No hay sandalias archivadas." : "Todavía no hay sandalias. Agrega la primera."}
+			</p>
 		) : (
-			<ul class="lista" id="lista-productos">
+			<ul class="grid" id="lista" data-vista={vista}>
 				{productos.map((producto) => {
-					const listaColores = coloresComoLista(producto.colores);
+					const colores = coloresComoLista(producto.colores);
+					const precio = formatearPrecio(precioEfectivo(producto));
 					return (
 						<li
-							class="fila"
+							class="card"
+							draggable={vista !== "archivadas"}
+							data-id={producto.id}
 							data-nombre={producto.nombre.toLowerCase()}
-							data-categoria={(producto.categoria ?? "").toLowerCase()}
+							data-disponible={producto.disponible ? "si" : "no"}
 						>
-							<img class="fila__foto" src={producto.imagen} alt={producto.nombre} />
-
-							<div class="fila__datos">
-								<p class="fila__nombre">
-									{producto.nombre}
-									{producto.destacado && <span class="fila__badge">Destacada</span>}
-								</p>
-								<p class="fila__precio">{formatearPrecio(producto.precio)}</p>
-								{producto.categoria && <p class="fila__categoria">{producto.categoria}</p>}
-								{listaColores.length > 0 && (
-									<p class="fila__colores">
-										<strong>Colores:</strong> {listaColores.join(" · ")}
-									</p>
-								)}
-								<p class={`fila__estado ${producto.disponible ? "" : "fila__estado--oculto"}`}>
-									{producto.disponible ? "Se muestra en la página" : "Oculta (nadie la ve)"}
-								</p>
-							</div>
-
-							<div class="fila__acciones">
-								<a class="boton-secundario" href={`/admin/productos/${producto.id}`}>
-									Editar
-								</a>
-
-								<form
-									method="POST"
-									action="/admin/api/eliminar"
-									data-confirmar
-									data-nombre={producto.nombre}
-								>
-									<input type="hidden" name="id" value={producto.id} />
-									<button class="boton-eliminar" type="submit">
-										Eliminar
+							{vista !== "archivadas" && (
+								<div class="card__mover">
+									<button type="button" class="icon-btn" data-dir="-1" aria-label={`Subir ${producto.nombre}`}>
+										↑
 									</button>
-								</form>
+									<span class="asa" aria-hidden="true">⋮⋮</span>
+									<button type="button" class="icon-btn" data-dir="1" aria-label={`Bajar ${producto.nombre}`}>
+										↓
+									</button>
+								</div>
+							)}
+							<a class="card__media" href={`/admin/productos/${producto.id}`}>
+								<img src={producto.imagen} alt="" />
+							</a>
+							<div class="card__body">
+								<h2>{producto.nombre}</h2>
+								<p class="precio">{precio}</p>
+								<p class:list={["estado", !producto.disponible && "estado--off"]}>
+									{producto.disponible ? "Se ve en la página" : "Oculta"}
+								</p>
+								<div class="dots">
+									{colores.map((color) => {
+										const meta = COLORES_METADATA[color];
+										return (
+											<span
+												style={`background:${meta.hex};border-color:${meta.border}`}
+												title={meta.nombre}
+											/>
+										);
+									})}
+								</div>
+								<div class="card__acciones">
+									{vista !== "archivadas" ? (
+										<>
+											<button type="button" class="btn-ghost" data-ocultar={producto.id} data-ahora={producto.disponible ? "si" : "no"}>
+												{producto.disponible ? "Ocultar" : "Mostrar"}
+											</button>
+											<a class="btn-ghost" href={`/admin/productos/${producto.id}`}>Editar</a>
+											<button type="button" class="btn-ghost btn-ghost--warn" data-archivar={producto.id}>
+												Archivar
+											</button>
+										</>
+									) : (
+										<>
+											<button type="button" class="btn-ghost" data-restaurar={producto.id}>
+												Restaurar
+											</button>
+											<form method="POST" action="/admin/api/eliminar" data-borrar={producto.nombre}>
+												<input type="hidden" name="id" value={producto.id} />
+												<input type="hidden" name="vista" value="archivadas" />
+												<button class="btn-ghost btn-ghost--warn" type="submit">
+													Eliminar definitivamente
+												</button>
+											</form>
+										</>
+									)}
+								</div>
 							</div>
 						</li>
 					);
@@ -117,243 +135,416 @@ const error = Astro.url.searchParams.get("error");
 			</ul>
 		)
 	}
+
+	<div class="toast" id="toast" hidden>
+		<p id="toast-msg"></p>
+		<button type="button" id="toast-undo">Deshacer</button>
+	</div>
 </AdminLayout>
 
 <script>
-	// Confirmación antes de borrar, con el nombre de la sandalia en el mensaje.
-	document.querySelectorAll<HTMLFormElement>("form[data-confirmar]").forEach((formulario) => {
-		formulario.addEventListener("submit", (evento) => {
-			const nombre = formulario.dataset.nombre ?? "esta sandalia";
-			const confirmado = window.confirm(
-				`¿Seguro que quieres eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`,
-			);
-			if (!confirmado) {
+	const lista = document.getElementById("lista");
+	const toast = document.getElementById("toast");
+	const toastMsg = document.getElementById("toast-msg");
+	const toastUndo = document.getElementById("toast-undo");
+	let undoTimer = 0;
+	let undoFn: (() => void) | null = null;
+
+	function idsActuales(): number[] {
+		return [...(lista?.querySelectorAll<HTMLElement>(".card") ?? [])].map((el) => Number(el.dataset.id));
+	}
+
+	async function postForm(url: string, campos: Record<string, string>) {
+		const datos = new FormData();
+		datos.set("ajax", "1");
+		for (const [k, v] of Object.entries(campos)) datos.set(k, v);
+		const res = await fetch(url, { method: "POST", body: datos });
+		return res.json() as Promise<{ ok: boolean; mensaje: string }>;
+	}
+
+	function mostrarToast(texto: string, deshacer: () => void) {
+		if (!toast || !toastMsg || !toastUndo) return;
+		toastMsg.textContent = texto;
+		toast.hidden = false;
+		undoFn = deshacer;
+		window.clearTimeout(undoTimer);
+		undoTimer = window.setTimeout(() => {
+			toast.hidden = true;
+			undoFn = null;
+		}, 5000);
+	}
+
+	toastUndo?.addEventListener("click", () => {
+		undoFn?.();
+		if (toast) toast.hidden = true;
+		undoFn = null;
+		window.clearTimeout(undoTimer);
+	});
+
+	async function guardarOrden() {
+		if (!lista || lista.dataset.vista === "archivadas") return;
+		await postForm("/admin/api/reordenar", { idsEnOrden: JSON.stringify(idsActuales()) });
+	}
+
+	function mover(card: HTMLElement, dir: number) {
+		if (!lista) return;
+		const vecino = dir < 0 ? card.previousElementSibling : card.nextElementSibling;
+		if (!vecino) return;
+		if (dir < 0) lista.insertBefore(card, vecino);
+		else lista.insertBefore(vecino, card);
+		void guardarOrden();
+	}
+
+	document.getElementById("buscador")?.addEventListener("input", (evento) => {
+		const q = (evento.target as HTMLInputElement).value.trim().toLowerCase();
+		lista?.querySelectorAll<HTMLElement>(".card").forEach((card) => {
+			card.hidden = Boolean(q) && !(card.dataset.nombre ?? "").includes(q);
+		});
+	});
+
+	lista?.addEventListener("click", async (evento) => {
+		const t = evento.target as HTMLElement;
+		const subir = t.closest<HTMLButtonElement>("[data-dir]");
+		if (subir) {
+			const card = subir.closest<HTMLElement>(".card");
+			if (card) mover(card, Number(subir.dataset.dir));
+			return;
+		}
+
+		const ocultar = t.closest<HTMLButtonElement>("[data-ocultar]");
+		if (ocultar) {
+			const id = ocultar.dataset.ocultar ?? "";
+			const ahora = ocultar.dataset.ahora === "si";
+			const siguiente = ahora ? "no" : "si";
+			const card = ocultar.closest<HTMLElement>(".card");
+			await postForm("/admin/api/estado", { id, disponible: siguiente });
+			ocultar.dataset.ahora = siguiente;
+			ocultar.textContent = siguiente === "si" ? "Ocultar" : "Mostrar";
+			const estado = card?.querySelector(".estado");
+			if (estado) {
+				estado.textContent = siguiente === "si" ? "Se ve en la página" : "Oculta";
+				estado.classList.toggle("estado--off", siguiente !== "si");
+			}
+			mostrarToast(siguiente === "si" ? "Visible otra vez." : "Oculta. Nadie la ve en la página.", async () => {
+				await postForm("/admin/api/estado", { id, disponible: ahora ? "si" : "no" });
+				location.reload();
+			});
+			return;
+		}
+
+		const archivar = t.closest<HTMLButtonElement>("[data-archivar]");
+		if (archivar) {
+			const id = archivar.dataset.archivar ?? "";
+			const card = archivar.closest<HTMLElement>(".card");
+			if (!confirm("¿Archivar esta sandalia? Sale de la página. La puedes recuperar en Archivadas.")) return;
+			await postForm("/admin/api/archivar", { id, archivado: "si" });
+			card?.remove();
+			mostrarToast("Archivada.", async () => {
+				await postForm("/admin/api/archivar", { id, archivado: "no" });
+				location.reload();
+			});
+			return;
+		}
+
+		const restaurar = t.closest<HTMLButtonElement>("[data-restaurar]");
+		if (restaurar) {
+			const id = restaurar.dataset.restaurar ?? "";
+			await postForm("/admin/api/archivar", { id, archivado: "no" });
+			restaurar.closest<HTMLElement>(".card")?.remove();
+		}
+	});
+
+	lista?.querySelectorAll<HTMLFormElement>("form[data-borrar]").forEach((form) => {
+		form.addEventListener("submit", (evento) => {
+			const nombre = form.dataset.borrar ?? "esta sandalia";
+			if (!confirm(`¿Eliminar "${nombre}" para siempre? También se borran sus fotos. Esto no se puede deshacer.`)) {
 				evento.preventDefault();
 			}
 		});
 	});
 
-	// Búsqueda simple: filtra las filas ya renderizadas, sin ida y vuelta al servidor.
-	const buscador = document.getElementById("buscador-input") as HTMLInputElement | null;
-	const filas = document.querySelectorAll<HTMLElement>("#lista-productos .fila");
-
-	buscador?.addEventListener("input", () => {
-		const termino = buscador.value.trim().toLowerCase();
-		filas.forEach((fila) => {
-			const nombre = fila.dataset.nombre ?? "";
-			const categoria = fila.dataset.categoria ?? "";
-			const coincide = !termino || nombre.includes(termino) || categoria.includes(termino);
-			fila.hidden = !coincide;
-		});
+	let dragged: HTMLElement | null = null;
+	lista?.addEventListener("dragstart", (evento) => {
+		const card = (evento.target as HTMLElement).closest<HTMLElement>(".card");
+		if (!card || lista.dataset.vista === "archivadas") return;
+		dragged = card;
+		card.classList.add("is-drag");
+	});
+	lista?.addEventListener("dragend", () => {
+		dragged?.classList.remove("is-drag");
+		dragged = null;
+		void guardarOrden();
+	});
+	lista?.addEventListener("dragover", (evento) => {
+		evento.preventDefault();
+		const over = (evento.target as HTMLElement).closest<HTMLElement>(".card");
+		if (!dragged || !over || over === dragged || !lista) return;
+		const rect = over.getBoundingClientRect();
+		const before = evento.clientY < rect.top + rect.height / 2;
+		lista.insertBefore(dragged, before ? over : over.nextSibling);
 	});
 </script>
 
 <style>
-	.aviso {
-		padding: 1rem 1.25rem;
-		margin-bottom: 2rem;
-		font-size: 1rem;
-		border: 1px solid;
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
 	}
 
-	.aviso--ok {
-		background-color: #eef7ee;
-		border-color: #b5d6b5;
-		color: #2f6b33;
+	h1 {
+		font-family: var(--font-display);
+		font-weight: 800;
+		letter-spacing: -0.04em;
+		font-size: clamp(1.7rem, 5vw, 2.4rem);
+		margin: 0 0 0.25rem;
 	}
 
-	.aviso--error {
-		background-color: #fdf1ee;
-		border-color: #e6b8ab;
-		color: #8c3a22;
+	.sub {
+		margin: 0;
+		opacity: 0.8;
 	}
 
 	.cabecera {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: flex-start;
+		gap: 1rem;
 		justify-content: space-between;
-		gap: 1.5rem;
-		margin-bottom: 2.5rem;
+		align-items: flex-start;
+		margin-bottom: 1.1rem;
 	}
 
-	.cabecera__titulo {
-		font-size: clamp(1.75rem, 4vw, 2.25rem);
-		margin-bottom: 0.5rem;
+	.aviso {
+		padding: 0.85rem 1rem;
+		border-radius: 0.85rem;
+		margin-bottom: 1rem;
 	}
 
-	.cabecera__botones {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem;
+	.aviso--ok {
+		background: #e7f3ea;
+		color: #215c32;
 	}
 
-	.buscador {
-		display: block;
-		margin-bottom: 2rem;
-		max-width: 360px;
-	}
-
-	.buscador span {
-		display: block;
-		font-size: 0.9375rem;
-		font-weight: 500;
-		margin-bottom: 0.5rem;
+	.aviso--error {
+		background: #fdece6;
+		color: #8c3a22;
 	}
 
 	.buscador input {
 		width: 100%;
-		font-family: var(--font-body);
-		font-size: 1rem;
-		padding: 0.75rem 1rem;
-		border: 1px solid var(--color-border);
+		min-height: 44px;
+		border-radius: 0.85rem;
+		border: 1.5px solid var(--color-text);
+		padding: 0.55rem 0.9rem;
+		font: inherit;
+		margin-bottom: 0.85rem;
+		background: var(--color-surface);
 	}
 
-	.fila__badge {
-		display: inline-block;
-		margin-left: 0.6rem;
-		font-size: 0.6875rem;
-		font-weight: 500;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-accent);
-		border: 1px solid var(--color-accent);
-		padding: 0.15rem 0.5rem;
-		vertical-align: middle;
+	.tabs {
+		display: flex;
+		gap: 0.4rem;
+		margin-bottom: 1rem;
 	}
 
-	.fila__categoria {
-		font-size: 0.875rem;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.35rem;
-	}
-
-	.cabecera__sub {
-		color: var(--color-accent-soft);
-		font-weight: 300;
-	}
-
-	.cabecera__pista {
-		margin-top: 0.5rem;
-		font-size: 0.9375rem;
-		color: var(--color-accent-soft);
-		font-weight: 300;
-	}
-
-	.boton-principal {
-		font-size: 1rem;
-		font-weight: 500;
-		padding: 1rem 1.5rem;
-		background-color: var(--color-accent);
-		color: #fff;
+	.tab {
+		min-height: 44px;
+		display: inline-flex;
+		align-items: center;
+		padding: 0.4rem 0.9rem;
+		border-radius: var(--radius-pill);
 		text-decoration: none;
-		white-space: nowrap;
+		color: var(--color-text);
+		border: 1.5px solid transparent;
+		font-weight: 600;
+		font-size: 0.9rem;
 	}
 
-	.boton-principal:hover {
-		opacity: 0.88;
+	.tab.is-on {
+		border-color: var(--color-text);
+		background: var(--color-surface);
 	}
 
-	.vacio {
-		border: 1px dashed var(--color-border);
-		padding: 3rem 2rem;
-		text-align: center;
-		color: var(--color-accent-soft);
-		font-weight: 300;
-	}
-
-	.lista {
+	.grid {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		border-top: 1px solid var(--color-border);
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.85rem;
 	}
 
-	.fila {
+	@media (min-width: 700px) {
+		.grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1100px) {
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	.card {
+		background: var(--color-surface);
+		border-radius: var(--radius);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		box-shadow: 0 8px 22px rgba(43, 26, 18, 0.07);
+	}
+
+	.card.is-drag {
+		opacity: 0.55;
+	}
+
+	.card__mover {
 		display: flex;
 		align-items: center;
-		gap: 1.5rem;
-		padding: 1.25rem 0;
-		border-bottom: 1px solid var(--color-border);
-		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.35rem;
+		padding: 0.35rem;
 	}
 
-	.fila__foto {
-		width: 72px;
-		height: 90px;
-		object-fit: cover;
-		background-color: #f2ece4;
-		flex-shrink: 0;
+	.asa {
+		cursor: grab;
+		letter-spacing: -0.15em;
+		opacity: 0.45;
 	}
 
-	.fila__datos {
-		flex: 1 1 220px;
-	}
-
-	.fila__nombre {
-		font-size: 1.0625rem;
-		font-weight: 500;
-		margin-bottom: 0.25rem;
-	}
-
-	.fila__precio {
-		color: var(--color-accent);
-		margin-bottom: 0.25rem;
-	}
-
-	.fila__colores {
-		font-size: 0.875rem;
-		color: var(--color-accent-soft);
-		margin-bottom: 0.35rem;
-	}
-
-	.fila__colores strong {
-		color: var(--color-text);
-		font-weight: 500;
-	}
-
-	.fila__estado {
-		font-size: 0.875rem;
-		color: #2f6b33;
-	}
-
-	.fila__estado--oculto {
-		color: var(--color-accent-soft);
-	}
-
-	.fila__acciones {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	.boton-secundario {
-		font-size: 0.9375rem;
-		font-weight: 500;
-		padding: 0.7rem 1.25rem;
-		border: 1px solid var(--color-border);
-		text-decoration: none;
-		color: var(--color-text);
-	}
-
-	.boton-secundario:hover {
-		border-color: var(--color-accent);
-		color: var(--color-accent);
-	}
-
-	.boton-eliminar {
-		font-family: var(--font-body);
-		font-size: 0.9375rem;
-		font-weight: 500;
-		padding: 0.7rem 1.25rem;
-		background-color: transparent;
-		border: 1px solid var(--color-border);
-		color: #8c3a22;
+	.icon-btn {
+		min-width: 44px;
+		min-height: 44px;
+		border: none;
+		background: none;
+		font: inherit;
 		cursor: pointer;
 	}
 
-	.boton-eliminar:hover {
+	.card__media {
+		display: block;
+		aspect-ratio: 4 / 5;
+		background: #ead9c6;
+	}
+
+	.card__media img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.card__body {
+		padding: 0.8rem 0.9rem 1rem;
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.card__body h2 {
+		font-size: 1.05rem;
+		margin: 0;
+	}
+
+	.precio {
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.estado {
+		font-size: 0.8125rem;
+		color: #215c32;
+		margin: 0;
+	}
+
+	.estado--off {
+		color: #8c3a22;
+	}
+
+	.dots {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.28rem;
+		min-height: 20px;
+	}
+
+	.dots span {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 1.5px solid;
+	}
+
+	.card__acciones {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 0.45rem;
+	}
+
+	.btn-admin,
+	.btn-ghost {
+		min-height: 44px;
+		padding: 0.45rem 0.9rem;
+		border-radius: var(--radius-pill);
+		font: inherit;
+		font-weight: 600;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+	}
+
+	.btn-admin {
+		background: var(--color-cta);
+		color: #fff;
+		border: none;
+	}
+
+	.btn-ghost {
+		background: transparent;
+		color: var(--color-text);
+		border: 1.5px solid var(--color-text);
+	}
+
+	.btn-ghost--warn {
 		border-color: #8c3a22;
+		color: #8c3a22;
+	}
+
+	.vacio {
+		padding: 2rem 0;
+	}
+
+	.toast {
+		position: fixed;
+		left: 1rem;
+		right: 1rem;
+		bottom: 1rem;
+		z-index: 30;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		background: #2b1a12;
+		color: #fffaf3;
+		padding: 0.85rem 1rem;
+		border-radius: 0.9rem;
+		min-height: 52px;
+	}
+
+	.toast button {
+		min-height: 44px;
+		background: none;
+		border: none;
+		color: #e8b04a;
+		font: inherit;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.toast[hidden] {
+		display: none;
 	}
 </style>

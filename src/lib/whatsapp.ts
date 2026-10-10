@@ -33,7 +33,9 @@ export function mensajeProducto(
 	return urlProducto ? `${base}\nProducto: ${urlProducto}` : base;
 }
 
-/** Enlace `wa.me` listo para usar, para encargar un producto. */
+/** Enlace `wa.me` listo para usar, para encargar un producto.
+ *  También lo usa el botón «Pedir» del catálogo: si hay un solo color se
+ *  incluye; si hay varios, `color` va `null` y se completa en la ficha. */
 export function enlaceProducto(
 	nombre: string,
 	color: string | null,

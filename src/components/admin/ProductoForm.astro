@@ -5,6 +5,7 @@ import {
 	CATEGORIAS_VALIDAS,
 	coloresComoLista,
 	imagenesColoresComoMapa,
+	formatearPrecio,
 	type ProductoRegistro,
 } from "../../lib/productos";
 
@@ -16,585 +17,535 @@ const { producto } = Astro.props;
 const esEdicion = Boolean(producto);
 const coloresSeleccionados = coloresComoLista(producto?.colores);
 const imagenesColoresActuales = imagenesColoresComoMapa(producto?.imagenesColores);
+const precioPreview = producto ? formatearPrecio(producto.precio) : "$ 0";
 ---
 
-<form class="formulario" method="POST" action="/admin/api/guardar" enctype="multipart/form-data">
-	{esEdicion && <input type="hidden" name="id" value={producto!.id} />}
-	{esEdicion && <input type="hidden" name="imagenActual" value={producto!.imagen} />}
-	<input type="hidden" name="imagenesColoresActual" value={JSON.stringify(imagenesColoresActuales)} />
+<div class="editor">
+	<form class="formulario" method="POST" action="/admin/api/guardar" enctype="multipart/form-data" id="form-producto">
+		{esEdicion && <input type="hidden" name="id" value={producto!.id} />}
+		{esEdicion && <input type="hidden" name="imagenActual" value={producto!.imagen} />}
+		<input type="hidden" name="imagenesColoresActual" value={JSON.stringify(imagenesColoresActuales)} />
+		<input type="hidden" name="usarComoPrincipal" id="usar-como-principal" value="" />
 
-	<label class="campo">
-		<span class="campo__etiqueta">Nombre de la sandalia</span>
-		<input
-			class="campo__input"
-			type="text"
-			name="nombre"
-			id="campo-nombre"
-			required
-			maxlength="120"
-			placeholder="Ej: Sandalia trenzada café"
-			value={producto?.nombre ?? ""}
-		/>
-	</label>
+		<label class="campo">
+			<span>Nombre</span>
+			<input type="text" name="nombre" id="campo-nombre" required maxlength="120" value={producto?.nombre ?? ""} placeholder="Ej: Luna" />
+		</label>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Dirección web (slug)</span>
-		{
-			esEdicion ? (
-				<input
-					class="campo__input campo__input--solo-lectura"
-					type="text"
-					id="campo-slug"
-					value={producto!.slug}
-					disabled
-					aria-readonly="true"
-				/>
-			) : (
-				<input
-					class="campo__input"
-					type="text"
-					name="slug"
-					id="campo-slug"
-					maxlength="160"
-					placeholder="se genera sola desde el nombre si la dejas vacía"
-					value=""
-					data-slug-tocado="false"
-				/>
-			)
-		}
-		<span class="campo__ayuda">
-			{esEdicion
-				? "Es la parte final del enlace de esta sandalia (maygel.co/productos/...). No se puede cambiar una vez creada la sandalia, para que el enlace nunca se rompa."
-				: "Déjala vacía y se genera sola desde el nombre. Solo letras, números y guiones. Una vez que guardes, ya no se podrá cambiar."}
-		</span>
-	</label>
+		<label class="campo">
+			<span>Precio (pesos, solo números)</span>
+			<input type="number" name="precio" id="campo-precio" required min="0" step="1000" value={producto?.precio ?? ""} placeholder="45000" />
+		</label>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Precio normal (en pesos)</span>
-		<input
-			class="campo__input"
-			type="number"
-			name="precio"
-			required
-			min="0"
-			step="100"
-			placeholder="60000"
-			value={producto?.precio ?? ""}
-		/>
-		<span class="campo__ayuda">Escribe solo números, sin puntos ni comas.</span>
-	</label>
+		<fieldset class="campo">
+			<legend>Colores</legend>
+			<p class="ayuda">Toca el círculo de los colores que fabricas. Luego puedes ponerle foto a cada uno.</p>
+			<div class="swatches">
+				{
+					COLORES_VALIDOS.map((color) => {
+						const meta = COLORES_METADATA[color];
+						const marcado = coloresSeleccionados.includes(color);
+						return (
+							<label class="swatch">
+								<input type="checkbox" name="colores" value={color} checked={marcado} data-color={color} />
+								<span class="swatch__dot" style={`background:${meta.hex};border-color:${meta.border}`}></span>
+								<span class="swatch__name">{meta.nombre}</span>
+							</label>
+						);
+					})
+				}
+			</div>
+			<p class="aviso-error" id="error-colores" hidden>Elige al menos un color.</p>
+		</fieldset>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Precio con descuento (opcional)</span>
-		<input
-			class="campo__input"
-			type="number"
-			name="precioOferta"
-			min="0"
-			step="100"
-			placeholder="Déjalo vacío si no hay descuento"
-			value={producto?.precioOferta ?? ""}
-		/>
-		<span class="campo__ayuda">
-			Si lo llenas, tiene que ser menor que el precio normal. La clienta verá el precio normal
-			tachado y este como precio actual.
-		</span>
-	</label>
+		<label class="campo">
+			<span>Descripción (opcional)</span>
+			<textarea name="descripcion" rows="3" maxlength="600" placeholder="Si la dejas vacía, la ficha usa un texto corto automático.">{producto?.descripcion ?? ""}</textarea>
+		</label>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Categoría</span>
-		<select class="campo__input" name="categoria">
-			<option value="" selected={!producto?.categoria}>Sin categoría</option>
+		<div class="campo">
+			<span>Foto principal</span>
 			{
-				CATEGORIAS_VALIDAS.map((cat) => (
-					<option value={cat} selected={producto?.categoria === cat}>
-						{cat}
-					</option>
-				))
+				esEdicion && (
+					<img class="foto-actual" id="foto-principal-preview" src={producto!.imagen} alt="" />
+				)
 			}
-		</select>
-		<span class="campo__ayuda">Elige la que mejor describa el estilo de esta sandalia.</span>
-	</label>
+			{
+				!esEdicion && (
+					<img class="foto-actual" id="foto-principal-preview" alt="" hidden />
+				)
+			}
+			<div class="drop" data-drop-principal>
+				<p>Arrastra una foto, elígela o tómala con el celular.</p>
+				<input id="campo-foto" type="file" name="foto" accept="image/*" capture="environment" required={!esEdicion} />
+			</div>
+		</div>
 
-	<fieldset class="campo campo--fieldset" id="campo-colores">
-		<legend class="campo__etiqueta">Colores disponibles</legend>
-		<p class="campo__subtitulo">Marca los colores en los que puedes fabricar esta sandalia:</p>
-		<div class="colores-grid">
+		<div class="fotos-color" id="fotos-color">
 			{
 				COLORES_VALIDOS.map((color) => {
 					const meta = COLORES_METADATA[color];
-					const estaMarcado = coloresSeleccionados.includes(color);
-					const imagenColorActual = imagenesColoresActuales[color];
+					const img = imagenesColoresActuales[color];
+					const visible = coloresSeleccionados.includes(color);
 					return (
-						<div class="color-opcion-completa" data-color-opcion={color}>
-							<label class="color-opcion">
-								<input
-									class="color-opcion__check"
-									type="checkbox"
-									name="colores"
-									value={color}
-									checked={estaMarcado}
-								/>
-								<span
-									class="color-opcion__muestra"
-									style={`background-color: ${meta.hex}; border-color: ${meta.border};`}
-									aria-hidden="true"
-								/>
-								<span class="color-opcion__nombre">{meta.nombre}</span>
+						<div class="foto-color" data-foto-color={color} hidden={!visible}>
+							<p>Foto en {meta.nombre} (opcional)</p>
+							{img && <img src={img} alt="" />}
+							<input type="file" name={`foto_color_${color}`} accept="image/*" capture="environment" />
+							<label class="quitar">
+								<input type="checkbox" name={`quitar_foto_color_${color}`} value="si" />
+								Quitar esta foto
 							</label>
-
-							<div class="color-opcion__foto" hidden={!estaMarcado} data-color-foto>
-								{imagenColorActual && (
-									<img
-										class="color-opcion__foto-actual"
-										src={imagenColorActual}
-										alt={`Foto actual en color ${color}`}
-									/>
-								)}
-								<label class="color-opcion__foto-etiqueta">
-									<span>Foto en {meta.nombre} (opcional)</span>
-									<input
-										class="color-opcion__foto-input"
-										type="file"
-										name={`foto_color_${color}`}
-										accept="image/*"
-									/>
-								</label>
-								<span class="campo__ayuda">Si no subes una, se usa la foto principal de la sandalia.</span>
-							</div>
+							<button type="button" class="btn-texto" data-promover={color} hidden={!img}>
+								Usar como foto principal
+							</button>
 						</div>
 					);
 				})
 			}
 		</div>
-		<p class="aviso-error-colores" id="error-colores" hidden>
-			Debes seleccionar al menos un color para la sandalia.
-		</p>
-	</fieldset>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Tallas</span>
-		<input
-			class="campo__input"
-			type="text"
-			name="tallas"
-			required
-			placeholder="Según pedido"
-			value={producto?.tallas ?? ""}
-		/>
-		<span class="campo__ayuda">
-			Escribe "Según pedido" si fabricas esta sandalia en la talla que pida la clienta (lo normal
-			hoy). Solo escribe números separados por coma (ej. "35, 36, 37") si este modelo puntual sí
-			tiene un rango cerrado de tallas.
-		</span>
-	</label>
+		<details class="mas">
+			<summary>Más opciones</summary>
+			<label class="campo">
+				<span>Tallas</span>
+				<input type="text" name="tallas" value={producto?.tallas ?? "Según pedido"} />
+				<span class="ayuda">Lo normal es “Según pedido”.</span>
+			</label>
+			<label class="campo">
+				<span>Precio con descuento (opcional)</span>
+				<input type="number" name="precioOferta" min="0" step="1000" value={producto?.precioOferta ?? ""} />
+			</label>
+			<label class="campo">
+				<span>Categoría</span>
+				<select name="categoria">
+					<option value="">Sin categoría</option>
+					{CATEGORIAS_VALIDAS.map((cat) => (
+						<option value={cat} selected={producto?.categoria === cat}>{cat}</option>
+					))}
+				</select>
+			</label>
+			{esEdicion && (
+				<p class="ayuda">El enlace de esta sandalia no cambia aunque edites el nombre ({producto!.slug}).</p>
+			)}
+			<label class="opcion">
+				<input type="checkbox" name="destacado" value="si" checked={producto?.destacado === true} />
+				Destacar en la portada
+			</label>
+		</details>
 
-	<label class="campo">
-		<span class="campo__etiqueta">Descripción</span>
-		<textarea
-			class="campo__input campo__textarea"
-			name="descripcion"
-			required
-			rows="4"
-			placeholder="Cuenta cómo es esta sandalia, de qué material está hecha, para qué ocasión sirve..."
-			>{producto?.descripcion ?? ""}</textarea
-		>
-	</label>
+		<fieldset class="campo">
+			<legend>¿Se ve en la página?</legend>
+			<label class="opcion">
+				<input type="radio" name="disponible" value="si" checked={producto?.disponible !== false} />
+				Sí, mostrar
+			</label>
+			<label class="opcion">
+				<input type="radio" name="disponible" value="no" checked={producto?.disponible === false} />
+				No, ocultar
+			</label>
+		</fieldset>
 
-	<div class="campo">
-		<span class="campo__etiqueta">Foto de la sandalia</span>
-
-		{
-			esEdicion && (
-				<div class="foto-actual">
-					<img src={producto!.imagen} alt={producto!.nombre} />
-					<p>Esta es la foto que tiene ahora. Si no eliges otra, se queda esta.</p>
-				</div>
-			)
-		}
-
-		<input
-			class="campo__archivo"
-			type="file"
-			name="foto"
-			accept="image/*"
-			required={!esEdicion}
-			id="campo-foto"
-		/>
-		<span class="campo__ayuda">Se ve mejor si la foto es vertical o cuadrada.</span>
-
-		<div class="previsualizacion" id="previsualizacion" hidden>
-			<p class="previsualizacion__titulo">Así se va a ver:</p>
-			<img id="previsualizacion-img" alt="Foto elegida" />
+		<div class="acciones">
+			<button class="btn-admin" type="submit">{esEdicion ? "Guardar cambios" : "Guardar sandalia"}</button>
+			<a class="btn-ghost" href="/admin/productos">Cancelar</a>
 		</div>
-	</div>
+	</form>
 
-	<fieldset class="campo campo--fieldset">
-		<legend class="campo__etiqueta">¿Se muestra en la página?</legend>
-
-		<label class="opcion">
-			<input type="radio" name="disponible" value="si" checked={producto?.disponible !== false} />
-			<span>Sí, mostrar</span>
-		</label>
-
-		<label class="opcion">
-			<input type="radio" name="disponible" value="no" checked={producto?.disponible === false} />
-			<span>No, ocultar</span>
-		</label>
-
-		<span class="campo__ayuda">
-			Si la ocultas, nadie la verá en la página web, pero no se borra.
-		</span>
-	</fieldset>
-
-	<label class="opcion">
-		<input type="checkbox" name="destacado" value="si" checked={producto?.destacado === true} />
-		<span>Destacar en la portada</span>
-	</label>
-
-	<div class="acciones">
-		<button class="boton-principal" type="submit">
-			{esEdicion ? "Guardar cambios" : "Guardar sandalia"}
-		</button>
-		<a class="boton-cancelar" href="/admin/productos">Cancelar</a>
-	</div>
-</form>
-
-<script>
-	// Previsualización del slug: mientras la administradora no toque el campo
-	// a mano, se propone uno desde el nombre (solo una vista previa — el
-	// valor real, normalizado y verificado único, se calcula en el servidor
-	// al guardar). En edición no se toca nunca automáticamente.
-	const campoNombre = document.getElementById("campo-nombre") as HTMLInputElement | null;
-	const campoSlug = document.getElementById("campo-slug") as HTMLInputElement | null;
-
-	function vistaPreviaSlug(texto: string): string {
-		return texto
-			.normalize("NFD")
-			.replace(/[̀-ͯ]/g, "")
-			.toLowerCase()
-			.trim()
-			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-+|-+$/g, "");
-	}
-
-	campoSlug?.addEventListener("input", () => {
-		campoSlug.dataset.slugTocado = "true";
-	});
-
-	campoNombre?.addEventListener("input", () => {
-		// El slug es inmutable al editar (el campo llega deshabilitado): nunca
-		// se actualiza su vista previa, aunque cambie el nombre.
-		if (!campoSlug || campoSlug.disabled || campoSlug.dataset.slugTocado === "true") return;
-		campoSlug.value = vistaPreviaSlug(campoNombre.value);
-	});
-
-	// Muestra la foto elegida antes de guardar, para evitar sustos.
-	const entrada = document.getElementById("campo-foto") as HTMLInputElement | null;
-	const contenedor = document.getElementById("previsualizacion");
-	const imagen = document.getElementById("previsualizacion-img") as HTMLImageElement | null;
-
-	entrada?.addEventListener("change", () => {
-		const archivo = entrada.files?.[0];
-		if (!archivo || !contenedor || !imagen) return;
-
-		imagen.src = URL.createObjectURL(archivo);
-		contenedor.hidden = false;
-	});
-
-	// Validación de al menos un color seleccionado
-	const formulario = document.querySelector(".formulario") as HTMLFormElement | null;
-	const checkboxesColores = document.querySelectorAll<HTMLInputElement>('input[name="colores"]');
-	const errorColores = document.getElementById("error-colores");
-
-	formulario?.addEventListener("submit", (evento) => {
-		const algunoSeleccionado = Array.from(checkboxesColores).some((cb) => cb.checked);
-		if (!algunoSeleccionado) {
-			evento.preventDefault();
-			if (errorColores) errorColores.hidden = false;
-			document.getElementById("campo-colores")?.scrollIntoView({ behavior: "smooth", block: "center" });
-		}
-	});
-
-	// Solo se puede subir foto de un color si ese color está marcado.
-	checkboxesColores.forEach((cb) => {
-		cb.addEventListener("change", () => {
-			const opcion = cb.closest("[data-color-opcion]");
-			const fotoBloque = opcion?.querySelector<HTMLElement>("[data-color-foto]");
-			if (fotoBloque) fotoBloque.hidden = !cb.checked;
-		});
-	});
-
-	checkboxesColores.forEach((cb) => {
-		cb.addEventListener("change", () => {
-			if (errorColores && Array.from(checkboxesColores).some((c) => c.checked)) {
-				errorColores.hidden = true;
-			}
-		});
-	});
-</script>
+	<aside class="preview" aria-live="polite">
+		<p class="preview__label">Así se ve la tarjeta</p>
+		<article class="card-preview">
+			<div class="card-preview__foto">
+				<img id="preview-img" src={producto?.imagen ?? ""} alt="" hidden={!producto?.imagen} />
+			</div>
+			<h3 id="preview-nombre">{producto?.nombre || "Nombre"}</h3>
+			<p id="preview-precio">{precioPreview}</p>
+			<div class="card-preview__dots" id="preview-dots"></div>
+		</article>
+	</aside>
+</div>
 
 <style>
+	.editor {
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 900px) {
+		.editor {
+			grid-template-columns: minmax(0, 1fr) 240px;
+			align-items: start;
+			gap: 2rem;
+		}
+
+		.preview {
+			position: sticky;
+			top: 5.5rem;
+		}
+	}
+
 	.formulario {
 		display: grid;
-		gap: 2rem;
-		max-width: 640px;
+		gap: 1.15rem;
 	}
 
-	.campo {
+	.campo span,
+	.campo legend,
+	.fotos-color p {
 		display: block;
+		font-weight: 600;
+		margin-bottom: 0.4rem;
 	}
 
-	.campo--fieldset {
-		border: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.campo__etiqueta {
-		display: block;
-		font-size: 1.0625rem;
-		font-weight: 500;
-		margin-bottom: 0.6rem;
-		padding: 0;
-	}
-
-	.campo__subtitulo {
-		font-size: 0.9375rem;
-		color: var(--color-accent-soft);
-		font-weight: 300;
-		margin-bottom: 0.85rem;
-	}
-
-	.colores-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 0.75rem;
-		margin-bottom: 0.5rem;
-		align-items: start;
-	}
-
-	.color-opcion-completa {
-		background-color: #fff;
-		border: 1px solid var(--color-border);
-		transition: border-color 0.2s ease, background-color 0.2s ease;
-	}
-
-	.color-opcion-completa:has(.color-opcion__check:checked) {
-		border-color: var(--color-accent);
-		background-color: #fbf7f2;
-	}
-
-	.color-opcion {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-		padding: 0.75rem 1rem;
-		cursor: pointer;
-		user-select: none;
-	}
-
-	.color-opcion__check {
-		width: 18px;
-		height: 18px;
-		accent-color: var(--color-accent);
-		cursor: pointer;
-	}
-
-	.color-opcion__muestra {
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		border: 1px solid;
-		flex-shrink: 0;
-	}
-
-	.color-opcion__nombre {
-		font-size: 0.9375rem;
-		font-weight: 400;
+	.campo input[type="text"],
+	.campo input[type="number"],
+	.campo textarea,
+	.campo select {
+		width: 100%;
+		min-height: 44px;
+		padding: 0.65rem 0.85rem;
+		border: 1.5px solid var(--color-text);
+		border-radius: 0.85rem;
+		font: inherit;
+		background: var(--color-surface);
 		color: var(--color-text);
 	}
 
-	.color-opcion__foto {
+	.ayuda {
+		font-weight: 400;
+		font-size: 0.875rem;
+		opacity: 0.85;
+	}
+
+	.swatches {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.swatch {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.5rem;
-		padding: 0 1rem 0.85rem;
-		border-top: 1px solid var(--color-border);
-		margin-top: 0.1rem;
-		padding-top: 0.75rem;
-	}
-
-	.color-opcion__foto-actual {
-		width: 56px;
-		height: 70px;
-		object-fit: cover;
-		background-color: #f2ece4;
-	}
-
-	.color-opcion__foto-etiqueta {
-		display: block;
-		font-size: 0.8125rem;
-		color: var(--color-accent-soft);
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 44px;
 		cursor: pointer;
-		width: 100%;
+		font-size: 0.75rem;
 	}
 
-	.color-opcion__foto-etiqueta span {
-		display: block;
-		margin-bottom: 0.35rem;
+	.swatch input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
 	}
 
-	.color-opcion__foto-input {
-		display: block;
-		width: 100%;
-		font-family: var(--font-body);
-		font-size: 0.8125rem;
+	.swatch__dot {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		border: 2px solid #2b1a12;
+		box-sizing: border-box;
 	}
 
-	.color-opcion__foto .campo__ayuda {
-		margin-top: 0;
-		font-size: 0.8125rem;
+	.swatch:has(input:checked) .swatch__dot {
+		outline: 3px solid var(--color-cta);
+		outline-offset: 2px;
 	}
 
-	.aviso-error-colores {
-		margin-top: 0.5rem;
-		font-size: 0.875rem;
-		color: #8c3a22;
-		font-weight: 500;
-	}
-
-	.campo__input {
-		width: 100%;
-		font-family: var(--font-body);
-		font-size: 1.0625rem;
-		padding: 0.9rem 1rem;
-		border: 1px solid var(--color-border);
-		background-color: #fff;
-		color: var(--color-text);
-	}
-
-	.campo__input--solo-lectura {
-		background-color: #f2ece4;
-		color: var(--color-accent-soft);
-		cursor: not-allowed;
-	}
-
-	.campo__input:focus {
-		outline: 2px solid var(--color-accent);
-		outline-offset: -1px;
-	}
-
-	.campo__textarea {
-		resize: vertical;
-		line-height: 1.6;
-	}
-
-	.campo__archivo {
-		display: block;
-		font-family: var(--font-body);
-		font-size: 1rem;
+	.drop {
+		border: 1.5px dashed var(--color-text);
+		border-radius: 0.85rem;
 		padding: 1rem;
-		border: 1px dashed var(--color-border);
-		width: 100%;
-		background-color: #fff;
-		cursor: pointer;
+		background: var(--color-surface);
 	}
 
-	.campo__ayuda {
+	.drop input {
 		display: block;
 		margin-top: 0.5rem;
-		font-size: 0.9375rem;
-		color: var(--color-accent-soft);
-		font-weight: 300;
+		width: 100%;
 	}
 
 	.foto-actual {
+		width: 120px;
+		aspect-ratio: 4 / 5;
+		object-fit: cover;
+		border-radius: 0.85rem;
+		margin-bottom: 0.5rem;
+		background: #ead9c6;
+	}
+
+	.foto-color {
+		background: var(--color-surface);
+		border-radius: 0.85rem;
+		padding: 0.85rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.foto-color img {
+		width: 72px;
+		height: 90px;
+		object-fit: cover;
+		border-radius: 0.5rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.mas {
+		background: var(--color-surface);
+		border-radius: 0.85rem;
+		padding: 0.4rem 0.9rem;
+	}
+
+	.mas summary {
+		min-height: 44px;
 		display: flex;
 		align-items: center;
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.foto-actual img {
-		width: 90px;
-		height: 112px;
-		object-fit: cover;
-		background-color: #f2ece4;
-	}
-
-	.foto-actual p {
-		font-size: 0.9375rem;
-		color: var(--color-accent-soft);
-		font-weight: 300;
-	}
-
-	.previsualizacion {
-		margin-top: 1rem;
-	}
-
-	.previsualizacion__titulo {
-		font-size: 0.9375rem;
-		margin-bottom: 0.6rem;
-		color: var(--color-accent-soft);
-	}
-
-	.previsualizacion img {
-		width: 160px;
-		height: 200px;
-		object-fit: cover;
-		background-color: #f2ece4;
+		font-weight: 600;
+		cursor: pointer;
 	}
 
 	.opcion {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		font-size: 1.0625rem;
-		padding: 0.6rem 0;
-		cursor: pointer;
-	}
-
-	.opcion input {
-		width: 22px;
-		height: 22px;
-		accent-color: var(--color-accent);
+		gap: 0.5rem;
+		min-height: 44px;
 	}
 
 	.acciones {
+		position: sticky;
+		bottom: 0;
 		display: flex;
-		align-items: center;
-		gap: 1.5rem;
-		flex-wrap: wrap;
-		margin-top: 0.5rem;
+		gap: 0.6rem;
+		padding: 0.75rem 0;
+		background: var(--color-bg);
 	}
 
-	.boton-principal {
-		font-family: var(--font-body);
-		font-size: 1.0625rem;
-		font-weight: 500;
-		padding: 1.1rem 2rem;
-		background-color: var(--color-accent);
+	.btn-admin,
+	.btn-ghost,
+	.btn-texto {
+		min-height: 44px;
+		padding: 0.55rem 1.1rem;
+		border-radius: var(--radius-pill);
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.btn-admin {
+		background: var(--color-cta);
 		color: #fff;
 		border: none;
-		cursor: pointer;
 	}
 
-	.boton-principal:hover {
-		opacity: 0.88;
-	}
-
-	.boton-cancelar {
-		font-size: 1rem;
-		color: var(--color-accent-soft);
-		text-decoration: none;
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 2px;
-	}
-
-	.boton-cancelar:hover {
+	.btn-ghost,
+	.btn-texto {
+		background: transparent;
+		border: 1.5px solid var(--color-text);
 		color: var(--color-text);
 	}
+
+	.card-preview {
+		background: var(--color-surface);
+		border-radius: var(--radius);
+		overflow: hidden;
+		box-shadow: 0 10px 24px rgba(43, 26, 18, 0.08);
+	}
+
+	.card-preview__foto {
+		aspect-ratio: 4 / 5;
+		background: #ead9c6;
+	}
+
+	.card-preview__foto img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.card-preview h3,
+	.card-preview p {
+		margin: 0;
+		padding: 0 0.75rem;
+	}
+
+	.card-preview h3 {
+		padding-top: 0.7rem;
+		font-size: 1rem;
+	}
+
+	.card-preview__dots {
+		display: flex;
+		gap: 0.3rem;
+		padding: 0.45rem 0.75rem 0.85rem;
+	}
+
+	.card-preview__dots span {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 1.5px solid #2b1a12;
+	}
+
+	.aviso-error {
+		color: #8c3a22;
+		font-size: 0.875rem;
+	}
+
+	.quitar {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		min-height: 44px;
+		font-size: 0.875rem;
+	}
 </style>
+
+<script>
+	const meta: Record<string, { hex: string; border: string }> = {
+		Negro: { hex: "#222222", border: "#222222" },
+		Blanco: { hex: "#FFFFFF", border: "#2B1A12" },
+		Miel: { hex: "#C47C35", border: "#B56E28" },
+		Beige: { hex: "#E7DACB", border: "#2B1A12" },
+		Café: { hex: "#6F4E37", border: "#4F3627" },
+		Plateado: { hex: "#C7C7C7", border: "#A0A0A0" },
+	};
+
+	async function comprimirFoto(archivo: File): Promise<File> {
+		if (!archivo.type.startsWith("image/") || archivo.type === "image/svg+xml") {
+			return archivo;
+		}
+		let bitmap: ImageBitmap;
+		try {
+			bitmap = await createImageBitmap(archivo, { imageOrientation: "from-image" });
+		} catch {
+			bitmap = await createImageBitmap(archivo);
+		}
+		const max = 1600;
+		let ancho = bitmap.width;
+		let alto = bitmap.height;
+		if (Math.max(ancho, alto) > max) {
+			const escala = max / Math.max(ancho, alto);
+			ancho = Math.round(ancho * escala);
+			alto = Math.round(alto * escala);
+		}
+		const canvas = document.createElement("canvas");
+		canvas.width = ancho;
+		canvas.height = alto;
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			bitmap.close();
+			return archivo;
+		}
+		ctx.drawImage(bitmap, 0, 0, ancho, alto);
+		bitmap.close();
+		const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+		if (!blob) return archivo;
+		const nombre = archivo.name.replace(/\.[^.]+$/, "") + ".jpg";
+		return new File([blob], nombre, { type: "image/jpeg" });
+	}
+
+	function asignarArchivo(input: HTMLInputElement, archivo: File) {
+		const transferencia = new DataTransfer();
+		transferencia.items.add(archivo);
+		input.files = transferencia.files;
+	}
+
+	async function alElegirFoto(input: HTMLInputElement, preview?: HTMLImageElement | null) {
+		const original = input.files?.[0];
+		if (!original) return;
+		const comprimida = await comprimirFoto(original);
+		asignarArchivo(input, comprimida);
+		if (preview) {
+			preview.src = URL.createObjectURL(comprimida);
+			preview.hidden = false;
+		}
+		const previewCard = document.getElementById("preview-img") as HTMLImageElement | null;
+		if (previewCard && input.id === "campo-foto") {
+			previewCard.src = preview?.src ?? URL.createObjectURL(comprimida);
+			previewCard.hidden = false;
+		}
+	}
+
+	function pintarPreview() {
+		const nombre = (document.getElementById("campo-nombre") as HTMLInputElement)?.value.trim() || "Nombre";
+		const precioEl = document.getElementById("preview-precio");
+		const nombreEl = document.getElementById("preview-nombre");
+		const precioInput = document.getElementById("campo-precio") as HTMLInputElement | null;
+		if (nombreEl) nombreEl.textContent = nombre;
+		if (precioEl && precioInput) {
+			const n = Number(precioInput.value);
+			precioEl.textContent = Number.isFinite(n)
+				? new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n)
+				: "$ 0";
+		}
+		const dots = document.getElementById("preview-dots");
+		if (!dots) return;
+		dots.innerHTML = "";
+		document.querySelectorAll<HTMLInputElement>('input[name="colores"]:checked').forEach((check) => {
+			const color = check.value;
+			const span = document.createElement("span");
+			const datos = meta[color];
+			if (datos) {
+				span.style.background = datos.hex;
+				span.style.borderColor = datos.border;
+			}
+			dots.appendChild(span);
+		});
+	}
+
+	document.querySelectorAll<HTMLInputElement>('input[name="colores"]').forEach((check) => {
+		const color = check.dataset.color;
+		const bloque = document.querySelector<HTMLElement>(`[data-foto-color="${color}"]`);
+		const sync = () => {
+			if (bloque) bloque.hidden = !check.checked;
+			pintarPreview();
+		};
+		check.addEventListener("change", sync);
+		sync();
+	});
+
+	const fotoPrincipal = document.getElementById("campo-foto") as HTMLInputElement | null;
+	const previewPrincipal = document.getElementById("foto-principal-preview") as HTMLImageElement | null;
+	fotoPrincipal?.addEventListener("change", () => alElegirFoto(fotoPrincipal, previewPrincipal));
+
+	document.querySelectorAll<HTMLInputElement>('input[name^="foto_color_"]').forEach((input) => {
+		input.addEventListener("change", () => alElegirFoto(input));
+	});
+
+	const zona = document.querySelector("[data-drop-principal]");
+	zona?.addEventListener("dragover", (evento) => {
+		evento.preventDefault();
+	});
+	zona?.addEventListener("drop", async (evento) => {
+		evento.preventDefault();
+		const archivo = (evento as DragEvent).dataTransfer?.files?.[0];
+		if (!archivo || !fotoPrincipal) return;
+		asignarArchivo(fotoPrincipal, archivo);
+		await alElegirFoto(fotoPrincipal, previewPrincipal);
+	});
+
+	document.querySelectorAll<HTMLButtonElement>("[data-promover]").forEach((boton) => {
+		boton.addEventListener("click", () => {
+			const hidden = document.getElementById("usar-como-principal") as HTMLInputElement | null;
+			if (hidden) hidden.value = boton.dataset.promover ?? "";
+			boton.textContent = "Se usará como principal al guardar";
+		});
+	});
+
+	document.getElementById("campo-nombre")?.addEventListener("input", pintarPreview);
+	document.getElementById("campo-precio")?.addEventListener("input", pintarPreview);
+
+	document.getElementById("form-producto")?.addEventListener("submit", (evento) => {
+		const hayColor = document.querySelectorAll('input[name="colores"]:checked').length > 0;
+		const aviso = document.getElementById("error-colores");
+		if (!hayColor) {
+			evento.preventDefault();
+			if (aviso) aviso.hidden = false;
+		}
+	});
+
+	pintarPreview();
+</script>

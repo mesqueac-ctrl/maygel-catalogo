@@ -1,199 +1,252 @@
 ---
-import { buildWhatsappLink, MENSAJE_AYUDA } from "../consts";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
 
 const pasos = [
 	{
-		numero: "1",
-		titulo: "Elige modelo y color",
-		// Fase 13.3 §10: no existe un rango de tallas publicado — fabricamos
-		// según la talla que indica la clienta ("Según pedido" en cada PDP).
-		// "Revisa las tallas disponibles" sugería una lista que no existe.
-		texto: "Mira el catálogo y elige tu color preferido.",
+		titulo: "Elige tu modelo",
+		texto: "Mira la colección y escoge tu color.",
 	},
 	{
-		numero: "2",
-		titulo: "Escríbenos por WhatsApp",
-		texto: "Te confirmamos disponibilidad y te asesoramos para elegir la talla ideal.",
+		titulo: "Escríbenos",
+		texto: "Te ayudamos con la talla por WhatsApp.",
 	},
 	{
-		numero: "3",
-		titulo: "Fabricación y entrega",
-		texto:
-			"La confección artesanal de tu sandalia inicia tras confirmar tu pedido y talla. Coordinamos entrega y pago.",
+		titulo: "Lo hacemos para ti",
+		texto: "Fabricamos tu par y coordinamos entrega y pago.",
 	},
 ];
 
-// Fase 11.1: se retiró "Hecho bajo pedido" de esta lista — la misma idea ya
-// se dice en el Manifiesto, el Hero y el tag de cada PDP; repetirla aquí
-// solo alargaba la sección sin información nueva.
-const confianza = [
+const etiquetas = [
 	{
-		titulo: "Cambios",
-		texto: "Por talla, detalles o defectos. El envío del cambio se cobra de nuevo.",
+		label: "Contraentrega en Soledad",
+		icon: "pin",
 	},
 	{
-		titulo: "Atención directa",
-		texto: "Hablas con nosotros por WhatsApp, sin intermediarios ni respuestas automáticas.",
+		label: "Cambios por talla",
+		icon: "swap",
+	},
+	{
+		label: "Atención directa",
+		icon: "chat",
 	},
 ];
 
-// Ayuda visible (Fase 8.3): mensaje propio, distinto de "duda de compra",
-// para que Maygel identifique que viene del bloque de ayuda de la home.
-const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
+const whatsapp = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
-<section class="comprar comprar--compacto" id="como-comprar">
+<section class="comprar section" id="como-comprar">
 	<div class="container">
-		<header class="comprar__header" data-reveal>
-			<h2 class="section-title">Así trabajamos</h2>
+		<header data-reveal>
+			<h2 class="section-title">Cómo comprar</h2>
 		</header>
 
 		<ol class="pasos">
 			{
-				pasos.map((paso) => (
+				pasos.map((paso, i) => (
 					<li class="paso">
-						<span class="paso__numero">{paso.numero}</span>
-						<h3 class="paso__titulo">{paso.titulo}</h3>
-						<p class="paso__texto">{paso.texto}</p>
+						<span class="paso__n" aria-hidden="true">
+							{String(i + 1).padStart(2, "0")}
+						</span>
+						<div>
+							<h3>{paso.titulo}</h3>
+							<p>{paso.texto}</p>
+						</div>
 					</li>
 				))
 			}
 		</ol>
 
-		<div class="confianza">
+		<p class="comprar__cta">
+			<a class="btn" href={whatsapp} target="_blank" rel="noopener noreferrer">
+				Pedir por WhatsApp
+			</a>
+		</p>
+
+		<ul class="etiquetas">
 			{
-				confianza.map((item) => (
-					<div class="confianza__item">
-						<h3 class="confianza__titulo">{item.titulo}</h3>
-						<p class="confianza__texto">{item.texto}</p>
-					</div>
+				etiquetas.map((item) => (
+					<li>
+						{item.icon === "pin" && (
+							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<path
+									fill="currentColor"
+									d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
+								/>
+							</svg>
+						)}
+						{item.icon === "swap" && (
+							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<path
+									fill="currentColor"
+									d="M7 7h11l-2.2-2.2 1.4-1.4L21.8 8 17.2 12.6l-1.4-1.4L18 9H7V7Zm10 10H6l2.2 2.2-1.4 1.4L2.2 16 6.8 11.4l1.4 1.4L6 15h11v2Z"
+								/>
+							</svg>
+						)}
+						{item.icon === "chat" && (
+							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<path
+									fill="currentColor"
+									d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-4 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+								/>
+							</svg>
+						)}
+						<span>{item.label}</span>
+					</li>
 				))
 			}
-		</div>
+		</ul>
 
-		<p class="ayuda-visible" data-reveal>
-			¿Necesitas ayuda para elegir o pedir tu par?{" "}
-			<a href={whatsappAyuda} target="_blank" rel="noopener noreferrer">Escríbenos por WhatsApp</a>.
-		</p>
-
-		<p class="comprar__logistica">
-			Entregamos en Soledad (con pago contraentrega) y Barranquilla (domicilio a cargo de la
-			clienta, entre $10.000 y $15.000 COP). En Cartagena solo atendemos pedidos al por mayor. Pagos
-			con Nequi, Bancolombia, Llave, efectivo o contraentrega.
-			{" "}
-			<a href="/ayuda">Ver la guía completa de ayuda</a>.
-		</p>
+		<details class="politicas">
+			<summary>Ver envíos, pagos y cambios</summary>
+			<div class="politicas__cuerpo">
+				<p>Te confirmamos el tiempo de entrega por WhatsApp.</p>
+				<p>Por talla, detalles o defectos. El envío del cambio se cobra de nuevo.</p>
+				<p>
+					Entregamos en Soledad (con pago contraentrega) y Barranquilla (domicilio a cargo de la
+					clienta, entre $10.000 y $15.000 COP). En Cartagena solo atendemos pedidos al por mayor.
+					Pagos con Nequi, Bancolombia, Llave, efectivo o contraentrega.
+				</p>
+				<p>
+					<a href="/ayuda#tallas">Consulta tu talla</a>
+					{" · "}
+					<a href="/ayuda">Ver la guía completa de ayuda</a>.
+				</p>
+			</div>
+		</details>
 	</div>
 </section>
 
 <style>
 	.comprar {
-		border-top: 1px solid var(--color-line);
-	}
-
-	.comprar--compacto {
-		padding-block: clamp(3rem, 6.5vw, 4.5rem);
-	}
-
-	.comprar__header {
-		margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+		background: var(--color-surface);
 	}
 
 	.pasos {
 		list-style: none;
-		margin: 0 0 clamp(2rem, 4.5vw, 3rem);
+		margin: 1.25rem 0 0;
 		padding: 0;
 		display: grid;
-		gap: clamp(1.75rem, 3.5vw, 2.25rem);
+		gap: 0.85rem;
 	}
 
-	.paso__numero {
-		display: block;
-		font-family: var(--font-body);
-		font-weight: 600;
-		font-variant-numeric: lining-nums tabular-nums;
-		font-size: clamp(2.25rem, 4.5vw, 2.75rem);
-		line-height: 1;
-		color: var(--color-accent);
-		margin-bottom: 0.75rem;
-	}
-
-	.paso__titulo {
-		font-size: 1.1875rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.paso__texto {
-		color: var(--color-muted);
-		max-width: 34ch;
-	}
-
-	.confianza {
-		margin: 0;
-		padding-top: clamp(1.75rem, 3.5vw, 2.25rem);
-		border-top: 1px solid var(--color-line);
+	.paso {
 		display: grid;
-		gap: 1.5rem;
+		grid-template-columns: 2.1rem minmax(0, 1fr);
+		gap: 0.75rem;
+		align-items: start;
+		padding: 0;
+		background: none;
 	}
 
-	.confianza__titulo {
+	.paso__n {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.05rem;
+		letter-spacing: -0.04em;
+		color: var(--color-cta);
+		line-height: 1.35;
+	}
+
+	.paso h3 {
 		font-size: 1rem;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.15rem;
 	}
 
-	.confianza__texto {
-		margin: 0;
-		color: var(--color-muted);
-		max-width: 36ch;
-	}
-
-	/* Fase 11.1: compactada a una sola línea + CTA discreto en el mismo
-	   renglón — antes era una caja independiente (título + texto + botón)
-	   que repetía lo que el CTA de cada PDP ya resuelve. */
-	.ayuda-visible {
-		margin-top: clamp(2rem, 4vw, 2.5rem);
-		font-size: 1.0625rem;
+	.paso p {
 		color: var(--color-text);
-		max-width: 52ch;
+		font-size: 0.9375rem;
+		line-height: 1.45;
+		max-width: none;
 	}
 
-	.ayuda-visible a {
-		color: var(--color-accent);
-		text-decoration: underline;
+	.comprar__cta {
+		margin-top: 1.35rem;
 	}
 
-	.ayuda-visible a:hover {
-		color: var(--color-accent-hover);
+	.etiquetas {
+		list-style: none;
+		margin: 1.25rem 0 0;
+		padding: 0;
+		display: grid;
+		gap: 0.55rem;
 	}
 
-	.comprar__logistica {
-		margin-top: clamp(1.75rem, 3.5vw, 2.25rem);
-		color: var(--color-muted);
+	.etiquetas li {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--color-text);
+	}
+
+	.etiquetas svg {
+		width: 1.05rem;
+		height: 1.05rem;
+		flex-shrink: 0;
+		color: var(--color-cta);
+	}
+
+	.politicas {
+		margin-top: 1.15rem;
 		max-width: 62ch;
 	}
 
-	.comprar__logistica a {
+	.politicas summary {
+		display: flex;
+		align-items: center;
+		min-height: 44px;
+		cursor: pointer;
+		font-weight: 600;
+		color: var(--color-cta);
+		list-style: none;
+	}
+
+	.politicas summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.politicas summary::after {
+		content: "+";
+		margin-left: 0.45rem;
+		font-weight: 700;
+	}
+
+	.politicas[open] summary::after {
+		content: "–";
+	}
+
+	.politicas__cuerpo {
+		display: grid;
+		gap: 0.75rem;
+		padding: 0.15rem 0 0.4rem;
+	}
+
+	.politicas__cuerpo p {
+		font-size: 0.9375rem;
 		color: var(--color-text);
-		text-decoration: none;
-		border-bottom: 1px solid var(--color-accent);
-		padding-bottom: 2px;
-		transition: color 0.2s ease;
 	}
 
-	.comprar__logistica a:hover {
-		color: var(--color-accent);
+	.politicas a {
+		color: var(--color-cta);
+		font-weight: 600;
 	}
 
-	@media (min-width: 700px) {
+	@media (min-width: 768px) {
 		.pasos {
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 1.25rem;
 		}
 
-		.confianza {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 2rem 3rem;
-			max-width: 60ch;
+		.paso {
+			grid-template-columns: 1fr;
+			gap: 0.35rem;
+		}
+
+		.etiquetas {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.85rem;
 		}
 	}
 </style>

@@ -47,6 +47,10 @@ const Producto = defineTable({
 		categoria: column.text({ optional: true }),
 		// Si aparece en la sección de destacados de la homepage.
 		destacado: column.boolean({ default: false }),
+		// Archivado: sale del catálogo público y de la lista activa del panel.
+		// NULL o 0 = no archivado (productos existentes sin valor).
+		// 1 = archivado. No borrar fotos de Blob al archivar.
+		archivado: column.boolean({ optional: true }),
 	},
 });
 

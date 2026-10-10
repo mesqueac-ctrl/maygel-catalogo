@@ -25,8 +25,12 @@ npm run dev
 
 El sitio queda en `http://localhost:4321` y el panel en `http://localhost:4321/admin`.
 
-En local, Astro DB crea una base de datos temporal y la llena con los productos
-de `db/seed.ts` cada vez que arranca.
+`npm run dev` arranca con `--remote`: lee el catálogo real (Luna, Deriva, etc.)
+y las fotos de Blob. No ejecuta `db/seed.ts`.
+
+`npm run dev:fixtures` arranca sin `--remote`: SQLite local + los 3 productos
+de ejemplo de `db/seed.ts` (dibujos SVG, precios de prueba). Esos fixtures
+**nunca** se cargan en producción (`npm run build` / Vercel usa `--remote`).
 
 ### Build
 

@@ -1,4 +1,4 @@
-import { db, Producto, eq, asc, sql } from "astro:db";
+import { db, Producto, eq, and, asc, sql } from "astro:db";
 
 // Café y Plateado confirmados por el negocio en Fase 8.2 — antes solo
 // Negro/Blanco/Miel/Beige.
@@ -15,9 +15,9 @@ export type CategoriaValida = (typeof CATEGORIAS_VALIDAS)[number];
 // del fondo claro del sitio, salvo Negro (ya suficientemente oscuro solo).
 export const COLORES_METADATA: Record<ColorValido, { nombre: string; hex: string; border: string }> = {
 	Negro: { nombre: "Negro", hex: "#222222", border: "#222222" },
-	Blanco: { nombre: "Blanco", hex: "#FFFFFF", border: "#D8CFC4" },
+	Blanco: { nombre: "Blanco", hex: "#FFFFFF", border: "#2B1A12" },
 	Miel: { nombre: "Miel", hex: "#C47C35", border: "#B56E28" },
-	Beige: { nombre: "Beige", hex: "#E7DACB", border: "#D6C4B0" },
+	Beige: { nombre: "Beige", hex: "#E7DACB", border: "#2B1A12" },
 	Café: { nombre: "Café", hex: "#6F4E37", border: "#4F3627" },
 	Plateado: { nombre: "Plateado", hex: "#C7C7C7", border: "#A0A0A0" },
 };
@@ -46,9 +46,24 @@ export interface ProductoRegistro {
 	categoria?: string | null;
 	/** Si aparece en la sección de destacados de la homepage. */
 	destacado: boolean;
+	/** NULL o false = activa. true = archivada (no se ve en la web). */
+	archivado?: boolean | null;
 }
 
-export type ProductoNuevo = Omit<ProductoRegistro, "id" | "orden">;
+export type ProductoNuevo = Omit<ProductoRegistro, "id" | "orden" | "archivado">;
+
+/** NULL o 0/false = no archivado. Solo true/1 cuenta como archivado. */
+export function estaArchivado(valor?: boolean | null | number): boolean {
+	return valor === true || valor === 1;
+}
+
+export function descripcionPublica(nombre: string, descripcion?: string | null): string {
+	const texto = descripcion?.trim();
+	if (texto) return texto;
+	return `Sandalia ${nombre}, hecha a mano bajo pedido por Maygel en Soledad.`;
+}
+
+const FILTRO_NO_ARCHIVADO = sql`(${Producto.archivado} IS NULL OR ${Producto.archivado} = 0)`;
 
 // `slug` ya es NOT NULL + UNIQUE en el schema (db/config.ts) y guardar.ts
 // siempre lo rellena al crear — nunca debería llegar null en la práctica.
@@ -75,7 +90,7 @@ export async function listarDisponibles(): Promise<ProductoRegistro[]> {
 	const filas = await db
 		.select()
 		.from(Producto)
-		.where(eq(Producto.disponible, true))
+		.where(and(eq(Producto.disponible, true), FILTRO_NO_ARCHIVADO))
 		.orderBy(asc(Producto.orden), asc(Producto.id));
 	return filas.map(conSlugSeguro);
 }
@@ -91,7 +106,7 @@ export async function crear(datos: ProductoNuevo): Promise<void> {
 		.select({ maximo: sql<number | null>`max(${Producto.orden})` })
 		.from(Producto);
 
-	await db.insert(Producto).values({ ...datos, orden: (maximo ?? 0) + 1 });
+	await db.insert(Producto).values({ ...datos, orden: (maximo ?? 0) + 1, archivado: false });
 }
 
 export async function actualizar(id: number, datos: ProductoNuevo): Promise<void> {
@@ -100,6 +115,14 @@ export async function actualizar(id: number, datos: ProductoNuevo): Promise<void
 
 export async function eliminar(id: number): Promise<void> {
 	await db.delete(Producto).where(eq(Producto.id, id));
+}
+
+export async function cambiarDisponible(id: number, disponible: boolean): Promise<void> {
+	await db.update(Producto).set({ disponible }).where(eq(Producto.id, id));
+}
+
+export async function cambiarArchivado(id: number, archivado: boolean): Promise<void> {
+	await db.update(Producto).set({ archivado }).where(eq(Producto.id, id));
 }
 
 /**
@@ -165,6 +188,14 @@ export function coloresComoLista(colores?: string | null): ColorValido[] {
  * vacío o corrupto simplemente no aporta imágenes por color (fallback total
  * a la imagen principal), sin lanzar excepción.
  */
+export function urlsDeFotosProducto(producto: Pick<ProductoRegistro, "imagen" | "imagenesColores">): string[] {
+	const urls = [producto.imagen];
+	for (const url of Object.values(imagenesColoresComoMapa(producto.imagenesColores))) {
+		if (url) urls.push(url);
+	}
+	return [...new Set(urls.filter((url) => url.startsWith("http")))];
+}
+
 export function imagenesColoresComoMapa(
 	imagenesColores?: string | null,
 ): Partial<Record<ColorValido, string>> {
@@ -276,4 +307,22 @@ export function precioEfectivo(producto: Pick<ProductoRegistro, "precio" | "prec
  * a mostrar como descuento (mismo criterio que `precioEfectivo()`). */
 export function tieneDescuento(producto: Pick<ProductoRegistro, "precio" | "precioOferta">): boolean {
 	return precioEfectivo(producto) !== producto.precio;
+}
+
+/** Foto de apoyo para bloques editoriales (hero, historia, modelo propio).
+ * Prueba slugs reales; si no existen (p. ej. fixtures locales), usa el primer
+ * producto disponible con imagen. Nunca inventa una URL. */
+export async function fotoDeApoyo(slugsPreferidos: string[]): Promise<{
+	imagen: string;
+	alt: string;
+} | null> {
+	for (const slug of slugsPreferidos) {
+		const producto = await obtenerPorSlug(slug);
+		if (producto?.imagen && producto.disponible && !estaArchivado(producto.archivado)) {
+			return { imagen: imagenParaColor(producto, null), alt: descripcionImagen(producto.nombre) };
+		}
+	}
+	const disponible = (await listarDisponibles()).find((p) => p.imagen);
+	if (!disponible) return null;
+	return { imagen: imagenParaColor(disponible, null), alt: descripcionImagen(disponible.nombre) };
 }

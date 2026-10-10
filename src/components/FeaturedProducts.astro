@@ -6,6 +6,7 @@ import {
 	precioEfectivo,
 	tieneDescuento,
 	descripcionImagen,
+	descripcionPublica,
 	imagenParaColor,
 	coloresComoLista,
 } from "../lib/productos";
@@ -66,7 +67,7 @@ if (producto) {
 						)}
 						<span class="destacado__precio-actual">{precioFormateado}</span>
 					</p>
-					<p class="destacado__descripcion">{producto.descripcion}</p>
+					<p class="destacado__descripcion">{descripcionPublica(producto.nombre, producto.descripcion)}</p>
 					<a
 						class="btn"
 						href={enlaceWhatsapp}

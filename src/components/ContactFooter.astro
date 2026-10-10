@@ -4,12 +4,10 @@ import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, INSTAGRAM_URL, INSTAGRAM_H
 const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 
 const navLinks = [
-	{ href: "#catalogo", label: "Colección" },
-	{ href: "#sobre-nosotros", label: "Nuestra historia" },
-	{ href: "#como-comprar", label: "Cómo comprar" },
-	{ href: "#por-mayor", label: "Mayoristas" },
-	// Ayuda y Términos (Fase 8.3): acceso directo desde el footer, punto
-	// mínimo de arquitectura pedido para la nueva capa de ayuda visible.
+	{ href: "/#catalogo", label: "Colección" },
+	{ href: "/#sobre-nosotros", label: "Nuestra historia" },
+	{ href: "/#como-comprar", label: "Cómo comprar" },
+	{ href: "/#por-mayor", label: "Mayoristas" },
 	{ href: "/ayuda", label: "Ayuda" },
 	{ href: "/terminos", label: "Términos" },
 ];
@@ -17,8 +15,6 @@ const navLinks = [
 
 <footer class="footer section section--dark" id="contacto">
 	<div class="container">
-		<p class="footer__brand">Maygel</p>
-
 		<div class="footer__top">
 			<h2 class="section-title footer__title">Hablemos</h2>
 			<p class="footer__lead">
@@ -29,62 +25,58 @@ const navLinks = [
 				Escríbenos por WhatsApp
 			</a>
 		</div>
-
 		<div class="footer__bottom">
 			<nav class="footer__nav" aria-label="Navegación del pie de página">
 				{navLinks.map((link) => (
 					<a class="footer__link" href={link.href}>{link.label}</a>
 				))}
-				<a class="footer__link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-					@{INSTAGRAM_HANDLE}
+				<a
+					class="footer__link footer__ig"
+					href={INSTAGRAM_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<svg class="footer__ig-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path
+							fill="currentColor"
+							d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2Zm0 7.92A3.12 3.12 0 1 1 12 8.88a3.12 3.12 0 0 1 0 6.24ZM17.34 6.9a1.12 1.12 0 1 1-2.24 0 1.12 1.12 0 0 1 2.24 0ZM12 2.4c-2.6 0-2.93.01-3.96.07-1.03.05-1.73.21-2.34.45a4.73 4.73 0 0 0-1.71 1.11 4.73 4.73 0 0 0-1.11 1.71c-.24.61-.4 1.31-.45 2.34C2.41 9.07 2.4 9.4 2.4 12s.01 2.93.07 3.96c.05 1.03.21 1.73.45 2.34a4.73 4.73 0 0 0 1.11 1.71 4.73 4.73 0 0 0 1.71 1.11c.61.24 1.31.4 2.34.45 1.03.06 1.36.07 3.96.07s2.93-.01 3.96-.07c1.03-.05 1.73-.21 2.34-.45a4.73 4.73 0 0 0 1.71-1.11 4.73 4.73 0 0 0 1.11-1.71c.24-.61.4-1.31.45-2.34.06-1.03.07-1.36.07-3.96s-.01-2.93-.07-3.96c-.05-1.03-.21-1.73-.45-2.34a4.73 4.73 0 0 0-1.11-1.71 4.73 4.73 0 0 0-1.71-1.11c-.61-.24-1.31-.4-2.34-.45C14.93 2.41 14.6 2.4 12 2.4Zm0 1.68c2.56 0 2.86.01 3.87.07.93.04 1.44.2 1.78.33.45.17.77.38 1.1.71.33.33.54.65.71 1.1.13.34.29.85.33 1.78.06 1.01.07 1.31.07 3.87s-.01 2.86-.07 3.87c-.04.93-.2 1.44-.33 1.78-.17.45-.38.77-.71 1.1-.33.33-.65.54-1.1.71-.34.13-.85.29-1.78.33-1.01.06-1.31.07-3.87.07s-2.86-.01-3.87-.07c-.93-.04-1.44-.2-1.78-.33a2.96 2.96 0 0 1-1.1-.71 2.96 2.96 0 0 1-.71-1.1c-.13-.34-.29-.85-.33-1.78-.06-1.01-.07-1.31-.07-3.87s.01-2.86.07-3.87c.04-.93.2-1.44.33-1.78.17-.45.38-.77.71-1.1.33-.33.65-.54 1.1-.71.34-.13.85-.29 1.78-.33 1.01-.06 1.31-.07 3.87-.07Z"
+						/>
+					</svg>
+					<span>@{INSTAGRAM_HANDLE}</span>
 				</a>
 			</nav>
-
 			<p class="footer__copy">© {new Date().getFullYear()} Maygel — Hecho a mano, con familia.</p>
 		</div>
 	</div>
 </footer>
 
 <style>
-	.footer {
-		border-top: 1px solid var(--color-line);
-		padding-block: clamp(3rem, 7.5vw, 4.5rem) clamp(2.25rem, 5vw, 3rem);
-	}
-
-	.footer__brand {
-		font-family: var(--font-display);
-		font-weight: 400;
-		font-size: clamp(2.5rem, 7vw, 4rem);
-		letter-spacing: 0.005em;
-		margin-bottom: clamp(2rem, 5vw, 3.25rem);
-	}
-
 	.footer__top {
-		max-width: 46ch;
-		margin-bottom: clamp(2.5rem, 5.5vw, 3.75rem);
+		max-width: 44ch;
+		margin-bottom: 2.5rem;
 	}
 
 	.footer__title {
-		margin-bottom: 1.25rem;
+		margin-bottom: 0.85rem;
 	}
 
 	.footer__lead {
-		color: rgba(244, 236, 225, 0.7);
-		margin-bottom: 2rem;
+		color: rgba(255, 250, 243, 0.82);
+		margin-bottom: 1.4rem;
 	}
 
 	.footer__bottom {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
-		padding-top: 2rem;
+		gap: 1rem;
+		padding-top: 1.5rem;
 		border-top: 1px solid var(--color-dark-line);
 	}
 
 	.footer__nav {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.5rem 1.5rem;
+		gap: 0.4rem 1.25rem;
 	}
 
 	.footer__link {
@@ -92,28 +84,30 @@ const navLinks = [
 		align-items: center;
 		min-height: 44px;
 		text-decoration: none;
-		font-size: 0.875rem;
-		color: rgba(244, 236, 225, 0.65);
-		transition: color 0.2s ease;
+		font-size: 0.9rem;
+		color: rgba(255, 250, 243, 0.78);
 	}
 
-	.footer__link:hover {
-		color: var(--color-champagne);
+	.footer__ig {
+		gap: 0.4rem;
+	}
+
+	.footer__ig-icon {
+		width: 1.1rem;
+		height: 1.1rem;
+		flex-shrink: 0;
 	}
 
 	.footer__copy {
 		font-size: 0.8125rem;
-		/* Fase 13.3 §20: 0.45 medía 4.03:1 sobre el fondo oscuro (Lighthouse
-		   color-contrast) — bajo el mínimo AA de 4.5:1 para texto normal.
-		   0.55 mide 5.40:1, con margen. */
-		color: rgba(244, 236, 225, 0.55);
+		color: rgba(255, 250, 243, 0.62);
 	}
 
 	@media (min-width: 700px) {
 		.footer__bottom {
 			flex-direction: row;
-			align-items: center;
 			justify-content: space-between;
+			align-items: center;
 		}
 	}
 </style>

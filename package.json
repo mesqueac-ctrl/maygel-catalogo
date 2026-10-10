@@ -6,7 +6,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --remote",
+    "dev:fixtures": "astro dev",
     "build": "astro build --remote",
     "build:local": "astro build",
     "preview": "astro preview",

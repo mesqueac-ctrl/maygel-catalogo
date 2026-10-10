@@ -325,16 +325,12 @@ Ver reglas obligatorias hacia adelante en `SEO_RULES.md`.
 - **Flujo de productos**: listar (`index.astro`) → crear/editar (`ProductoForm.astro`
   compartido) → `api/guardar.ts` (valida, sube fotos, inserta/actualiza) →
   redirect con `?ok=` o `?error=`.
-- **Reordenamiento**: `admin/productos/ordenar.astro` — el array completo se
-  reorganiza en el cliente (sin escrituras intermedias); "Guardar orden" envía
-  el array completo de IDs a `api/reordenar.ts`, que valida exhaustivamente
-  (array, enteros positivos, sin duplicados, cuenta exacta, todos los IDs
-  existen, ninguno falta, ninguno sobra) antes de escribir con
-  `guardarOrdenCompleto()` — un único `db.batch()` atómico (soportado por el
-  driver `drizzle-orm/libsql` subyacente). Cualquier fallo de validación no
-  escribe nada. El listado principal (`admin/productos/index.astro`) **no**
-  tiene controles de orden fila-por-fila — esa responsabilidad vive solo en
-  `ordenar.astro`.
+- **Reordenamiento**: en `admin/productos/index.astro` (arrastrar + flechas).
+  El cliente envía los IDs de las sandalias **no archivadas**; el servidor
+  concatena las archivadas al final y escribe con `guardarOrdenCompleto()`
+  (batch atómico). `/admin/productos/ordenar` redirige a la lista.
+- **Archivado**: columna `archivado` (NULL/0 = activa). `listarDisponibles()`
+  excluye archivadas. Eliminar definitivo solo desde Archivadas y borra Blob.
 - **Vista previa**: `admin/vista-previa.astro` — iframe de `/` con toggle
   móvil/computador, sin lógica de negocio.
 - El panel **no sigue el sistema de marca minimalista** de la web pública

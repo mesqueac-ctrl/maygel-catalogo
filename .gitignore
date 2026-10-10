@@ -23,3 +23,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .vercel
+
+# Fotos de prueba del panel en local (nunca producción)
+public/uploads/

@@ -1,23 +1,17 @@
 ---
 import { Image } from "astro:assets";
-import { buildWhatsappLink, MENSAJE_MODELO_PERSONALIZADO } from "../consts";
-import { obtenerPorSlug, imagenParaColor } from "../lib/productos";
+import { buildWhatsappLink, MENSAJE_MODELO_PERSONALIZADO, SEO_PRODUCTO } from "../consts";
+import { fotoDeApoyo } from "../lib/productos";
 
 const whatsappLink = buildWhatsappLink(MENSAJE_MODELO_PERSONALIZADO);
 
-// Fase 9.3: imagen temporal de apoyo visual, reutilizando la foto ya subida
-// del producto real "nudo" — distinta de la usada en Hero (luna) y en
-// About (deriva). Se descartaron "bruma", "nácar", "estela" y "onda" para
-// este uso: sus fotos muestran branding de proveedor visible en la plantilla
-// (monograma dorado, texto "MS", texto "CT SHOES") — ver hallazgo de
-// Fase 9.3 en el reporte. "nudo"/"trazo" y "cristal" se verificaron limpias.
-const referencia = await obtenerPorSlug("nudo");
-const imagenReferencia = referencia ? imagenParaColor(referencia, null) : null;
+const apoyo = await fotoDeApoyo(["nudo", "trazo", "cristal"]);
+const imagenReferencia = apoyo?.imagen ?? null;
 const imagenEsRemota = imagenReferencia?.startsWith("http") ?? false;
-const altReferencia = "Sandalias Maygel — apoyo visual de marca";
+const altReferencia = SEO_PRODUCTO.nudo?.alt ?? apoyo?.alt ?? "Sandalia Nudo de Maygel, plana con nudo decorativo";
 ---
 
-<section class="modelo section--dark modelo--compacto">
+<section class="modelo section">
 	<div class="container modelo__inner">
 		<div class="modelo__media" data-reveal>
 			{imagenReferencia ? (
@@ -46,7 +40,7 @@ const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 				Envíanos una foto o referencia por WhatsApp. Revisamos el diseño y te confirmamos si es
 				posible fabricarlo.
 			</p>
-			<a class="btn btn-on-dark" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+			<a class="btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
 				Consultar por WhatsApp
 			</a>
 		</div>
@@ -70,6 +64,7 @@ const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 		aspect-ratio: 16 / 10;
 		max-height: clamp(260px, 34vw, 460px);
 		overflow: hidden;
+		border-radius: var(--radius);
 		/* Superficie clara a propósito, aunque la sección sea oscura: si la
 		   imagen de referencia no resuelve, este bloque debe leerse como una
 		   superficie vacía distinta del fondo, nunca fundirse con la sección
@@ -102,7 +97,7 @@ const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 	}
 
 	.modelo__parrafo {
-		color: rgba(244, 236, 225, 0.75);
+		color: var(--color-text);
 		margin-bottom: 2rem;
 		max-width: 42ch;
 	}

@@ -39,7 +39,7 @@ const pasos = [
 			</div>
 
 			<div class="container ayuda__bloques">
-				<article class="ayuda__bloque">
+				<article class="ayuda__bloque" id="tallas">
 					<h2 class="ayuda__bloque-titulo">Cómo pedir tu par</h2>
 					<ol class="ayuda__pasos">
 						{pasos.map((paso) => <li>{paso}</li>)}
@@ -132,7 +132,7 @@ const pasos = [
 	.ayuda__titulo {
 		font-family: var(--font-display);
 		font-size: clamp(2rem, 5vw, 2.75rem);
-		font-weight: 400;
+		font-weight: 800;
 		margin-bottom: 1.25rem;
 	}
 
@@ -156,12 +156,13 @@ const pasos = [
 	.ayuda__bloque {
 		border-top: 1px solid var(--color-line);
 		padding-top: clamp(2rem, 4vw, 2.5rem);
+		scroll-margin-top: 5.5rem;
 	}
 
 	.ayuda__bloque-titulo {
 		font-family: var(--font-display);
 		font-size: clamp(1.375rem, 3vw, 1.75rem);
-		font-weight: 400;
+		font-weight: 800;
 		margin-bottom: 1rem;
 	}
 

@@ -50,8 +50,16 @@ async function subirFoto(foto: File): Promise<string> {
 
 		return resultado.url;
 	} catch {
-		// No exponemos el error real (puede mencionar detalles internos de
-		// autenticación) — solo un mensaje seguro y accionable para la usuaria.
+		if (import.meta.env.DEV) {
+			const fs = await import("node:fs/promises");
+			const path = await import("node:path");
+			const dir = path.join(process.cwd(), "public", "uploads");
+			await fs.mkdir(dir, { recursive: true });
+			const seguro = foto.name.replace(/[^\w.\-]+/g, "") || "foto.jpg";
+			const nombre = `${Date.now()}-${seguro}`;
+			await fs.writeFile(path.join(dir, nombre), Buffer.from(await foto.arrayBuffer()));
+			return `/uploads/${nombre}`;
+		}
 		throw new Error(
 			"No se pudo subir la foto. Avísale a quien administra la página técnica.",
 		);
@@ -104,9 +112,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return errorRedirect(redirect, "Categoría no válida.");
 	}
 
-	if (!nombre || !tallas || !descripcion) {
-		return errorRedirect(redirect, "Faltan datos por llenar.");
+	if (!nombre) {
+		return errorRedirect(redirect, "Falta el nombre de la sandalia.");
 	}
+
+	const tallasGuardar = tallas || "Según pedido";
 
 	// Slug — contrato final (Fase 5.1): una vez creado un producto, su slug
 	// NUNCA cambia desde el admin, sin excepción. Al editar, se reutiliza
@@ -220,6 +230,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 	const mapaImagenesColores: Partial<Record<ColorValido, string>> = { ...mapaAnterior };
 
 	for (const color of coloresValidados) {
+		if (datos.get(`quitar_foto_color_${color}`) === "si") {
+			delete mapaImagenesColores[color];
+			continue;
+		}
 		const fotoColor = datos.get(`foto_color_${color}`);
 		if (fotoColor instanceof File && fotoColor.size > 0) {
 			try {
@@ -229,6 +243,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 				return errorRedirect(redirect, `Color ${color}: ${mensaje}`);
 			}
 		}
+	}
+
+	const promover = String(datos.get("usarComoPrincipal") ?? "").trim();
+	if ((COLORES_VALIDOS as readonly string[]).includes(promover) && mapaImagenesColores[promover as ColorValido]) {
+		const urlColor = mapaImagenesColores[promover as ColorValido]!;
+		if (imagen && imagen !== urlColor) {
+			mapaImagenesColores[promover as ColorValido] = imagen;
+		}
+		imagen = urlColor;
 	}
 
 	// Solo conservamos entradas de colores que siguen marcados; si desmarcaron
@@ -245,7 +268,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		slug,
 		precio,
 		precioOferta,
-		tallas,
+		tallas: tallasGuardar,
 		colores,
 		imagen,
 		imagenesColores,

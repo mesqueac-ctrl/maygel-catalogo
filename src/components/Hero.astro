@@ -1,127 +1,135 @@
 ---
 import { Image } from "astro:assets";
-import { obtenerPorSlug, imagenParaColor, descripcionImagen } from "../lib/productos";
+import { fotoDeApoyo } from "../lib/productos";
+import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL, SEO_PRODUCTO } from "../consts";
 
-// Fase 9.1B: imagen temporal de dirección visual (ver
-// docs/COLLECTION_01_VISUAL_DRAFT.md — Luna, "HERO APROBADO PARA DIRECCIÓN
-// VISUAL — FOTO OFICIAL PENDIENTE"). Se lee del producto real "luna" para no
-// duplicar la URL del asset: cuando llegue la fotografía oficial y se
-// reemplace la imagen de Luna en el admin, este hero se actualiza solo.
-const luna = await obtenerPorSlug("luna");
-const heroImagen = luna ? imagenParaColor(luna, null) : null;
+const apoyo = await fotoDeApoyo(["luna"]);
+const heroImagen = apoyo?.imagen ?? null;
 const heroImagenEsRemota = heroImagen?.startsWith("http") ?? false;
-const heroAlt = luna ? descripcionImagen(luna.nombre) : "Sandalias Maygel";
+const heroAlt = SEO_PRODUCTO.luna?.alt ?? apoyo?.alt ?? "Sandalia Luna de Maygel, plana con tiras finas y tobillera";
+const whatsapp = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
 ---
 
 <section class="hero" id="inicio">
 	<div class="container hero__inner">
-		<div class="hero__media">
-			{heroImagen ? (
-				heroImagenEsRemota ? (
-					<Image
-						src={heroImagen}
-						alt={heroAlt}
-						width={1200}
-						height={1500}
-						widths={[600, 1200, 1800]}
-						sizes="(min-width: 900px) 55vw, 100vw"
-						format="webp"
-						loading="eager"
-						fetchpriority="high"
-					/>
-				) : (
-					<img src={heroImagen} alt={heroAlt} width="1200" height="1500" loading="eager" fetchpriority="high" decoding="async" />
-				)
-			) : (
-				<div class="hero__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
-			)}
-		</div>
-
 		<div class="hero__text">
-			<h1>Hecho despacio.</h1>
-			<p class="hero__subtitle">
-				Sandalias artesanales para acompañar cada paso, con calma.
-			</p>
-			<a class="btn" href="#catalogo">Descubrir la colección</a>
+			<h1>Sandalias hechas a mano, para ti.</h1>
+			<p class="hero__subtitle">Taller familiar en Soledad. Cada par se fabrica bajo pedido.</p>
+			<div class="hero__acciones">
+				<a class="btn" href="#catalogo">Ver la colección</a>
+				<a class="btn btn-outline" href={whatsapp} target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
+			</div>
+		</div>
+		<div class="hero__media">
+			{
+				heroImagen ? (
+					heroImagenEsRemota ? (
+						<Image
+							src={heroImagen}
+							alt={heroAlt}
+							width={1200}
+							height={1500}
+							widths={[600, 1200, 1800]}
+							sizes="(min-width: 900px) 48vw, 100vw"
+							format="webp"
+							loading="eager"
+							fetchpriority="high"
+						/>
+					) : (
+						<img src={heroImagen} alt={heroAlt} width="1200" height="1500" loading="eager" fetchpriority="high" decoding="async" />
+					)
+				) : (
+					<div class="hero__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
+				)
+			}
 		</div>
 	</div>
 </section>
 
 <style>
 	.hero {
-		padding-top: clamp(1rem, 3vw, 1.75rem);
-		padding-bottom: clamp(2.5rem, 6vw, 4rem);
+		padding: 1rem 0 1rem;
+		background: var(--color-bg);
+		color: var(--color-text);
+	}
+
+	.hero h1 {
+		color: var(--color-text);
 	}
 
 	.hero__inner {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.hero__media {
-		width: 100%;
-		aspect-ratio: 4 / 5;
-		max-height: 460px;
-		overflow: hidden;
-		background-color: var(--color-surface);
-		margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
-	}
-
-	.hero__media :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center 30%;
-	}
-
-	/* Fallback compacto si el producto de referencia (Luna) no existe o su
-	   imagen no carga — nunca vuelve a ser el bloque marrón de pantalla
-	   completa: mismo tamaño/posición que la imagen real, fondo neutro. */
-	.hero__visual {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		background-color: var(--color-surface);
-	}
-
-	.hero__text {
-		max-width: 46ch;
+		display: grid;
+		gap: 1.5rem;
 	}
 
 	.hero__text h1 {
-		font-size: clamp(2.75rem, 8vw, 5.5rem);
-		line-height: 0.96;
-		margin-bottom: 1.25rem;
+		font-size: clamp(2.05rem, 8.4vw, 4.75rem);
+		margin-bottom: 0.9rem;
+		hyphens: none;
+		overflow-wrap: normal;
+		word-break: normal;
+		text-wrap: balance;
 	}
 
 	.hero__subtitle {
-		max-width: 38ch;
-		color: var(--color-muted);
 		font-size: 1.0625rem;
-		margin-bottom: 1.75rem;
+		color: var(--color-text);
+		max-width: 34ch;
+		margin-bottom: 1.5rem;
 	}
 
-	/* Desktop: composición asimétrica 55/45, imagen y texto lado a lado —
-	   altura gobernada por el ancho de viewport (vw), nunca por vh, para que
-	   no dependa de la altura de pantalla del visitante. */
+	.hero__acciones {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.65rem;
+		max-width: 22rem;
+	}
+
+	.hero__acciones :global(.btn),
+	.hero__acciones :global(.btn-outline) {
+		justify-content: center;
+		width: 100%;
+	}
+
+	.hero__media {
+		border-radius: var(--radius);
+		overflow: hidden;
+		aspect-ratio: 4 / 5;
+		background: var(--color-image-fallback);
+	}
+
+	.hero__media :global(img),
+	.hero__visual {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
 	@media (min-width: 900px) {
+		.hero {
+			padding: 2rem 0 1.25rem;
+		}
+
 		.hero__inner {
+			grid-template-columns: 1.05fr 0.95fr;
+			align-items: center;
+			gap: 3rem;
+		}
+
+		.hero__acciones {
 			flex-direction: row;
 			align-items: center;
-			gap: clamp(2.5rem, 5vw, 4rem);
+			max-width: none;
+		}
+
+		.hero__acciones :global(.btn),
+		.hero__acciones :global(.btn-outline) {
+			width: auto;
 		}
 
 		.hero__media {
-			flex: 1 1 55%;
-			aspect-ratio: auto;
-			height: clamp(420px, 34vw, 620px);
-			max-height: 620px;
-			margin-bottom: 0;
-		}
-
-		.hero__text {
-			flex: 1 1 45%;
-			max-width: 40ch;
+			max-height: 640px;
 		}
 	}
 </style>

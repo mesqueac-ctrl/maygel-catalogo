@@ -61,14 +61,23 @@
 
 ## Fase 3 — Homepage editorial
 
-- **Objetivo:** ajustar la homepage contra `HOMEPAGE_SPEC.md` — en particular
-  evaluar social proof real y la sección de historia extendida si el negocio
-  aporta contenido.
-- **Alcance:** secciones de `src/pages/index.astro` y sus componentes.
-- **Dependencias:** Fases 1-2, contenido real de historia (`CONTENT_GUIDE.md`).
+- **Objetivo:** ajustar la homepage contra `HOMEPAGE_SPEC.md` — ritmo,
+  catálogo, confianza y WhatsApp móvil, sin inventar contenido comercial.
+- **Alcance:** `index.astro` (orden: hero → colección → historia → cómo
+  comprar → mayoristas → diseño personalizado → footer); catálogo con
+  swatches, descripción opcional y precio único cuando el catálogo es
+  uniforme; fusión del manifiesto con el encabezado del catálogo; retiro de
+  "La favorita del taller" y del badge "Selección"; hueco de tiempo de
+  entrega y enlace a `/ayuda#tallas`; `ConfianzaSocial.astro` sin render si
+  el array está vacío; alts descriptivos en fotos de apoyo; FAB de WhatsApp
+  en `Layout.astro` (no admin).
+- **Dependencias:** Fases 1-2.
 - **Criterios de aprobación:** cada sección tiene contenido real o se omite;
-  sin secciones de relleno.
-- **Estado:** ⬜ Pendiente.
+  sin placeholders visibles de testimonios; `npm run build` limpio; sin
+  overflow en 375/768/1440; CTAs de conversión siguen usando los mensajes
+  de `consts.ts` / `whatsapp.ts`.
+- **Estado:** ✅ Completa (revisión home 2026-10-09). Historia de marca y
+  fotografía editorial siguen `⏸ Bloqueadas por negocio`.
 
 ## Fase 4 — Catálogo
 

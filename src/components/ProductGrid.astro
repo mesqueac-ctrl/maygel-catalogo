@@ -3,48 +3,31 @@ import ProductCard from "./ProductCard.astro";
 import { listarDisponibles } from "../lib/productos";
 import { buildWhatsappLink, MENSAJE_CONTACTO_GENERAL } from "../consts";
 
-// Fase 4: el filtrado por categoría no se construye todavía — CATEGORIAS_VALIDAS
-// sigue siendo una taxonomía provisional (ver ARCHITECTURE.md § 9.3) y hoy no
-// aporta valor real con 3 productos. Los chips decorativos de la fase anterior
-// se retiraron: un control que parece interactivo debe serlo, o no debe estar.
-// Cuando el negocio confirme categorías reales, el filtrado se construye
-// leyendo `producto.categoria` (ya en el modelo de datos) sin tocar este
-// componente más que para añadir los controles — la separación entre datos
-// y presentación ya existe.
 const productos = await listarDisponibles();
 const whatsappLink = buildWhatsappLink(MENSAJE_CONTACTO_GENERAL);
-
-// El grid no asume 3 fixtures: con 1 producto se usa una composición propia
-// (sin estirar la tarjeta), con 2 se limita a 2 columnas incluso en
-// escritorio (nunca una tercera columna vacía), y desde 3 se usa el grid
-// normal 1/2/3 columnas.
 const cantidad = productos.length;
 ---
 
 <section class="catalogo section" id="catalogo">
 	<div class="container">
 		<header class="catalogo__header" data-reveal>
-			<h2 class="section-title">Hechas a mano, bajo pedido</h2>
-			<p class="catalogo__subtitle">
-				Fabricamos cada sandalia especialmente a partir de tu encargo en nuestro taller familiar.
+			<h2 class="section-title">La colección</h2>
+			<p class="catalogo__subtitle">Elige tu modelo y tu color favorito.</p>
+			<p class="catalogo__tallas">
+				<a href="/ayuda#tallas">Consulta tu talla</a>
 			</p>
 		</header>
 
 		{
 			cantidad === 0 ? (
 				<div class="catalogo__vacio">
-					<p class="catalogo__vacio-titulo">Por ahora no tenemos modelos publicados aquí.</p>
-					<p>Escríbenos por WhatsApp y te contamos qué podemos fabricar para ti.</p>
+					<p>Por ahora no tenemos modelos publicados aquí.</p>
 					<a class="btn" href={whatsappLink} target="_blank" rel="noopener noreferrer">
 						Escríbenos por WhatsApp
 					</a>
 				</div>
-			) : cantidad === 1 ? (
-				<div class="catalogo__unico">
-					<ProductCard producto={productos[0]} />
-				</div>
 			) : (
-				<div class={`catalogo__grid ${cantidad === 2 ? "catalogo__grid--dos" : ""}`}>
+				<div class="catalogo__grid">
 					{productos.map((producto) => (
 						<ProductCard producto={producto} />
 					))}
@@ -55,78 +38,52 @@ const cantidad = productos.length;
 </section>
 
 <style>
-	.catalogo {
-		border-top: 1px solid var(--color-line);
-	}
-
-	/* El catálogo es la única sección que necesita más ancho que el resto del
-	   sitio (--max-width: 1180px se mantiene intacto en todas las demás) —
-	   para que las fotografías se sientan protagonistas en pantallas anchas. */
-	.catalogo > .container {
-		max-width: 1440px;
+	.catalogo.section {
+		padding-top: clamp(2.75rem, 6vw, 5rem);
 	}
 
 	.catalogo__header {
-		margin-bottom: clamp(3rem, 7vw, 5rem);
-		max-width: 50ch;
+		margin-bottom: 1.75rem;
 	}
 
 	.catalogo__subtitle {
-		margin-top: 1.1rem;
-		color: var(--color-muted);
-		max-width: 50ch;
+		margin-top: 0.7rem;
+		color: var(--color-text);
+		max-width: 42ch;
+	}
+
+	.catalogo__tallas a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		color: var(--color-cta);
+		font-weight: 600;
 	}
 
 	.catalogo__vacio {
-		max-width: 46ch;
-		margin-top: clamp(2.5rem, 5vw, 3.5rem);
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 1.25rem;
-		color: var(--color-muted);
-	}
-
-	.catalogo__vacio-titulo {
-		font-family: var(--font-display);
-		font-size: clamp(1.5rem, 3vw, 2rem);
-		font-weight: 400;
-		color: var(--color-text);
-	}
-
-	/* Un solo producto: composición propia, nunca una tarjeta estirada a un
-	   ancho absurdo dentro de un grid pensado para varias. */
-	.catalogo__unico {
-		margin-top: clamp(3rem, 6vw, 4.5rem);
-		max-width: 420px;
+		display: grid;
+		gap: 1rem;
+		max-width: 40ch;
 	}
 
 	.catalogo__grid {
 		display: grid;
-		grid-template-columns: 1fr;
-		gap: clamp(2.5rem, 8vw, 4rem);
-		margin-top: clamp(3rem, 6vw, 4.5rem);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.75rem;
+		align-items: stretch;
 	}
 
-	/* Mobile empieza en 1 columna: a 320–360px, 2 columnas dejan la fotografía
-	   demasiado pequeña para sentirse premium. Se escala a 2 columnas cuando
-	   hay ancho real para que cada foto siga siendo protagonista. */
-	@media (min-width: 480px) {
+	@media (min-width: 768px) {
 		.catalogo__grid {
-			grid-template-columns: repeat(2, 1fr);
-			gap: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 3vw, 2.5rem);
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 1.15rem;
 		}
 	}
 
-	/* Exactamente 2 productos: nunca una tercera columna vacía en escritorio. */
-	.catalogo__grid--dos {
-		max-width: 760px;
-	}
-
-	@media (min-width: 1000px) {
-		.catalogo__grid:not(.catalogo__grid--dos) {
-			grid-template-columns: repeat(3, 1fr);
-			gap: clamp(3.5rem, 5vw, 5rem) clamp(2rem, 3vw, 3rem);
+	@media (min-width: 1200px) {
+		.catalogo__grid {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 1.25rem;
 		}
 	}
 </style>

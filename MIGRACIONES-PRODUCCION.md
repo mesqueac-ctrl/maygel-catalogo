@@ -253,6 +253,27 @@ CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);
    aplicadas" de abajo con fecha real y filas antes/después, y quitar esta
    sección o marcarla como completada.
 
+## Migración diseñada, NO ejecutada: columna `archivado`
+
+**Estado: escrita aquí y en `scripts/migracion-archivado.sql`. No se ha
+corrido contra producción ni contra la base remota.**
+
+### Orden obligatorio
+
+1. **Primero** aplicar el `ALTER` en producción (script temporal con
+   `@libsql/client`, nunca `astro db push`).
+2. Verificar con `npm run db:inspect:remote`: misma cantidad de filas; la
+   columna nueva en `NULL` para las existentes.
+3. **Después** desplegar el código que lee `archivado`.
+4. Si se despliega el código antes del ALTER, las consultas a `Producto`
+   fallan con `no such column: archivado`.
+
+NULL o 0 = no archivado. Solo 1/true cuenta como archivada.
+
+```sql
+ALTER TABLE "Producto" ADD COLUMN "archivado" INTEGER;
+```
+
 ## Principio de mínimo acceso (scopes del token)
 
 **NO VERIFICABLE** desde este entorno — no hay forma segura de inspeccionar

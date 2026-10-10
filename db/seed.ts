@@ -1,5 +1,10 @@
 import { db, Producto } from "astro:db";
 
+// Fixtures de desarrollo únicamente. Astro los carga al arrancar SIN `--remote`
+// (SQLite local). `npm run dev` usa `--remote` y NO ejecuta este seed.
+// `npm run build` (producción / Vercel) tampoco lo ejecuta. Estos tres
+// productos nunca son el catálogo de maygel.co.
+
 export default async function seed() {
 	await db.insert(Producto).values([
 		{

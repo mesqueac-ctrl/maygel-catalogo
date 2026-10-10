@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
 import { del } from "@vercel/blob";
-import { eliminar, obtenerPorId } from "../../../lib/productos";
+import { eliminar, estaArchivado, obtenerPorId, urlsDeFotosProducto } from "../../../lib/productos";
 
 export const POST: APIRoute = async ({ request, redirect }) => {
 	const datos = await request.formData();
 	const id = Number(datos.get("id"));
+	const vista = String(datos.get("vista") ?? "archivadas");
 
 	if (!Number.isInteger(id)) {
 		return redirect("/admin/productos?error=" + encodeURIComponent("No se indicó qué eliminar."));
@@ -16,6 +17,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		return redirect("/admin/productos?error=" + encodeURIComponent("Esa sandalia ya no existe."));
 	}
 
+	if (!estaArchivado(producto.archivado)) {
+		return redirect(
+			"/admin/productos?error=" +
+				encodeURIComponent("Primero archívala. Eliminarla del todo solo se puede desde Archivadas."),
+		);
+	}
+
 	try {
 		await eliminar(id);
 	} catch {
@@ -24,17 +32,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 		);
 	}
 
-	// Limpiamos la foto del almacenamiento; si falla, el producto ya se borró igual.
-	// El token solo se pasa si existe explícitamente; si no, @vercel/blob intenta
-	// autenticar vía OIDC (el mecanismo real en Vercel Production).
-	if (producto.imagen.startsWith("http")) {
-		const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
+	const token = import.meta.env.BLOB_READ_WRITE_TOKEN;
+	for (const url of urlsDeFotosProducto(producto)) {
 		try {
-			await del(producto.imagen, token ? { token } : {});
+			await del(url, token ? { token } : {});
 		} catch {
-			// Sin consecuencias para la usuaria.
+			// El producto ya se borró; una foto huérfana no bloquea.
 		}
 	}
 
-	return redirect("/admin/productos?ok=eliminado");
+	return redirect(
+		`/admin/productos?vista=${encodeURIComponent(vista)}&ok=` + encodeURIComponent("eliminado"),
+	);
 };

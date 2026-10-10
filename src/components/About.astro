@@ -1,46 +1,42 @@
 ---
 import { Image } from "astro:assets";
-import { obtenerPorSlug, imagenParaColor } from "../lib/productos";
+import { fotoDeApoyo } from "../lib/productos";
+import { SEO_PRODUCTO } from "../consts";
 
-// Fase 9.3: imagen temporal de apoyo visual — reutiliza la foto ya subida
-// del producto real "deriva" (misma fuente que Hero usa "luna"), evitando
-// repetir la imagen del Hero. NO es fotografía del taller/familia real: solo
-// apoyo de marca mientras no exista la sesión editorial (ver
-// docs/HOMEPAGE_SPEC.md § Photography Production Needs). Por eso no lleva
-// caption tipo "nuestro taller" — el copy de la sección no lo afirma.
-const referencia = await obtenerPorSlug("deriva");
-const imagenReferencia = referencia ? imagenParaColor(referencia, null) : null;
+const apoyo = await fotoDeApoyo(["deriva", "luna"]);
+const imagenReferencia = apoyo?.imagen ?? null;
 const imagenEsRemota = imagenReferencia?.startsWith("http") ?? false;
-const altReferencia = "Sandalias Maygel — apoyo visual de marca";
+const altReferencia = SEO_PRODUCTO.deriva?.alt ?? apoyo?.alt ?? "Sandalia Deriva de Maygel, plana con tira fina diagonal";
 ---
 
-<section class="about section section--surface" id="sobre-nosotros">
+<section class="about section" id="sobre-nosotros">
 	<div class="container about__inner">
 		<div class="about__media" data-reveal>
-			{imagenReferencia ? (
-				imagenEsRemota ? (
-					<Image
-						src={imagenReferencia}
-						alt={altReferencia}
-						width={900}
-						height={1125}
-						widths={[450, 900, 1350]}
-						sizes="(min-width: 900px) 45vw, 100vw"
-						format="webp"
-						loading="lazy"
-					/>
+			{
+				imagenReferencia ? (
+					imagenEsRemota ? (
+						<Image
+							src={imagenReferencia}
+							alt={altReferencia}
+							width={900}
+							height={1125}
+							widths={[450, 900]}
+							sizes="(min-width: 900px) 45vw, 100vw"
+							format="webp"
+							loading="lazy"
+						/>
+					) : (
+						<img src={imagenReferencia} alt={altReferencia} width="900" height="1125" loading="lazy" decoding="async" />
+					)
 				) : (
-					<img src={imagenReferencia} alt={altReferencia} width="900" height="1125" loading="lazy" decoding="async" />
+					<div class="about__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
 				)
-			) : (
-				<div class="about__visual" role="img" aria-label="Sandalias Maygel — fotografía próximamente"></div>
-			)}
+			}
 		</div>
-
 		<div class="about__text" data-reveal>
 			<!-- TODO: contenido provisional — reemplazar con la historia real de Maygel -->
-			<h2 class="about__titulo">Maygel nació en la mesa de nuestra casa.</h2>
-			<p class="about__parrafo">
+			<h2 class="section-title">Maygel nació en la mesa de nuestra casa.</h2>
+			<p>
 				Entre materiales, herramientas y las manos de toda la familia. Empezamos haciendo
 				sandalias para nosotros mismos, y con el tiempo amigos y vecinos empezaron a pedirnos un
 				par. Hoy seguimos haciendo cada sandalia como si fuera la primera: a mano, bajo pedido y
@@ -54,55 +50,37 @@ const altReferencia = "Sandalias Maygel — apoyo visual de marca";
 <style>
 	.about__inner {
 		display: grid;
-		gap: clamp(2rem, 5vw, 3rem);
+		gap: 1.5rem;
 	}
 
-	.about__media {
-		width: 100%;
-		aspect-ratio: 4 / 3;
-		max-height: clamp(260px, 34vw, 460px);
+	.about__media,
+	.about__visual {
+		border-radius: var(--radius);
 		overflow: hidden;
-		background-color: var(--color-surface);
+		aspect-ratio: 4 / 5;
+		max-height: 460px;
+		background: var(--color-image-fallback);
 	}
 
-	.about__media :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center 35%;
-	}
-
-	/* Fallback si el producto de referencia no existe o su imagen no carga —
-	   nunca vuelve a ser un gradiente de pantalla completa. */
+	.about__media :global(img),
 	.about__visual {
 		width: 100%;
 		height: 100%;
-		background-color: var(--color-surface);
+		object-fit: cover;
 	}
 
-	.about__text {
-		max-width: 52ch;
-	}
-
-	.about__titulo {
-		font-size: clamp(1.75rem, 3.4vw, 2.5rem);
-		line-height: 1.15;
-		margin-bottom: 1.5rem;
-	}
-
-	.about__parrafo {
-		color: var(--color-muted);
+	.about__text p {
+		margin-top: 1rem;
+		color: var(--color-text);
+		max-width: 46ch;
+		font-size: 1.0625rem;
 	}
 
 	@media (min-width: 900px) {
 		.about__inner {
-			grid-template-columns: 1fr 1fr;
-			gap: clamp(3rem, 6vw, 5rem);
+			grid-template-columns: 1fr 1.1fr;
 			align-items: center;
-		}
-
-		.about__media {
-			aspect-ratio: 4 / 5;
+			gap: 3rem;
 		}
 	}
 </style>

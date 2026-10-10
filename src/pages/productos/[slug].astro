@@ -11,6 +11,8 @@ import {
 	precioEfectivo,
 	tieneDescuento,
 	descripcionImagen,
+	descripcionPublica,
+	estaArchivado,
 	coloresComoLista,
 	tallasComoLista,
 	esTallaFlexible,
@@ -25,9 +27,11 @@ const { slug } = Astro.params;
 const producto = slug ? await obtenerPorSlug(slug) : undefined;
 
 // Slug inexistente: 404 real, nunca una página 200 vacía.
-if (!producto) {
+if (!producto || estaArchivado(producto.archivado)) {
 	return Astro.rewrite("/404");
 }
+
+const textoDescripcion = descripcionPublica(producto.nombre, producto.descripcion);
 
 // "No disponible" es distinto de "no encontrado": la página se conserva
 // (puede tener enlaces externos o historial de indexación), pero se marca
@@ -64,7 +68,7 @@ const imagenUrl = new URL(imagenInicial, Astro.url.origin).href;
 const title = `${producto.nombre} — Sandalia plana artesanal | Maygel`;
 const description =
 	seoProducto?.metaDescription ??
-	`${producto.descripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(precioEfectivo(producto))}.`;
+	`${textoDescripcion} Sandalia artesanal hecha a mano, fabricación bajo pedido. ${formatearPrecio(precioEfectivo(producto))}.`;
 const ogImageAlt = altImagen;
 // "No disponible" hoy no significa "página sin valor": sigue teniendo
 // enlaces internos reales (migas, relacionados, footer) que conviene que se
@@ -114,7 +118,7 @@ const datosEstructurados = disponible
 			// el texto visible en la ficha, sin tocar) — Fase 13.3 §3: el slogan
 			// es demasiado genérico para describir el producto en datos
 			// estructurados.
-			description: seoProducto?.metaDescription ?? producto.descripcion,
+			description: seoProducto?.metaDescription ?? textoDescripcion,
 			image: imagenUrl,
 			url: paginaUrl,
 			brand: { "@type": "Brand", name: "Maygel" },
@@ -238,7 +242,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 						{
 							disponible && (
 								<>
-									<p class="ficha__descripcion">{producto.descripcion}</p>
+									<p class="ficha__descripcion">{textoDescripcion}</p>
 
 									{colores.length > 0 && (
 										<fieldset class="ficha__grupo" data-grupo-color>
@@ -330,6 +334,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 									<a
 										class="btn ficha__cta"
 										id="ficha-cta"
+										data-ficha-cta
 										href={enlaceWhatsappInicial}
 										target={enlaceWhatsappInicial === "#" ? undefined : "_blank"}
 										rel={enlaceWhatsappInicial === "#" ? undefined : "noopener noreferrer"}
@@ -341,6 +346,10 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 									</a>
 
 									<p class="ficha__tag">Hecho a mano, bajo pedido — se fabrica después de tu pedido. Suela de goma.</p>
+									<p class="ficha__tiempo">Te confirmamos el tiempo de entrega por WhatsApp.</p>
+									<p class="ficha__tallas-link">
+										<a href="/ayuda#tallas">Consulta tu talla</a>
+									</p>
 
 									<p class="ficha__ayuda">
 										¿Necesitas ayuda con talla, color o pedido?{" "}
@@ -377,6 +386,21 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 				}
 			</div>
 		</section>
+		{
+			disponible && (
+				<div class="ficha-cta-fijo">
+					<a
+						class="btn"
+						data-ficha-cta
+						href={enlaceWhatsappInicial}
+						target={enlaceWhatsappInicial === "#" ? undefined : "_blank"}
+						rel={enlaceWhatsappInicial === "#" ? undefined : "noopener noreferrer"}
+					>
+						Pedir este par
+					</a>
+				</div>
+			)
+		}
 	</main>
 	<ContactFooter />
 	{datosEstructurados && <script type="application/ld+json" is:inline set:html={JSON.stringify(datosEstructurados)} />}
@@ -386,6 +410,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 <script>
 	import { mensajeProducto, buildWhatsappLink } from "../../lib/whatsapp";
 
+	const ctas = document.querySelectorAll<HTMLAnchorElement>("[data-ficha-cta]");
 	const cta = document.getElementById("ficha-cta") as HTMLAnchorElement | null;
 	const mensajeError = document.getElementById("ficha-mensaje");
 	const imagen = document.querySelector<HTMLImageElement>("[data-ficha-imagen]");
@@ -417,20 +442,20 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		}
 
 		function actualizarEnlace() {
-			if (!cta) return;
 			const faltaColor = gruposColor.length > 1 && !colorElegido;
 			const faltaTalla = gruposTalla.length > 1 && !tallaElegida;
 
-			if (faltaColor || faltaTalla) {
-				cta.href = "#";
-				cta.removeAttribute("target");
-				return;
-			}
-
-			const mensaje = mensajeProducto(nombre, colorElegido, url, tallaElegida, precio);
-			cta.href = buildWhatsappLink(mensaje);
-			cta.target = "_blank";
-			cta.rel = "noopener noreferrer";
+			ctas.forEach((boton) => {
+				if (faltaColor || faltaTalla) {
+					boton.href = "#";
+					boton.removeAttribute("target");
+					return;
+				}
+				const mensaje = mensajeProducto(nombre, colorElegido, url, tallaElegida, precio);
+				boton.href = buildWhatsappLink(mensaje);
+				boton.target = "_blank";
+				boton.rel = "noopener noreferrer";
+			});
 		}
 
 		gruposColor.forEach((boton) => {
@@ -475,23 +500,25 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 			actualizarEnlace();
 		});
 
-		cta.addEventListener("click", (evento) => {
-			const faltaColor = gruposColor.length > 1 && !colorElegido;
-			const faltaTalla = gruposTalla.length > 1 && !tallaElegida;
+		ctas.forEach((boton) => {
+			boton.addEventListener("click", (evento) => {
+				const faltaColor = gruposColor.length > 1 && !colorElegido;
+				const faltaTalla = gruposTalla.length > 1 && !tallaElegida;
 
-			if (faltaColor || faltaTalla) {
-				evento.preventDefault();
-				if (mensajeError) {
-					mensajeError.hidden = false;
-					mensajeError.textContent = faltaColor
-						? "Selecciona un color para continuar."
-						: "Selecciona una talla para continuar.";
+				if (faltaColor || faltaTalla) {
+					evento.preventDefault();
+					if (mensajeError) {
+						mensajeError.hidden = false;
+						mensajeError.textContent = faltaColor
+							? "Selecciona un color para continuar."
+							: "Selecciona una talla para continuar.";
+					}
+					const grupo = faltaColor
+						? document.querySelector<HTMLElement>("[data-grupo-color] button")
+						: document.querySelector<HTMLElement>("[data-grupo-talla] button");
+					grupo?.focus();
 				}
-				const grupo = faltaColor
-					? document.querySelector<HTMLElement>("[data-grupo-color] button")
-					: document.querySelector<HTMLElement>("[data-grupo-talla] button");
-				grupo?.focus();
-			}
+			});
 		});
 
 		actualizarEnlace();
@@ -551,7 +578,8 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		   asomar de inmediato, sin depender de la altura del dispositivo. */
 		max-height: clamp(320px, 90vw, 420px);
 		overflow: hidden;
-		background-color: #ede4d6;
+		border-radius: var(--radius);
+		background-color: var(--color-image-fallback, #ead9c6);
 	}
 
 	.ficha__galeria :global(img) {
@@ -562,6 +590,8 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 
 	.ficha__nombre {
 		font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+		font-style: normal;
+		letter-spacing: -0.02em;
 		margin-bottom: 0.5rem;
 	}
 
@@ -650,6 +680,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		box-sizing: border-box;
 		background: transparent;
 		border: 1px solid var(--color-line);
+		border-radius: var(--radius-pill);
 		padding: 0.6rem 0.9rem;
 		cursor: pointer;
 		font-family: var(--font-body);
@@ -705,7 +736,7 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 		padding: 0.6rem 0.85rem;
 		margin-top: 0.4rem;
 		border: 1px solid var(--color-border);
-		background-color: #fff;
+		background-color: var(--color-surface);
 		color: var(--color-text);
 	}
 
@@ -751,23 +782,53 @@ const whatsappAyuda = buildWhatsappLink(MENSAJE_AYUDA);
 	.ficha__cta {
 		width: 100%;
 		justify-content: center;
-		margin-bottom: 2rem;
+		margin-bottom: 1.25rem;
 		margin-top: 0.5rem;
-		border: 1.5px solid var(--color-accent);
 		padding: 1.1rem 1.5rem;
 		font-size: 0.9375rem;
 		font-weight: 700;
-		background-color: var(--color-surface);
-		transition:
-			background-color 0.22s ease,
-			color 0.22s ease,
-			border-color 0.22s ease;
 	}
 
-	.ficha__cta:hover {
-		background-color: var(--color-accent);
-		color: var(--color-bg);
-		border-color: var(--color-accent);
+	.ficha__tiempo,
+	.ficha__tallas-link {
+		margin-bottom: 0.85rem;
+		font-size: 0.9375rem;
+	}
+
+	.ficha__tallas-link a {
+		color: var(--color-cta);
+		font-weight: 600;
+	}
+
+	.ficha-cta-fijo {
+		display: none;
+	}
+
+	@media (max-width: 779px) {
+		.ficha-cta-fijo {
+			display: block;
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 45;
+			padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+			background: var(--color-surface);
+			box-shadow: 0 -8px 24px rgba(43, 26, 18, 0.12);
+		}
+
+		.ficha-cta-fijo .btn {
+			width: 100%;
+			justify-content: center;
+		}
+
+		:global(body.sitio) {
+			padding-bottom: 5.5rem;
+		}
+
+		:global(.whatsapp-flotante) {
+			bottom: 5.4rem;
+		}
 	}
 
 	.ficha__tag {

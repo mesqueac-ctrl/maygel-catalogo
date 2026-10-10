@@ -78,6 +78,133 @@
 	--space-4xl: clamp(6rem, 14vw, 11rem);
 }
 
+/* Tienda pública — Caribe cálido. El admin no lleva .sitio y conserva :root. */
+.sitio {
+	/* Combinaciones AA (texto pequeño ≥ 4.5:1):
+	   espresso #2B1A12 sobre arena #F6EFE6 ≈ 14.8:1
+	   espresso sobre crema #FFFAF3 ≈ 15.3:1
+	   café #8C5A2F: acento, no párrafos
+	   espresso sobre arena para todo texto de lectura
+	   blanco sobre CTA #C24520 ≈ 5.05:1 (terracota #D9572B con blanco ≈ 3.9:1 — no se usa como texto)
+	   espresso sobre mostaza #E8B04A ≈ 7.4:1
+	   blanco sobre espresso ≈ 16:1 */
+	--color-bg: #f6efe6;
+	--color-surface: #fffaf3;
+	--color-text: #2b1a12;
+	--color-muted: #2b1a12;
+	--color-terracotta: #d9572b;
+	--color-mustard: #e8b04a;
+	--color-cta: #c24520;
+	--color-cta-hover: #a3381a;
+	--color-accent: var(--color-cta);
+	--color-accent-hover: var(--color-cta-hover);
+	--color-champagne: var(--color-mustard);
+	--color-line: rgba(43, 26, 18, 0.12);
+	--color-dark: #2b1a12;
+	--color-dark-text: #fffaf3;
+	--color-dark-line: rgba(255, 250, 243, 0.18);
+	--color-border: var(--color-line);
+	--color-accent-soft: var(--color-muted);
+	--font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+	--font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+	--radius: 1.35rem;
+	--radius-pill: 999px;
+	--bg-primary: var(--color-bg);
+	--bg-secondary: var(--color-surface);
+	--surface: var(--color-surface);
+	--text-primary: var(--color-text);
+	--text-secondary: var(--color-muted);
+	--accent: var(--color-accent);
+	--accent-subtle: var(--color-terracotta);
+	--border: var(--color-line);
+	--inverse-surface: var(--color-dark);
+	--inverse-text: var(--color-dark-text);
+	--decorative: var(--color-mustard);
+	--color-image-fallback: #ead9c6;
+	--space-section: clamp(3.5rem, 8vw, 6.5rem);
+	--space-3xl: var(--space-section);
+	--max-width: 1200px;
+}
+
+body.sitio {
+	background-color: var(--color-bg);
+	background-image: none;
+	color: var(--color-text);
+	font-family: var(--font-body);
+	overflow-x: clip;
+}
+
+.sitio p,
+.sitio li {
+	color: var(--color-text);
+}
+
+.sitio .section--dark p,
+.sitio .section--dark li {
+	color: var(--color-dark-text);
+}
+
+.sitio h1,
+.sitio h2 {
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-style: normal;
+	letter-spacing: -0.045em;
+	line-height: 0.95;
+}
+
+.sitio .section-title {
+	font-size: clamp(2rem, 5.5vw, 3.5rem);
+}
+
+.sitio .btn,
+.sitio .btn-outline {
+	border: none;
+	border-bottom: none;
+	border-radius: var(--radius-pill);
+	padding: 0.85rem 1.45rem;
+	letter-spacing: 0.02em;
+	text-transform: none;
+	font-size: 0.9375rem;
+	font-weight: 600;
+	box-shadow: 0 8px 20px rgba(194, 69, 32, 0.18);
+}
+
+.sitio .btn {
+	background-color: var(--color-cta);
+	color: #fff;
+}
+
+.sitio .btn:hover {
+	background-color: var(--color-cta-hover);
+	color: #fff;
+}
+
+.sitio .btn-outline {
+	background-color: var(--color-surface);
+	color: var(--color-text);
+	border: 1.5px solid var(--color-text);
+	box-shadow: none;
+}
+
+.sitio .btn-outline:hover {
+	background-color: var(--color-text);
+	color: var(--color-surface);
+	border-color: var(--color-text);
+}
+
+.sitio .btn-on-dark {
+	background-color: var(--color-mustard);
+	color: var(--color-text);
+	border: none;
+	box-shadow: none;
+}
+
+.sitio .btn-on-dark:hover {
+	background-color: #f0c56a;
+	color: var(--color-text);
+}
+
 *,
 *::before,
 *::after {
@@ -86,6 +213,7 @@
 
 html {
 	scroll-behavior: smooth;
+	overflow-x: clip;
 }
 
 body {
@@ -136,7 +264,7 @@ a {
 .container {
 	max-width: var(--max-width);
 	margin: 0 auto;
-	padding-inline: clamp(1.5rem, 5vw, 3rem);
+	padding-inline: clamp(1rem, 4.2vw, 3rem);
 }
 
 .section {
