@@ -128,6 +128,7 @@ Orden seguro para rotarlo (no ejecutado — requiere acceso a Turso/Vercel):
 | (Fase 0) | `ALTER TABLE Producto ADD COLUMN imagenesColores TEXT;` | 0/0 | Ver `CONTEXTO-PROYECTO.md` § 10.1 |
 | (Fase 0/1) | `ALTER TABLE Producto ADD COLUMN categoria TEXT; ALTER TABLE Producto ADD COLUMN destacado INTEGER NOT NULL DEFAULT 0;` | 0/0 | — |
 | Fase 5 | `ALTER TABLE Producto ADD COLUMN slug TEXT; CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);` | 0/0 | Slug persistente — ver `ARCHITECTURE.md` § slug. Índice único creado además de la columna (dos sentencias, ambas aditivas) |
+| 2026-10-10 | `ALTER TABLE Producto ADD COLUMN archivado INTEGER;` | 10/10 | Mismos IDs (Luna…Cristal). Columna NULL en filas existentes. Código desplegado después. |
 
 ## Migración diseñada, NO ejecutada: columna `precioOferta` (Fase 8.2)
 
@@ -253,22 +254,13 @@ CREATE UNIQUE INDEX idx_producto_slug ON Producto(slug);
    aplicadas" de abajo con fecha real y filas antes/después, y quitar esta
    sección o marcarla como completada.
 
-## Migración diseñada, NO ejecutada: columna `archivado`
+## Migración aplicada: columna `archivado` (2026-10-10)
 
-**Estado: escrita aquí y en `scripts/migracion-archivado.sql`. No se ha
-corrido contra producción ni contra la base remota.**
+**Estado: ejecutada en producción** con `@libsql/client` (una sola sentencia
+aditiva). 10 filas antes y después; IDs 1–10 intactos; `archivado` NULL en
+las existentes. El script temporal se borró y no quedó en git.
 
-### Orden obligatorio
-
-1. **Primero** aplicar el `ALTER` en producción (script temporal con
-   `@libsql/client`, nunca `astro db push`).
-2. Verificar con `npm run db:inspect:remote`: misma cantidad de filas; la
-   columna nueva en `NULL` para las existentes.
-3. **Después** desplegar el código que lee `archivado`.
-4. Si se despliega el código antes del ALTER, las consultas a `Producto`
-   fallan con `no such column: archivado`.
-
-NULL o 0 = no archivado. Solo 1/true cuenta como archivada.
+NULL o 0 = no archivado. Solo 1/true cuenta como archivada. El SQL aplicado:
 
 ```sql
 ALTER TABLE "Producto" ADD COLUMN "archivado" INTEGER;
